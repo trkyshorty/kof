@@ -68,7 +68,7 @@ namespace KOF.Core
                             if (ClientData.HasExited() == false)
                                 ClientData.GetProcess().Kill();
 
-                            Console.WriteLine("App > PID " + ClientData.GetProcessId() + " Lost");
+                            Debug.WriteLine("App > PID " + ClientData.GetProcessId() + " Lost");
 
                             if (Convert.ToBoolean(GetControl("AutoLogin")))
                             {
@@ -163,7 +163,7 @@ namespace KOF.Core
 
                     Process.Start();
 
-                    Console.WriteLine("Launcher -> " + Account.Name + " starting.");
+                    Debug.WriteLine("Launcher -> " + Account.Name + " starting.");
 
                     Thread.Sleep(1250);
 
@@ -322,7 +322,7 @@ namespace KOF.Core
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.StackTrace);
+                    Debug.WriteLine(ex.StackTrace);
                 }
             }
         }

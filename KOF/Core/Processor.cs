@@ -85,7 +85,7 @@ namespace KOF.Core
 
                     if (Process.MainWindowTitle == "Knight OnLine Client")
                     {
-                        Console.WriteLine("Client -> Patch Mutant");
+                        Debug.WriteLine("Client -> Patch Mutant");
                         PatchMutant(GetAccountName());
                     }
                 }
@@ -367,7 +367,7 @@ namespace KOF.Core
                 case "01": //WIZ_LOGIN
                     SetPhase(EPhase.Selecting);
                     SetLoginTime(Environment.TickCount);
-                    Console.WriteLine("Recv -> Login " + GetLoginTime());
+                    Debug.WriteLine("Recv -> Login " + GetLoginTime());
                     break;
 
                 case "F3": //WIZ_UNKNOWN -> Maybe Authentication response
@@ -381,22 +381,22 @@ namespace KOF.Core
                         {
                             case "01":
                                 SetPhase(EPhase.Loggining);
-                                Console.WriteLine("Recv -> Auth Response " + Ret + " - Success");
+                                Debug.WriteLine("Recv -> Auth Response " + Ret + " - Success");
                                 break;
                             case "02":
                                 SetPhase(EPhase.Disconnected);
-                                Console.WriteLine("Recv -> Auth Response " + Ret + " - User not found");
+                                Debug.WriteLine("Recv -> Auth Response " + Ret + " - User not found");
                                 break;
                             case "03":
                                 SetPhase(EPhase.Disconnected);
-                                Console.WriteLine("Recv -> Auth Response " + Ret + " - Password does not match");
+                                Debug.WriteLine("Recv -> Auth Response " + Ret + " - Password does not match");
                                 break;
                             case "05":
                                 SetPhase(EPhase.Loggining);
-                                Console.WriteLine("Recv -> Auth Response " + Ret + " - Already");
+                                Debug.WriteLine("Recv -> Auth Response " + Ret + " - Already");
                                 break;
                             default:
-                                Console.WriteLine("Recv -> Auth Response " + Ret);
+                                Debug.WriteLine("Recv -> Auth Response " + Ret);
                                 break;
 
                         }
@@ -412,7 +412,7 @@ namespace KOF.Core
 
                         _AutoLootCollection.Add(AutoLootData);
 
-                        Console.WriteLine("Recv -> Chest drop " + Message.Substring(6, 8));
+                        Debug.WriteLine("Recv -> Chest drop " + Message.Substring(6, 8));
                     }
                     
                     break;
@@ -428,7 +428,7 @@ namespace KOF.Core
                         {
                             int Item = BitConverter.ToInt32(StringToByte(ItemHex), 0);
 
-                            Console.WriteLine("Recv -> Loot info " + i + " " + Item);
+                            Debug.WriteLine("Recv -> Loot info " + i + " " + Item);
 
                             bool Loot = false;
 
@@ -461,13 +461,13 @@ namespace KOF.Core
                                 switch (Message.Substring(4, 2))
                                 {
                                     case "01":
-                                        Console.WriteLine("Recv -> Seal password validation");
+                                        Debug.WriteLine("Recv -> Seal password validation");
                                         break;
                                     case "03":
                                         if (Message.Substring(6, 2) == "01")
-                                            Console.WriteLine("Recv -> Seal password validate success");
+                                            Debug.WriteLine("Recv -> Seal password validate success");
                                         else
-                                            Console.WriteLine("Recv -> Seal password validate failed");
+                                            Debug.WriteLine("Recv -> Seal password validate failed");
                                         break;
                                 }
                             }
@@ -481,27 +481,27 @@ namespace KOF.Core
                         case "02": //ZoneChangeLoaded
                             SetPhase(EPhase.Playing);
                             SetEnterGameTime(Environment.TickCount);
-                            Console.WriteLine("Recv -> Zone change loaded");
+                            Debug.WriteLine("Recv -> Zone change loaded");
                             break;
 
                         case "03": //ZoneChangeTeleport
                             SetEnterGameTime(Environment.TickCount);
                             int ZoneId = int.Parse(Message.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-                            Console.WriteLine("Recv -> Zone change teleport(" + ZoneId + ")");
+                            Debug.WriteLine("Recv -> Zone change teleport(" + ZoneId + ")");
                             break;
                     }
                     break;
 
                 case "1E": //WIZ_WARP
                     SetFallbackTime(Environment.TickCount);
-                    Console.WriteLine("Recv -> Warp start (/town, fallback or gamemaster)");
+                    Debug.WriteLine("Recv -> Warp start (/town, fallback or gamemaster)");
                     break;
 
                 case "4B": //WIZ_WARP_LIST
                     switch (Message.Substring(2, 2))
                     {
                         case "01": //GetWarpList
-                            Console.WriteLine("Recv -> Warp list loaded");
+                            Debug.WriteLine("Recv -> Warp list loaded");
                             break;
                     }
                     break;
@@ -538,24 +538,24 @@ namespace KOF.Core
             switch (Message.Substring(0, 2))
             {
                 case "F2": //WIZ_AUTH
-                    Console.WriteLine("Send -> Auth " + Environment.TickCount);
+                    Debug.WriteLine("Send -> Auth " + Environment.TickCount);
                     SetPhase(EPhase.Authentication);
                     break;
 
                 case "01": //WIZ_LOGIN
                     SetPhase(EPhase.Loggining);
-                    Console.WriteLine("Send -> Login " + Environment.TickCount);
+                    Debug.WriteLine("Send -> Login " + Environment.TickCount);
                     break;
 
                 case "04": //WIZ_SEL_CHAR
                     SetPhase(EPhase.Selected);
-                    Console.WriteLine("Send -> Character selected " + Environment.TickCount);
+                    Debug.WriteLine("Send -> Character selected " + Environment.TickCount);
                     break;
 
                 case "0D": //WIZ_GAMESTART
                     SetPhase(EPhase.Playing);
                     SetEnterGameTime(Environment.TickCount);
-                    Console.WriteLine("Send -> Game start " + Environment.TickCount);
+                    Debug.WriteLine("Send -> Game start " + Environment.TickCount);
                     break;
 
                 case "5B": //WIZ_ITEM_UPGRADE
@@ -566,13 +566,13 @@ namespace KOF.Core
                                 switch (Message.Substring(4, 2))
                                 {
                                     case "01":
-                                        Console.WriteLine("Send -> Seal password validation");
+                                        Debug.WriteLine("Send -> Seal password validation");
                                         break;
                                     case "03":
                                         if (GetControl("CharacterSealPacket") != Message)
                                             SetControl("CharacterSealPacket", Message);
 
-                                        Console.WriteLine("Send -> Seal password validate request");
+                                        Debug.WriteLine("Send -> Seal password validate request");
                                         break;
                                 }
                             }
@@ -582,27 +582,27 @@ namespace KOF.Core
 
                 case "20": //WIZ_NPC_EVENT
                     {
-                        Console.WriteLine("Send -> Npc event");
+                        Debug.WriteLine("Send -> Npc event");
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
 
                 case "33": //WIZ_OBJECT_EVENT
                     {
-                        Console.WriteLine("Send -> Object event");
+                        Debug.WriteLine("Send -> Object event");
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
 
                 case "24": //WIZ_BUNDLE_OPEN_REQ
                     {
-                        Console.WriteLine("Send -> Chest open");
+                        Debug.WriteLine("Send -> Chest open");
                         _AutoLootCollection.RemoveAll(x => x.Id == Message.Substring(2, 8));
                     }
                     break;
 
                 case "26": //WIZ_ITEM_GET
-                    Console.WriteLine("Send -> Loot get " + BitConverter.ToInt32(StringToByte(Message.Substring(10, 8)), 0));
+                    Debug.WriteLine("Send -> Loot get " + BitConverter.ToInt32(StringToByte(Message.Substring(10, 8)), 0));
                     break;
 
                 case "79": //WIZ_SKILLDATA
@@ -621,7 +621,7 @@ namespace KOF.Core
                     switch (Message.Substring(2, 2))
                     {
                         case "01": //ZoneChangeLoaading
-                            Console.WriteLine("Send -> Zone change load");
+                            Debug.WriteLine("Send -> Zone change load");
                             break;
                     }
                     break;
@@ -635,7 +635,7 @@ namespace KOF.Core
 
                 case "48": //WIZ_WARP_HOME
                     {
-                        Console.WriteLine("Send -> /town");
+                        Debug.WriteLine("Send -> /town");
                         SetFallbackTime(Environment.TickCount);
                         ForwardPacketToAllFollower(Message);
                     }
@@ -643,21 +643,21 @@ namespace KOF.Core
 
                 case "55": //WIZ_SELECT_MSG
                     {
-                        Console.WriteLine("Send -> Select message");
+                        Debug.WriteLine("Send -> Select message");
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
 
                 case "56": //WIZ_NPC_SAY
                     {
-                        Console.WriteLine("Send -> Say message");
+                        Debug.WriteLine("Send -> Say message");
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
 
                 case "64": //WIZ_QUEST
                     {
-                        Console.WriteLine("Send -> Select quest");
+                        Debug.WriteLine("Send -> Select quest");
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
@@ -1006,7 +1006,7 @@ namespace KOF.Core
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.StackTrace); //Except -- Process(PID) is not running
+                    Debug.WriteLine(ex.StackTrace); //Except -- Process(PID) is not running
                 }
             }
 
@@ -1113,7 +1113,7 @@ namespace KOF.Core
             Write4Byte(GetRecvPointer(), _MailslotRecvHookPtr.ToInt32());
             VirtualProtectEx(_Handle, new IntPtr(GetRecvPointer()), 4, MemoryProtection, out MemoryProtection);
 
-            Console.WriteLine("Mailslot -> Recv packet hooked.");
+            Debug.WriteLine("Mailslot -> Recv packet hooked.");
 
             String MailslotSendName = @"\\.\mailslot\KNIGHTONLINE_SEND\" + Environment.TickCount;
 
@@ -1139,7 +1139,7 @@ namespace KOF.Core
 
             Patch(_Handle, new IntPtr(GetAddress("KO_PTR_SND")), "E9" + AlignDWORD(AddressDistance(new IntPtr(GetAddress("KO_PTR_SND")), _MailslotSendHookPtr)));
 
-            Console.WriteLine("Mailslot -> Send packet hooked.");
+            Debug.WriteLine("Mailslot -> Send packet hooked.");
         }
 
         #region "Game Functions"
@@ -2537,7 +2537,7 @@ namespace KOF.Core
             }
             else
             {
-                Console.WriteLine("Repair -> Sunderies does not exist (" + GetZone() + ")");
+                Debug.WriteLine("Repair -> Sunderies does not exist (" + GetZone() + ")");
             }
         }
 
@@ -2661,13 +2661,9 @@ namespace KOF.Core
 
             int InventoryItemSlot = GetInventoryItemSlot(Item.Id);
 
-            Console.WriteLine("ddd");
-
             InventoryItemSlot = InventoryItemSlot != -1 ? InventoryItemSlot : GetInventoryEmptySlot();
 
             if (InventoryItemSlot == -1) return;
-
-            Console.WriteLine(InventoryItemSlot);
 
             string ItemCount = Item.BuyPacketCountSize == 0 ? AlignDWORD(Count) : AlignDWORD(Count).Substring(0, Item.BuyPacketCountSize);
 

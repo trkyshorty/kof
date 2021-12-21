@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using KOF.Common.Win32;
+using System.IO;
+using System.Diagnostics;
 
 namespace KOF.Core
 {
@@ -224,6 +226,21 @@ namespace KOF.Core
         public int CoordinateDistance(int StartX, int StartY, int TargetX, int TargetY)
         {
             return Convert.ToInt32(Math.Sqrt(Math.Pow((TargetX - StartX), 2) + Math.Pow((TargetY - StartY), 2)));
+        }
+
+        public long GetFileSize(string FilePath)
+        {
+            if (!Directory.Exists(Path.GetDirectoryName(FilePath)))
+            {
+                Debug.WriteLine("Permission denied");
+                return -1;
+            }
+            else if (File.Exists(FilePath))
+            {
+                return new FileInfo(FilePath).Length;
+            }
+
+            return 0;
         }
     }
 }

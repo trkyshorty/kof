@@ -81,6 +81,13 @@ namespace KOF.UI
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.AutoAccountSave = new System.Windows.Forms.CheckBox();
             this.MainNotify = new System.Windows.Forms.NotifyIcon(this.components);
+            this.MenuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.DiscordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GeliştiriciToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.KonsolToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.YardımToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.HakkindaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.WebSitesiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -97,6 +104,7 @@ namespace KOF.UI
             ((System.ComponentModel.ISupportInitialize)(this.AttackSpeed)).BeginInit();
             this.groupBox5.SuspendLayout();
             this.groupBox6.SuspendLayout();
+            this.MenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -106,7 +114,7 @@ namespace KOF.UI
             this.groupBox1.Controls.Add(this.AccountList);
             this.groupBox1.Controls.Add(this.AccountDelete);
             this.groupBox1.Controls.Add(this.AccountStart);
-            this.groupBox1.Location = new System.Drawing.Point(3, 3);
+            this.groupBox1.Location = new System.Drawing.Point(3, 26);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(291, 210);
             this.groupBox1.TabIndex = 0;
@@ -162,7 +170,6 @@ namespace KOF.UI
             this.AccountStart.TabIndex = 1;
             this.AccountStart.Text = "Başlat";
             this.AccountStart.UseVisualStyleBackColor = true;
-
             this.AccountStart.Click += new System.EventHandler(this.AccountStart_Click);
             // 
             // groupBox2
@@ -171,7 +178,7 @@ namespace KOF.UI
             this.groupBox2.Controls.Add(this.ClientHandle);
             this.groupBox2.Controls.Add(this.groupBox3);
             this.groupBox2.Controls.Add(this.ClientList);
-            this.groupBox2.Location = new System.Drawing.Point(300, 3);
+            this.groupBox2.Location = new System.Drawing.Point(300, 26);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(314, 210);
             this.groupBox2.TabIndex = 1;
@@ -275,7 +282,7 @@ namespace KOF.UI
             this.groupBox4.Controls.Add(this.groupBox9);
             this.groupBox4.Controls.Add(this.groupBox8);
             this.groupBox4.Controls.Add(this.groupBox7);
-            this.groupBox4.Location = new System.Drawing.Point(3, 279);
+            this.groupBox4.Location = new System.Drawing.Point(3, 297);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(611, 233);
             this.groupBox4.TabIndex = 2;
@@ -613,7 +620,7 @@ namespace KOF.UI
             this.groupBox5.Controls.Add(this.HideAllClient);
             this.groupBox5.Controls.Add(this.ShowAllClient);
             this.groupBox5.Controls.Add(this.ClientCloseAll);
-            this.groupBox5.Location = new System.Drawing.Point(300, 219);
+            this.groupBox5.Location = new System.Drawing.Point(300, 237);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(314, 54);
             this.groupBox5.TabIndex = 3;
@@ -667,7 +674,7 @@ namespace KOF.UI
             // 
             this.groupBox6.Controls.Add(this.AutoAccountSave);
             this.groupBox6.Controls.Add(this.AutoLogin);
-            this.groupBox6.Location = new System.Drawing.Point(3, 219);
+            this.groupBox6.Location = new System.Drawing.Point(3, 237);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(291, 54);
             this.groupBox6.TabIndex = 4;
@@ -696,11 +703,71 @@ namespace KOF.UI
             this.MainNotify.Text = "KOF";
             this.MainNotify.Visible = true;
             // 
+            // MenuStrip1
+            // 
+            this.MenuStrip1.BackColor = System.Drawing.Color.Transparent;
+            this.MenuStrip1.Font = new System.Drawing.Font("Tahoma", 8.25F);
+            this.MenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.DiscordToolStripMenuItem,
+            this.GeliştiriciToolStripMenuItem,
+            this.YardımToolStripMenuItem});
+            this.MenuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.MenuStrip1.Name = "MenuStrip1";
+            this.MenuStrip1.Size = new System.Drawing.Size(614, 24);
+            this.MenuStrip1.TabIndex = 7;
+            this.MenuStrip1.Text = "MenuStrip1";
+            // 
+            // DiscordToolStripMenuItem
+            // 
+            this.DiscordToolStripMenuItem.Name = "DiscordToolStripMenuItem";
+            this.DiscordToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
+            this.DiscordToolStripMenuItem.Text = "Discord";
+            this.DiscordToolStripMenuItem.Click += new System.EventHandler(this.DiscordToolStripMenuItem_Click);
+            // 
+            // GeliştiriciToolStripMenuItem
+            // 
+            this.GeliştiriciToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.KonsolToolStripMenuItem});
+            this.GeliştiriciToolStripMenuItem.Name = "GeliştiriciToolStripMenuItem";
+            this.GeliştiriciToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
+            this.GeliştiriciToolStripMenuItem.Text = "Araçlar";
+            // 
+            // KonsolToolStripMenuItem
+            // 
+            this.KonsolToolStripMenuItem.Name = "KonsolToolStripMenuItem";
+            this.KonsolToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.KonsolToolStripMenuItem.Text = "Konsol";
+            this.KonsolToolStripMenuItem.Click += new System.EventHandler(this.KonsolToolStripMenuItem_Click);
+            // 
+            // YardımToolStripMenuItem
+            // 
+            this.YardımToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.HakkindaToolStripMenuItem,
+            this.WebSitesiToolStripMenuItem});
+            this.YardımToolStripMenuItem.Name = "YardımToolStripMenuItem";
+            this.YardımToolStripMenuItem.Size = new System.Drawing.Size(51, 20);
+            this.YardımToolStripMenuItem.Text = "Yardım";
+            // 
+            // HakkindaToolStripMenuItem
+            // 
+            this.HakkindaToolStripMenuItem.Name = "HakkindaToolStripMenuItem";
+            this.HakkindaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.HakkindaToolStripMenuItem.Text = "Hakkında";
+            this.HakkindaToolStripMenuItem.Click += new System.EventHandler(this.HakkindaToolStripMenuItem_Click);
+            // 
+            // WebSitesiToolStripMenuItem
+            // 
+            this.WebSitesiToolStripMenuItem.Name = "WebSitesiToolStripMenuItem";
+            this.WebSitesiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.WebSitesiToolStripMenuItem.Text = "Web sitesi";
+            this.WebSitesiToolStripMenuItem.Click += new System.EventHandler(this.WebSitesiToolStripMenuItem_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(614, 514);
+            this.ClientSize = new System.Drawing.Size(614, 530);
+            this.Controls.Add(this.MenuStrip1);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox5);
             this.Controls.Add(this.groupBox4);
@@ -737,7 +804,10 @@ namespace KOF.UI
             this.groupBox5.ResumeLayout(false);
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
+            this.MenuStrip1.ResumeLayout(false);
+            this.MenuStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -793,6 +863,13 @@ namespace KOF.UI
         private System.Windows.Forms.NumericUpDown AreaControlY;
         private System.Windows.Forms.NumericUpDown AreaControlX;
         private System.Windows.Forms.ComboBox Platform;
+        internal System.Windows.Forms.MenuStrip MenuStrip1;
+        internal System.Windows.Forms.ToolStripMenuItem GeliştiriciToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem KonsolToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem YardımToolStripMenuItem;
+        internal System.Windows.Forms.ToolStripMenuItem HakkindaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem DiscordToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem WebSitesiToolStripMenuItem;
     }
 }
 

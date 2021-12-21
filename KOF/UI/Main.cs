@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using KOF.Core;
-using KOF.Common;
+using System.Reflection;
 using System.Linq;
 using System.Threading;
+using KOF.Common;
 using KOF.Common.Win32;
+using KOF.Core;
 
 namespace KOF.UI
 {
@@ -31,6 +32,8 @@ namespace KOF.UI
         private void Main_Load(object sender, EventArgs e)
         {
             TopMost = true;
+
+            Text = "KOF - v" + Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             _App.Load();
 
@@ -772,6 +775,27 @@ namespace KOF.UI
             _App.SetControl(Platform.Name, SelectedPlatform);
 
             LoadAccountList(SelectedPlatform);
+        }
+
+        private void DiscordToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://discord.gg/C9RMpHtccy");
+        }
+
+        private void HakkindaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            About About = new About();
+            About.ShowDialog();
+        }
+
+        private void WebSitesiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://kofbot.com");
+        }
+
+        private void KonsolToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Win32Api.AllocConsole();
         }
     }
 }

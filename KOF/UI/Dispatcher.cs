@@ -149,6 +149,17 @@ namespace KOF.UI
 
             _LootableItem.InitializeControl();
             _SellableItem.InitializeControl();
+
+            if(GetClient().GetPlatform() == AddressEnum.Platform.JPKO)
+            {
+                AreaHeal.Enabled = true;
+                SpeedHack.Enabled = true;
+                DropScroll.Enabled = true;
+                StatScroll.Enabled = true;
+                AcScroll.Enabled = true;
+                AttackScroll.Enabled = true;
+            }
+
         }
 
         private void Configuration_KeyUp(object sender, KeyEventArgs e)

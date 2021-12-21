@@ -7,6 +7,10 @@ using System.Threading;
 using KOF.Common;
 using KOF.Common.Win32;
 using KOF.Core;
+using System.IO;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+using System.Text;
 
 namespace KOF.UI
 {
@@ -793,9 +797,28 @@ namespace KOF.UI
             System.Diagnostics.Process.Start("https://kofbot.com");
         }
 
-        private void KonsolToolStripMenuItem_Click(object sender, EventArgs e)
+        public static void CreateConsole()
         {
             Win32Api.AllocConsole();
+
+            IntPtr StdHandle = Win32Api.CreateFile(
+                "CONOUT$",
+                Win32Enum.GENERIC_WRITE,
+                Win32Enum.FILE_SHARE_WRITE,
+                0, Win32Enum.OPEN_EXISTING, 0, 0
+            );
+
+            SafeFileHandle SafeFileHandle = new SafeFileHandle(StdHandle, true);
+            FileStream FileStream = new FileStream(SafeFileHandle, FileAccess.Write);
+            Encoding Encoding = System.Text.Encoding.GetEncoding(Win32Enum.MY_CODE_PAGE);
+            StreamWriter StandardOutput = new StreamWriter(FileStream, Encoding);
+            StandardOutput.AutoFlush = true;
+            Console.SetOut(StandardOutput);
+        }
+
+        private void KonsolToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateConsole();
         }
     }
 }

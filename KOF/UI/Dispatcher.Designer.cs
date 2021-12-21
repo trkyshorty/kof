@@ -509,6 +509,7 @@ namespace KOF.UI
             // AttackScroll
             // 
             this.AttackScroll.AutoSize = true;
+            this.AttackScroll.Enabled = false;
             this.AttackScroll.Location = new System.Drawing.Point(191, 112);
             this.AttackScroll.Name = "AttackScroll";
             this.AttackScroll.Size = new System.Drawing.Size(85, 17);
@@ -520,6 +521,7 @@ namespace KOF.UI
             // StatScroll
             // 
             this.StatScroll.AutoSize = true;
+            this.StatScroll.Enabled = false;
             this.StatScroll.Location = new System.Drawing.Point(191, 89);
             this.StatScroll.Name = "StatScroll";
             this.StatScroll.Size = new System.Drawing.Size(74, 17);
@@ -542,6 +544,7 @@ namespace KOF.UI
             // SpeedHack
             // 
             this.SpeedHack.AutoSize = true;
+            this.SpeedHack.Enabled = false;
             this.SpeedHack.Location = new System.Drawing.Point(191, 43);
             this.SpeedHack.Name = "SpeedHack";
             this.SpeedHack.Size = new System.Drawing.Size(82, 17);
@@ -566,6 +569,7 @@ namespace KOF.UI
             // AcScroll
             // 
             this.AcScroll.AutoSize = true;
+            this.AcScroll.Enabled = false;
             this.AcScroll.Location = new System.Drawing.Point(6, 112);
             this.AcScroll.Name = "AcScroll";
             this.AcScroll.Size = new System.Drawing.Size(66, 17);
@@ -577,6 +581,7 @@ namespace KOF.UI
             // DropScroll
             // 
             this.DropScroll.AutoSize = true;
+            this.DropScroll.Enabled = false;
             this.DropScroll.Location = new System.Drawing.Point(6, 89);
             this.DropScroll.Name = "DropScroll";
             this.DropScroll.Size = new System.Drawing.Size(77, 17);
@@ -588,6 +593,7 @@ namespace KOF.UI
             // AreaHeal
             // 
             this.AreaHeal.AutoSize = true;
+            this.AreaHeal.Enabled = false;
             this.AreaHeal.Location = new System.Drawing.Point(6, 66);
             this.AreaHeal.Name = "AreaHeal";
             this.AreaHeal.Size = new System.Drawing.Size(71, 17);

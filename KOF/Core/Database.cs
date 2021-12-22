@@ -15,7 +15,12 @@ namespace KOF.Core
 
         public Database()
         {
-            _Connection = new SQLiteConnection("KOF.dat");
+            string MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string ApplicationFolder = MyDocuments + "\\" + "KOF";
+
+            Directory.CreateDirectory(ApplicationFolder);
+
+            _Connection = new SQLiteConnection(ApplicationFolder + "\\KOF.dat");
 
             _Connection.CreateTable<Migration>();
             _Connection.CreateTable<Account>();

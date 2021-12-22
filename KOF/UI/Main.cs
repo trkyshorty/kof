@@ -8,6 +8,7 @@ using KOF.Common;
 using KOF.Common.Win32;
 using KOF.Core;
 
+
 namespace KOF.UI
 {
     public partial class Main : Form
@@ -795,7 +796,9 @@ namespace KOF.UI
 
         private void KonsolToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Win32Api.AllocConsole();
+#if !DEBUG
+            this._App.CreateConsole();
+#endif
         }
     }
 }

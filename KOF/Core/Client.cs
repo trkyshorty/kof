@@ -5,6 +5,7 @@ using System.Linq;
 using KOF.Common;
 using KOF.Models;
 using KOF.UI;
+using System.Diagnostics;
 
 namespace KOF.Core
 {
@@ -148,12 +149,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("ClientEventThread -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ClientEventThread -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -194,15 +195,13 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("RecvPacketEventThread -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
-                StartThread(RecvPacketEvent);
             }
             catch (Exception ex)
             {
 
-                Console.WriteLine("RecvPacketEventThread -> " + ex.StackTrace);
-                StartThread(RecvPacketEvent);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -242,12 +241,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("SendPacketEventThread -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("SendPacketEventThread -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -354,12 +353,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("CharacterEventThread -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("CharacterEventThread -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -619,12 +618,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("ProtectionEventTime -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ProtectionEventTime -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -683,12 +682,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("AttackEventThread -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("AttackEventThread -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -740,12 +739,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("AttackEventThread -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("AttackEventThread -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -998,12 +997,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("PartyEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("PartyEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1051,12 +1050,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("RepairEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("RepairEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1102,12 +1101,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("SupplyEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("SupplyEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1247,12 +1246,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("TargetEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("TargetEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1284,12 +1283,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("MobClearEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("MobClearEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1415,12 +1414,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("MiningEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("MiningEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1468,12 +1467,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("MonsterStoneEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("MonsterStoneEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
 
@@ -1514,12 +1513,12 @@ namespace KOF.Core
             }
             catch (ThreadAbortException ex)
             {
-                Console.WriteLine("MonsterStoneEvent -> Thread is aborted and the code is "
+                Debug.WriteLine("Thread is aborted and the code is "
                                                  + ex.ExceptionState);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("MonsterStoneEvent -> " + ex.StackTrace);
+                Debug.WriteLine(ex.StackTrace);
             }
         }
     }

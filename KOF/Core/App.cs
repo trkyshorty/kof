@@ -8,6 +8,7 @@ using System.Linq;
 using KOF.Common;
 using KOF.Models;
 using KOF.UI;
+using Microsoft.Win32.SafeHandles;
 
 namespace KOF.Core
 {
@@ -18,9 +19,74 @@ namespace KOF.Core
         private Thread LauncherThread { get; set; }
         private Thread HandleProcessThread { get; set; }
 
+        private LogWriter _LogWriter { get; set; } = null;
+        private LogWriter _DebugWriter { get; set; } = null;
         public App(Main MainInterface)
         {
             _MainInterface = MainInterface;
+
+            InitializeLogger();
+
+#if DEBUG
+            CreateConsole();
+#endif
+        }
+
+        public void CreateConsole()
+        {
+            AllocConsole();
+
+            IntPtr StdHandle = CreateFile(
+                "CONOUT$",
+                GENERIC_WRITE,
+                FILE_SHARE_WRITE,
+                0, OPEN_EXISTING, 0, 0
+            );
+
+            SafeFileHandle SafeFileHandle = new SafeFileHandle(StdHandle, true);
+            FileStream FileStream = new FileStream(SafeFileHandle, FileAccess.Write);
+
+            LogWriter LogWriter = new LogWriter(FileStream);
+
+            Console.SetOut(LogWriter);
+            Console.SetError(LogWriter);
+
+#if DEBUG
+            Debug.Listeners.Add(new TextWriterTraceListener(LogWriter));
+#endif
+        }
+
+        public void InitializeLogger()
+        {
+            string MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string ApplicationFolder = MyDocuments + "\\" + "KOF";
+
+            Directory.CreateDirectory(ApplicationFolder + "\\log");
+
+            string LogFile = ApplicationFolder + "\\log\\log.txt";
+            string DebugFile = ApplicationFolder + "\\log\\debug.txt";
+
+            if (GetFileSize(LogFile) > (1024 * 1024 * 100)) // 100MB
+                File.Delete(LogFile);
+
+            if (GetFileSize(DebugFile) > (1024 * 1024 * 100)) // 100MB
+                File.Delete(DebugFile);
+
+            FileStream LogStream = new FileStream(LogFile, FileMode.Append);
+
+            if(_LogWriter == null)
+                _LogWriter = new LogWriter(LogStream);
+
+            Console.SetOut(_LogWriter);
+            Console.SetError(_LogWriter);
+#if DEBUG
+            FileStream DebugStream = new FileStream(DebugFile, FileMode.Append);
+
+            if (_DebugWriter == null)
+                _DebugWriter = new LogWriter(DebugStream);
+
+            Debug.Listeners.Add(new TextWriterTraceListener(_DebugWriter));
+#endif
         }
 
         public void Load()
@@ -35,6 +101,8 @@ namespace KOF.Core
 
             InitializeMainThread();
         }
+
+
 
         public Database Database()
         {
@@ -68,7 +136,7 @@ namespace KOF.Core
                             if (ClientData.HasExited() == false)
                                 ClientData.GetProcess().Kill();
 
-                            Console.WriteLine("App > PID " + ClientData.GetProcessId() + " Lost");
+                            Debug.WriteLine("App > PID " + ClientData.GetProcessId() + " Lost");
 
                             if (Convert.ToBoolean(GetControl("AutoLogin")))
                             {
@@ -163,7 +231,7 @@ namespace KOF.Core
 
                     Process.Start();
 
-                    Console.WriteLine("Launcher -> " + Account.Name + " starting.");
+                    Debug.WriteLine(Account.Name + " starting.");
 
                     Thread.Sleep(1250);
 
@@ -322,7 +390,7 @@ namespace KOF.Core
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.StackTrace);
+                    Debug.WriteLine(ex.StackTrace);
                 }
             }
         }

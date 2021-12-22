@@ -36,7 +36,7 @@
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
     <TrustUrlParameters>true</TrustUrlParameters>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.3.%2a</ApplicationVersion>
+    <ApplicationVersion>1.0.4.0</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -154,6 +154,7 @@
   <ItemGroup>
     <Compile Include="Common\AutoLoot.cs" />
     <Compile Include="Common\Inventory.cs" />
+    <Compile Include="Common\LogWriter.cs" />
     <Compile Include="Common\Party.cs" />
     <Compile Include="Common\Supply.cs" />
     <Compile Include="Common\Target.cs" />

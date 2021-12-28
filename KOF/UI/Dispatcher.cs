@@ -153,6 +153,20 @@ namespace KOF.UI
             }
             while (Control != null);
 
+            _Client.SetControl("Attack", _Client.GetControl("Attack", "false"));
+
+            if (Convert.ToBoolean(_Client.GetControl("Attack")))
+                BotStatusAttackButton.ForeColor = Color.LimeGreen;
+            else
+                BotStatusAttackButton.ForeColor = Color.Red;
+
+            _Client.SetControl("TimedSkill", _Client.GetControl("TimedSkill", "true"));
+
+            if (Convert.ToBoolean(_Client.GetControl("TimedSkill")))
+                BotStatusTimedSkillButton.ForeColor = Color.LimeGreen;
+            else
+                BotStatusTimedSkillButton.ForeColor = Color.Red;
+
             _LootableItem.InitializeControl();
             _SellableItem.InitializeControl();
 
@@ -354,18 +368,6 @@ namespace KOF.UI
             else
                 _Client.DeleteSkillBar(SelectedTimedSkill.Key);
         }
-        private void Attack_CheckedChanged(object sender, EventArgs e)
-        {
-            _Client.SetControl(Attack.Name, Attack.Checked.ToString());
-
-            if (AttackOnSetAreaControl.Checked)
-            {
-                if (Attack.Checked)
-                    AreaControl.Checked = true;
-                else
-                    AreaControl.Checked = false;
-            }
-        }
 
         private void RAttack_CheckedChanged(object sender, EventArgs e)
         {
@@ -411,7 +413,7 @@ namespace KOF.UI
         {
             _Client.SetControl(AreaControl.Name, AreaControl.Checked.ToString());
 
-            if (AttackOnSetAreaControl.Checked && Attack.Checked)
+            if (AttackOnSetAreaControl.Checked && Convert.ToBoolean(_Client.GetControl("Attack")))
             {
                 AreaControlX.Value = _Client.GetX();
                 AreaControlY.Value = _Client.GetY();
@@ -1107,6 +1109,42 @@ namespace KOF.UI
         private void PartyGroupHealMemberCount_ValueChanged(object sender, EventArgs e)
         {
             _Client.SetControl(PartyGroupHealMemberCount.Name, PartyGroupHealMemberCount.Value.ToString());
+        }
+
+        private void BotStatusAttackButton_Click(object sender, EventArgs e)
+        {
+            if (Convert.ToBoolean(_Client.GetControl("Attack")))
+            {
+                _Client.SetControl("Attack", "false");
+                BotStatusAttackButton.ForeColor = Color.Red;
+            }
+            else
+            {
+                _Client.SetControl("Attack", "true");
+                BotStatusAttackButton.ForeColor = Color.LimeGreen;
+            }
+
+            if (AttackOnSetAreaControl.Checked)
+            {
+                if (Convert.ToBoolean(_Client.GetControl("Attack")))
+                    AreaControl.Checked = true;
+                else
+                    AreaControl.Checked = false;
+            }
+        }
+
+        private void BotStatusTimedSkillButton_Click(object sender, EventArgs e)
+        {
+            if (Convert.ToBoolean(_Client.GetControl("TimedSkill")))
+            {
+                _Client.SetControl("TimedSkill", "false");
+                BotStatusTimedSkillButton.ForeColor = Color.Red;
+            } 
+            else
+            {
+                _Client.SetControl("TimedSkill", "true");
+                BotStatusTimedSkillButton.ForeColor = Color.LimeGreen;
+            }
         }
     }
 }

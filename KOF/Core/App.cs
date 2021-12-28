@@ -321,6 +321,8 @@ namespace KOF.Core
                                 Dispatcher.GetClient().Start();
 
                                 Storage.ClientCollection.Add(Process.Id, Dispatcher.GetClient());
+
+                                HandleProcess();
                             }
 
                             Thread.Sleep(1250);

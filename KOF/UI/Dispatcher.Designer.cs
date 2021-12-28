@@ -90,7 +90,6 @@ namespace KOF.UI
             this.groupBox8 = new System.Windows.Forms.GroupBox();
             this.AttackOnSetAreaControl = new System.Windows.Forms.CheckBox();
             this.RAttack = new System.Windows.Forms.CheckBox();
-            this.Attack = new System.Windows.Forms.CheckBox();
             this.AttackDistance = new System.Windows.Forms.NumericUpDown();
             this.AttackSpeed = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
@@ -229,10 +228,14 @@ namespace KOF.UI
             this.RouteTestStop = new System.Windows.Forms.Button();
             this.TestButton = new System.Windows.Forms.Button();
             this.groupBox22 = new System.Windows.Forms.GroupBox();
-            this.groupBox29 = new System.Windows.Forms.GroupBox();
+            this.groupBox14 = new System.Windows.Forms.GroupBox();
+            this.BotStatusAttackButton = new System.Windows.Forms.Button();
+            this.BotStatusTimedSkillButton = new System.Windows.Forms.Button();
             this.groupBox28 = new System.Windows.Forms.GroupBox();
             this.MiniMap = new System.Windows.Forms.PictureBox();
             this.ZoneXYInfo = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
+            this.groupBox30 = new System.Windows.Forms.GroupBox();
             this.DispatcherTabControl.SuspendLayout();
             this.GeneralTabPage.SuspendLayout();
             this.groupBox24.SuspendLayout();
@@ -299,8 +302,10 @@ namespace KOF.UI
             this.DeveloperTabPage.SuspendLayout();
             this.groupBox27.SuspendLayout();
             this.groupBox22.SuspendLayout();
+            this.groupBox14.SuspendLayout();
             this.groupBox28.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MiniMap)).BeginInit();
+            this.groupBox30.SuspendLayout();
             this.SuspendLayout();
             // 
             // DispatcherTabControl
@@ -315,7 +320,7 @@ namespace KOF.UI
             this.DispatcherTabControl.Location = new System.Drawing.Point(276, 8);
             this.DispatcherTabControl.Name = "DispatcherTabControl";
             this.DispatcherTabControl.SelectedIndex = 0;
-            this.DispatcherTabControl.Size = new System.Drawing.Size(316, 581);
+            this.DispatcherTabControl.Size = new System.Drawing.Size(319, 581);
             this.DispatcherTabControl.TabIndex = 0;
             this.DispatcherTabControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Dispatcher_KeyUp);
             // 
@@ -329,7 +334,7 @@ namespace KOF.UI
             this.GeneralTabPage.Location = new System.Drawing.Point(4, 22);
             this.GeneralTabPage.Name = "GeneralTabPage";
             this.GeneralTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.GeneralTabPage.Size = new System.Drawing.Size(308, 555);
+            this.GeneralTabPage.Size = new System.Drawing.Size(311, 555);
             this.GeneralTabPage.TabIndex = 0;
             this.GeneralTabPage.Text = "Genel";
             this.GeneralTabPage.UseVisualStyleBackColor = true;
@@ -762,11 +767,15 @@ namespace KOF.UI
             this.MpPotionItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.MpPotionItem.FormattingEnabled = true;
             this.MpPotionItem.Items.AddRange(new object[] {
+            "Otomatik",
             "Potion of Soul",
             "Potion of Wisdom",
             "Potion of Sagacity",
             "Potion of Intelligence",
-            "Potion of Spirit"});
+            "Potion of Spirit",
+            "Quest MP Pot",
+            "Potion of Crisis",
+            "Premium Potion MP"});
             this.MpPotionItem.Location = new System.Drawing.Point(157, 39);
             this.MpPotionItem.Name = "MpPotionItem";
             this.MpPotionItem.Size = new System.Drawing.Size(134, 21);
@@ -778,11 +787,15 @@ namespace KOF.UI
             this.HpPotionItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.HpPotionItem.FormattingEnabled = true;
             this.HpPotionItem.Items.AddRange(new object[] {
+            "Otomatik",
             "Water of favors",
             "Water of grace",
             "Water of love",
             "Water of life",
-            "Holy water"});
+            "Holy water",
+            "Quest HP Pot",
+            "Water of Ibexs",
+            "Premium Potion HP"});
             this.HpPotionItem.Location = new System.Drawing.Point(157, 16);
             this.HpPotionItem.Name = "HpPotionItem";
             this.HpPotionItem.Size = new System.Drawing.Size(134, 21);
@@ -861,7 +874,7 @@ namespace KOF.UI
             this.AttackTabPage.Location = new System.Drawing.Point(4, 22);
             this.AttackTabPage.Name = "AttackTabPage";
             this.AttackTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.AttackTabPage.Size = new System.Drawing.Size(308, 555);
+            this.AttackTabPage.Size = new System.Drawing.Size(311, 555);
             this.AttackTabPage.TabIndex = 1;
             this.AttackTabPage.Text = "Saldırı";
             this.AttackTabPage.UseVisualStyleBackColor = true;
@@ -1043,7 +1056,6 @@ namespace KOF.UI
             // 
             this.groupBox8.Controls.Add(this.AttackOnSetAreaControl);
             this.groupBox8.Controls.Add(this.RAttack);
-            this.groupBox8.Controls.Add(this.Attack);
             this.groupBox8.Controls.Add(this.AttackDistance);
             this.groupBox8.Controls.Add(this.AttackSpeed);
             this.groupBox8.Controls.Add(this.label2);
@@ -1069,24 +1081,13 @@ namespace KOF.UI
             // RAttack
             // 
             this.RAttack.AutoSize = true;
-            this.RAttack.Location = new System.Drawing.Point(87, 21);
+            this.RAttack.Location = new System.Drawing.Point(9, 20);
             this.RAttack.Name = "RAttack";
             this.RAttack.Size = new System.Drawing.Size(52, 17);
             this.RAttack.TabIndex = 8;
             this.RAttack.Text = "R Vur";
             this.RAttack.UseVisualStyleBackColor = true;
             this.RAttack.CheckedChanged += new System.EventHandler(this.RAttack_CheckedChanged);
-            // 
-            // Attack
-            // 
-            this.Attack.AutoSize = true;
-            this.Attack.Location = new System.Drawing.Point(9, 21);
-            this.Attack.Name = "Attack";
-            this.Attack.Size = new System.Drawing.Size(55, 17);
-            this.Attack.TabIndex = 7;
-            this.Attack.Text = "Başlat";
-            this.Attack.UseVisualStyleBackColor = true;
-            this.Attack.CheckedChanged += new System.EventHandler(this.Attack_CheckedChanged);
             // 
             // AttackDistance
             // 
@@ -1215,7 +1216,7 @@ namespace KOF.UI
             // WaitTime
             // 
             this.WaitTime.AutoSize = true;
-            this.WaitTime.Location = new System.Drawing.Point(8, 155);
+            this.WaitTime.Location = new System.Drawing.Point(9, 155);
             this.WaitTime.Name = "WaitTime";
             this.WaitTime.Size = new System.Drawing.Size(88, 17);
             this.WaitTime.TabIndex = 3;
@@ -1259,7 +1260,7 @@ namespace KOF.UI
             this.PartyTabPage.Controls.Add(this.groupBox16);
             this.PartyTabPage.Location = new System.Drawing.Point(4, 22);
             this.PartyTabPage.Name = "PartyTabPage";
-            this.PartyTabPage.Size = new System.Drawing.Size(308, 555);
+            this.PartyTabPage.Size = new System.Drawing.Size(311, 555);
             this.PartyTabPage.TabIndex = 2;
             this.PartyTabPage.Text = "Party";
             this.PartyTabPage.UseVisualStyleBackColor = true;
@@ -1341,7 +1342,7 @@ namespace KOF.UI
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.ForeColor = System.Drawing.Color.Red;
+            this.label14.ForeColor = System.Drawing.SystemColors.ControlText;
             this.label14.Location = new System.Drawing.Point(5, 160);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(285, 13);
@@ -1534,7 +1535,7 @@ namespace KOF.UI
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.ForeColor = System.Drawing.Color.Red;
+            this.label11.ForeColor = System.Drawing.SystemColors.ControlText;
             this.label11.Location = new System.Drawing.Point(25, 164);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(248, 26);
@@ -1671,7 +1672,7 @@ namespace KOF.UI
             this.SupplyTabPage.Controls.Add(this.groupBox13);
             this.SupplyTabPage.Location = new System.Drawing.Point(4, 22);
             this.SupplyTabPage.Name = "SupplyTabPage";
-            this.SupplyTabPage.Size = new System.Drawing.Size(308, 555);
+            this.SupplyTabPage.Size = new System.Drawing.Size(311, 555);
             this.SupplyTabPage.TabIndex = 3;
             this.SupplyTabPage.Text = "Tedarik";
             this.SupplyTabPage.UseVisualStyleBackColor = true;
@@ -2252,7 +2253,7 @@ namespace KOF.UI
             this.ToolTabPage.Controls.Add(this.FolkGroupBox);
             this.ToolTabPage.Location = new System.Drawing.Point(4, 22);
             this.ToolTabPage.Name = "ToolTabPage";
-            this.ToolTabPage.Size = new System.Drawing.Size(308, 555);
+            this.ToolTabPage.Size = new System.Drawing.Size(311, 555);
             this.ToolTabPage.TabIndex = 4;
             this.ToolTabPage.Text = "Araçlar";
             this.ToolTabPage.UseVisualStyleBackColor = true;
@@ -2298,8 +2299,8 @@ namespace KOF.UI
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.ForeColor = System.Drawing.Color.Red;
-            this.label13.Location = new System.Drawing.Point(23, 106);
+            this.label13.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.label13.Location = new System.Drawing.Point(28, 106);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(249, 78);
             this.label13.TabIndex = 4;
@@ -2375,8 +2376,8 @@ namespace KOF.UI
             // 
             this.Label8.AutoSize = true;
             this.Label8.Font = new System.Drawing.Font("Tahoma", 8.25F);
-            this.Label8.ForeColor = System.Drawing.Color.Red;
-            this.Label8.Location = new System.Drawing.Point(50, 81);
+            this.Label8.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.Label8.Location = new System.Drawing.Point(52, 81);
             this.Label8.Name = "Label8";
             this.Label8.Size = new System.Drawing.Size(202, 26);
             this.Label8.TabIndex = 3;
@@ -2581,7 +2582,7 @@ namespace KOF.UI
             this.OtherTabPage.Controls.Add(this.groupBox19);
             this.OtherTabPage.Location = new System.Drawing.Point(4, 22);
             this.OtherTabPage.Name = "OtherTabPage";
-            this.OtherTabPage.Size = new System.Drawing.Size(308, 555);
+            this.OtherTabPage.Size = new System.Drawing.Size(311, 555);
             this.OtherTabPage.TabIndex = 6;
             this.OtherTabPage.Text = "Diğer";
             this.OtherTabPage.UseVisualStyleBackColor = true;
@@ -2601,7 +2602,7 @@ namespace KOF.UI
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Tahoma", 8.25F);
-            this.label12.ForeColor = System.Drawing.Color.Red;
+            this.label12.ForeColor = System.Drawing.SystemColors.ControlText;
             this.label12.Location = new System.Drawing.Point(18, 43);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(260, 65);
@@ -2651,7 +2652,7 @@ namespace KOF.UI
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Tahoma", 8.25F);
-            this.label4.ForeColor = System.Drawing.Color.Red;
+            this.label4.ForeColor = System.Drawing.SystemColors.ControlText;
             this.label4.Location = new System.Drawing.Point(16, 73);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(268, 13);
@@ -2760,7 +2761,7 @@ namespace KOF.UI
             // 
             this.Label5.AutoSize = true;
             this.Label5.Font = new System.Drawing.Font("Tahoma", 8.25F);
-            this.Label5.ForeColor = System.Drawing.Color.Red;
+            this.Label5.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Label5.Location = new System.Drawing.Point(30, 104);
             this.Label5.Name = "Label5";
             this.Label5.Size = new System.Drawing.Size(247, 39);
@@ -2911,7 +2912,8 @@ namespace KOF.UI
             // 
             // groupBox22
             // 
-            this.groupBox22.Controls.Add(this.groupBox29);
+            this.groupBox22.Controls.Add(this.groupBox30);
+            this.groupBox22.Controls.Add(this.groupBox14);
             this.groupBox22.Controls.Add(this.groupBox28);
             this.groupBox22.Location = new System.Drawing.Point(2, 2);
             this.groupBox22.Name = "groupBox22";
@@ -2920,19 +2922,44 @@ namespace KOF.UI
             this.groupBox22.TabStop = false;
             this.groupBox22.Text = "Kontroller";
             // 
-            // groupBox29
+            // groupBox14
             // 
-            this.groupBox29.Location = new System.Drawing.Point(10, 306);
-            this.groupBox29.Name = "groupBox29";
-            this.groupBox29.Size = new System.Drawing.Size(256, 274);
-            this.groupBox29.TabIndex = 6;
-            this.groupBox29.TabStop = false;
+            this.groupBox14.Controls.Add(this.BotStatusAttackButton);
+            this.groupBox14.Controls.Add(this.BotStatusTimedSkillButton);
+            this.groupBox14.Location = new System.Drawing.Point(8, 528);
+            this.groupBox14.Name = "groupBox14";
+            this.groupBox14.Size = new System.Drawing.Size(256, 53);
+            this.groupBox14.TabIndex = 4;
+            this.groupBox14.TabStop = false;
+            this.groupBox14.Text = "Bot Durumu";
+            // 
+            // BotStatusAttackButton
+            // 
+            this.BotStatusAttackButton.ForeColor = System.Drawing.Color.Red;
+            this.BotStatusAttackButton.Location = new System.Drawing.Point(5, 20);
+            this.BotStatusAttackButton.Name = "BotStatusAttackButton";
+            this.BotStatusAttackButton.Size = new System.Drawing.Size(122, 23);
+            this.BotStatusAttackButton.TabIndex = 2;
+            this.BotStatusAttackButton.Text = "Saldırı";
+            this.BotStatusAttackButton.UseVisualStyleBackColor = true;
+            this.BotStatusAttackButton.Click += new System.EventHandler(this.BotStatusAttackButton_Click);
+            // 
+            // BotStatusTimedSkillButton
+            // 
+            this.BotStatusTimedSkillButton.ForeColor = System.Drawing.Color.Red;
+            this.BotStatusTimedSkillButton.Location = new System.Drawing.Point(128, 20);
+            this.BotStatusTimedSkillButton.Name = "BotStatusTimedSkillButton";
+            this.BotStatusTimedSkillButton.Size = new System.Drawing.Size(122, 23);
+            this.BotStatusTimedSkillButton.TabIndex = 3;
+            this.BotStatusTimedSkillButton.Text = "Zamanlı Skiller";
+            this.BotStatusTimedSkillButton.UseVisualStyleBackColor = true;
+            this.BotStatusTimedSkillButton.Click += new System.EventHandler(this.BotStatusTimedSkillButton_Click);
             // 
             // groupBox28
             // 
             this.groupBox28.Controls.Add(this.MiniMap);
             this.groupBox28.Controls.Add(this.ZoneXYInfo);
-            this.groupBox28.Location = new System.Drawing.Point(10, 12);
+            this.groupBox28.Location = new System.Drawing.Point(8, 12);
             this.groupBox28.Name = "groupBox28";
             this.groupBox28.Size = new System.Drawing.Size(256, 289);
             this.groupBox28.TabIndex = 5;
@@ -2958,11 +2985,31 @@ namespace KOF.UI
             this.ZoneXYInfo.TabIndex = 4;
             this.ZoneXYInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // button3
+            // 
+            this.button3.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.button3.Location = new System.Drawing.Point(76, 20);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(109, 23);
+            this.button3.TabIndex = 5;
+            this.button3.Text = "Bilgileri Yenile";
+            this.button3.UseVisualStyleBackColor = true;
+            // 
+            // groupBox30
+            // 
+            this.groupBox30.Controls.Add(this.button3);
+            this.groupBox30.Location = new System.Drawing.Point(8, 307);
+            this.groupBox30.Name = "groupBox30";
+            this.groupBox30.Size = new System.Drawing.Size(256, 53);
+            this.groupBox30.TabIndex = 6;
+            this.groupBox30.TabStop = false;
+            this.groupBox30.Text = "Bot Yönetimi";
+            // 
             // Dispatcher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(590, 588);
+            this.ClientSize = new System.Drawing.Size(595, 589);
             this.Controls.Add(this.groupBox22);
             this.Controls.Add(this.DispatcherTabControl);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F);
@@ -3064,9 +3111,11 @@ namespace KOF.UI
             this.groupBox27.ResumeLayout(false);
             this.groupBox27.PerformLayout();
             this.groupBox22.ResumeLayout(false);
+            this.groupBox14.ResumeLayout(false);
             this.groupBox28.ResumeLayout(false);
             this.groupBox28.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MiniMap)).EndInit();
+            this.groupBox30.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -3119,7 +3168,6 @@ namespace KOF.UI
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.CheckedListBox AttackSkillList;
         private System.Windows.Forms.CheckBox RAttack;
-        private System.Windows.Forms.CheckBox Attack;
         private System.Windows.Forms.NumericUpDown AttackDistance;
         private System.Windows.Forms.NumericUpDown AttackSpeed;
         private System.Windows.Forms.Label label2;
@@ -3271,10 +3319,14 @@ namespace KOF.UI
         private System.Windows.Forms.CheckedListBox SavedLocationList;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Label ZoneXYInfo;
-        private System.Windows.Forms.GroupBox groupBox29;
         private System.Windows.Forms.GroupBox groupBox28;
         private System.Windows.Forms.NumericUpDown PartyGroupHealValue;
         private System.Windows.Forms.CheckBox PartyGroupHeal;
         private System.Windows.Forms.NumericUpDown PartyGroupHealMemberCount;
+        private System.Windows.Forms.Button BotStatusTimedSkillButton;
+        private System.Windows.Forms.Button BotStatusAttackButton;
+        private System.Windows.Forms.GroupBox groupBox14;
+        private System.Windows.Forms.GroupBox groupBox30;
+        private System.Windows.Forms.Button button3;
     }
 }

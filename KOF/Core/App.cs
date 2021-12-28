@@ -27,6 +27,10 @@ namespace KOF.Core
 
             InitializeLogger();
 
+            //for CNKO login page {tab} problem
+            AutoIt.AutoItX.AutoItSetOption("SendKeyDelay", 15);
+            AutoIt.AutoItX.AutoItSetOption("SendKeyDownDelay", 15);
+
 #if DEBUG
             CreateConsole();
 #endif
@@ -102,8 +106,6 @@ namespace KOF.Core
             InitializeMainThread();
         }
 
-
-
         public Database Database()
         {
             return _Database;
@@ -129,12 +131,16 @@ namespace KOF.Core
                     {
                         if (ClientData == null) continue;
 
-                        if (ClientData.IsDisconnected() || ClientData.GetLevel() == 0)
+                        if (ClientData.IsDisconnected())
                         {
-                            ClientData.Destroy();
-
+                            
                             if (ClientData.HasExited() == false)
+                            {
                                 ClientData.GetProcess().Kill();
+                                ClientData.GetProcess().WaitForExit();
+                            }
+
+                            ClientData.Destroy();
 
                             Debug.WriteLine("App > PID " + ClientData.GetProcessId() + " Lost");
 
@@ -149,7 +155,7 @@ namespace KOF.Core
                                     LoginList.Add(Account.Id);
 
                                     while (LauncherThread != null && LauncherThread.IsAlive)
-                                        Thread.Sleep(1);
+                                        Thread.Sleep(1250);
 
                                     Launcher(LoginList);
 
@@ -162,33 +168,37 @@ namespace KOF.Core
                         else
                         {
                             if (Storage.FollowedClient != null && ClientData.GetProcessId() != Storage.FollowedClient.GetProcessId()
-                                && ClientData.GetZone() == Storage.FollowedClient.GetZone() && ClientData.IsCharacterAvailable()
+                                && ClientData.GetZoneId() == Storage.FollowedClient.GetZoneId()
                                 && ClientData.IsInFallback() == false && ClientData.IsInEnterGame() == false
                                 && ClientData.GetAction() == 0
-                                && Storage.FollowedClient.GetAction() == 0
-                                && Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false)
+                                && Storage.FollowedClient.GetAction() == 0)
                             {
-                                if (Storage.FollowedClient.GetTargetId() != ClientData.GetTargetId())
-                                    ClientData.SelectTarget(Storage.FollowedClient.GetTargetId());
-
-                                if ((ClientData.GetX() != Storage.FollowedClient.GetX() || ClientData.GetY() != Storage.FollowedClient.GetY()))
+                                if (ClientData.IsCharacterAvailable() && Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false)
                                 {
-                                    if (Convert.ToBoolean(ClientData.GetControl("ActionMove")) == true)
-                                        ClientData.MoveCoordinate(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
-                                    else if (Convert.ToBoolean(ClientData.GetControl("ActionSetCoordinate")) == true)
-                                        ClientData.SetCoordinate(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
-                                }
+                                    if (Storage.FollowedClient.GetTargetId() != ClientData.GetTargetId())
+                                        ClientData.SelectTarget(Storage.FollowedClient.GetTargetId());
 
-                                if (Convert.ToBoolean(GetControl("AutoParty")) == true)
-                                {
-                                    if (Storage.FollowedClient.GetPartyCount() < 8 && Storage.FollowedClient.IsPartyMember(ClientData.GetNameConst()) == false)
-                                        Storage.FollowedClient.SendParty(ClientData.GetNameConst());
+                                    if ((ClientData.GetX() != Storage.FollowedClient.GetX() || ClientData.GetY() != Storage.FollowedClient.GetY()))
+                                    {
+                                        if (Convert.ToBoolean(ClientData.GetControl("ActionSetCoordinate")) == true)
+                                            ClientData.SetCoordinate(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
+                                        else if (Convert.ToBoolean(ClientData.GetControl("ActionRoute")) == true)
+                                            ClientData.StartRouteEvent(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
+                                        else
+                                            ClientData.MoveCoordinate(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
+                                    }
+
+                                    if (Convert.ToBoolean(GetControl("AutoParty")) == true)
+                                    {
+                                        if (Storage.FollowedClient.GetPartyCount() < 8 && Storage.FollowedClient.IsPartyMember(ClientData.GetNameConst()) == false)
+                                            Storage.FollowedClient.SendParty(ClientData.GetNameConst());
+                                    }
                                 }
                             }
                         }
                     }
 
-                    Thread.Sleep(1);
+                    Thread.Sleep(125);
                 }
             });
 
@@ -217,114 +227,115 @@ namespace KOF.Core
 
                 if (Account != null)
                 {
-                    Process Process = new Process();
-
-                    FileInfo FileInfo = new FileInfo(Account.Path);
-
-                    Process.StartInfo = new ProcessStartInfo(FileInfo.Name);
-                    Process.StartInfo.WorkingDirectory = FileInfo.Directory.FullName;
-
-                    if (Account.Platform == "JPKO")
-                        Process.StartInfo.Arguments = "MGAMEJP " + Account.Name + " " + Account.Hash;
-                    else if (Account.Platform == "CNKO")
-                        Process.StartInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
-
-                    Process.Start();
-
-                    Debug.WriteLine(Account.Name + " starting.");
-
-                    Thread.Sleep(1250);
-
-                    while (!ShowWindow(Process.MainWindowHandle, Windows.NORMAL))
-                        Process.Refresh();
-
-                    Dispatcher Dispatcher = new Dispatcher(this);
-
-                    Dispatcher.GetClient().SetAccountName(Account.Name);
-
-                    Dispatcher.GetClient().HandleProcess(Process, null);
-
-                    Thread.Sleep(1250);
-
-                    int Tick = Environment.TickCount;
-                    int SplashTry = 0;
-
-                    while (Storage.ClientCollection.ContainsKey(Process.Id) == false)
+                    try
                     {
-                        if (Dispatcher.GetClient().IsDisconnected() || Environment.TickCount - Tick > 60000)
+                        Process Process = new Process();
+
+                        FileInfo FileInfo = new FileInfo(Account.Path);
+
+                        Process.StartInfo = new ProcessStartInfo(FileInfo.Name);
+                        Process.StartInfo.WorkingDirectory = FileInfo.Directory.FullName;
+
+                        if (Account.Platform == "JPKO")
+                            Process.StartInfo.Arguments = "MGAMEJP " + Account.Name + " " + Account.Hash;
+                        else if (Account.Platform == "CNKO")
+                            Process.StartInfo.Arguments = Process.GetCurrentProcess().Id.ToString() + " CNKO " + Account.Name;
+
+                        Debug.WriteLine(Account.Name + " starting.");
+
+                        Process.Start();
+
+                        if (Account.Platform == "JPKO")
+                            Thread.Sleep(15000);
+                        else if (Account.Platform == "CNKO")
+                            Thread.Sleep(20000);
+
+                        Dispatcher Dispatcher = new Dispatcher(this);
+
+                        Dispatcher.GetClient().HandleProcess(Process, null);
+
+                        int Tick = Environment.TickCount;
+
+                        while (Storage.ClientCollection.ContainsKey(Process.Id) == false)
                         {
-                            Dispatcher.GetClient().Destroy();
-
-                            if (Dispatcher.GetClient().HasExited() == false)
-                                Dispatcher.GetClient().GetProcess().Kill();
-
-                            _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, "Giriş yapılamadı", Account.Name + " yeniden başlatılıyor.");
-
-                            var StartAccountList = new List<int>();
-                            StartAccountList.Add(AccountId);
-                            LauncherThreadEvent(StartAccountList);
-                            return;
-                        }
-
-                        switch (Dispatcher.GetClient().GetPhase())
-                        {
-                            case Processor.EPhase.None:
-                            case Processor.EPhase.Authentication:
-                            case Processor.EPhase.Loggining:
-                            case Processor.EPhase.Selecting:
+                            if (Dispatcher.GetClient().IsDisconnected() || Environment.TickCount - Tick > 60000)
+                            {
+                                if (Dispatcher.GetClient().HasExited() == false)
                                 {
-                                    if (Convert.ToBoolean(GetControl("AutoLogin")) && Dispatcher.GetClient().HasExited() == false)
-                                    {
-                                        SetForegroundWindow(Process.MainWindowHandle);
+                                    Dispatcher.GetClient().GetProcess().Kill();
+                                    Dispatcher.GetClient().GetProcess().WaitForExit();
+                                }
 
-                                        if (SplashTry > 15)
+                                Dispatcher.GetClient().Destroy();
+
+
+                                if(Convert.ToBoolean(GetControl("AutoLogin")))
+                                {
+                                    _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, "Giriş yapılamadı", Account.Name + " yeniden başlatılıyor.");
+
+                                    var StartAccountList = new List<int>();
+                                    StartAccountList.Add(AccountId);
+                                    LauncherThreadEvent(StartAccountList);
+                                }
+                                
+                                return;
+                            }
+
+                            switch (Dispatcher.GetClient().GetPhase())
+                            {
+                                case Processor.EPhase.None:
+                                case Processor.EPhase.Authentication:
+                                case Processor.EPhase.Loggining:
+                                case Processor.EPhase.Selecting:
+                                    {
+                                        if (Convert.ToBoolean(GetControl("AutoLogin")) && Dispatcher.GetClient().HasExited() == false)
                                         {
                                             if ((Dispatcher.GetClient().GetPhase() == Processor.EPhase.None) && Account.Platform == "CNKO")
                                             {
-                                                AutoIt.AutoItX.Send(Account.Name);
-                                                Thread.Sleep(50);
-                                                AutoIt.AutoItX.Send("{tab}");
-                                                Thread.Sleep(50);
-                                                AutoIt.AutoItX.Send(Account.Hash);
-                                                Thread.Sleep(50);
-                                                AutoIt.AutoItX.Send("{enter}");
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) == 0)
+                                                    AutoIt.AutoItX.WinActivate(Process.MainWindowHandle);
 
-                                                Thread.Sleep(1250);
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) != 0)
+                                                {
+                                                    AutoIt.AutoItX.Send(Account.Name);
+                                                    AutoIt.AutoItX.Send("{tab}");
+                                                    AutoIt.AutoItX.Send(Account.Hash);
+                                                    AutoIt.AutoItX.Send("{enter}");
+                                                }
                                             }
                                             else
                                             {
-                                                AutoIt.AutoItX.Send("{enter 2}");
-                                                Thread.Sleep(250);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if(Dispatcher.GetClient().GetPhase() == Processor.EPhase.None)
-                                            {
-                                                AutoIt.AutoItX.MouseClick("LEFT", AutoIt.AutoItX.WinGetPos(Process.MainWindowHandle).X + 25, AutoIt.AutoItX.WinGetPos(Process.MainWindowHandle).Y + 50);
-                                                Thread.Sleep(50);
-                                            }
-                                            
-                                            AutoIt.AutoItX.Send("{enter 2}");
-                                            Thread.Sleep(50);
-                                        }
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) == 0)
+                                                    AutoIt.AutoItX.WinActivate(Process.MainWindowHandle);
 
-                                        SplashTry++;
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) != 0)
+                                                    AutoIt.AutoItX.Send("{enter}");
+                                            }
+                                        }
                                     }
-                                }
-                                break;
-                        }
+                                    break;
+                            }
 
+                            if (Dispatcher.GetClient().GetName() != "")
+                            {
+                                Dispatcher.GetClient().Start();
 
-                        if (Dispatcher.GetClient().GetName() != "")
-                        {
-                            Dispatcher.GetClient().Start();
+                                Storage.ClientCollection.Add(Process.Id, Dispatcher.GetClient());
 
-                            Storage.ClientCollection.Add(Process.Id, Dispatcher.GetClient());
-                        }
+                                HandleProcess();
+                            }
 
-                        Thread.Sleep(1);
-                    };
+                            Thread.Sleep(1250);
+                        };
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, Account.Name, ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, Account.Name, ex.Message);
+                    }
                 }
             });
         }
@@ -351,26 +362,18 @@ namespace KOF.Core
                 {
                     Process Process = Process.GetProcessById(ProcessId);
 
-                    String CommandLine = Management["CommandLine"].ToString();
-
-                    string AccountName = "";
-
-                    if (CommandLine != "" && Storage.ClientCollection.ContainsKey(ProcessId) == false)
-                    {
-                        var Command = CommandLine.Split(' ');
-
-                        if (Command.Length == 4)
-                            AccountName = Command[2];
-
-                        if (Command.Length == 4 && Database().GetAccountByName(Command[2], "JPKO") == null)
-                            Database().SetAccount(AccountName, Command[3], Command[0].Replace(@"""", @""), "JPKO");
-                    }
-
                     if (Storage.ClientCollection.ContainsKey(ProcessId) == false)
                     {
                         Dispatcher Dispatcher = new Dispatcher(this);
 
-                        Dispatcher.GetClient().SetAccountName(AccountName);
+                        String CommandLine = Management["CommandLine"].ToString();
+
+                        if (CommandLine != "")
+                        {
+                            var Command = CommandLine.Split(' ');
+                            if (Command.Length == 4 && Database().GetAccountByName(Command[2], "JPKO") == null)
+                                Database().SetAccount(Command[2], Command[3], Command[0].Replace(@"""", @""), "JPKO");
+                        }
 
                         Dispatcher.GetClient().HandleProcess(Process, Management);
 
@@ -382,8 +385,6 @@ namespace KOF.Core
 
                                 Storage.ClientCollection.Add(ProcessId, Dispatcher.GetClient());
                             }
-
-                            Thread.Sleep(125);
                         }
                     }
 
@@ -401,10 +402,13 @@ namespace KOF.Core
             {
                 if (ClientData == null) continue;
 
-                ClientData.Destroy();
-
                 if (ClientData.HasExited() == false)
+                {
                     ClientData.GetProcess().Kill();
+                    ClientData.GetProcess().WaitForExit();
+                }
+
+                ClientData.Destroy();
             }
         }
 

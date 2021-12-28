@@ -32,5 +32,14 @@ namespace KOF.Models
 
         [Column("itemcount")]
         public int ItemCount { get; set; }
+
+        [Column("point")]
+        public int Point { get; set; }
+
+        [Column("tab")]
+        public int Tab { get; set; }
+
+        [Column("listed")]
+        public int Listed { get; set; }
     }
 }

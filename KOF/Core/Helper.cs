@@ -3,9 +3,24 @@ using System.Text;
 using KOF.Common.Win32;
 using System.IO;
 using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+using KOF.Models;
 
 namespace KOF.Core
 {
+    public struct Position
+    {
+        public Position(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public int X { get; }
+        public int Y { get; }
+    }
+
     public class Helper : Win32Api
     {
         public byte[] ReadByteArray(IntPtr Handle, int address, int length)
@@ -223,6 +238,11 @@ namespace KOF.Core
             return Value.ToString("x2").ToUpper();
         }
 
+        public string FloatToHex(float Value)
+        {
+            return BitConverter.ToString(BitConverter.GetBytes(Value)).Replace("-", "");
+        }
+
         public int CoordinateDistance(int StartX, int StartY, int TargetX, int TargetY)
         {
             return Convert.ToInt32(Math.Sqrt(Math.Pow((TargetX - StartX), 2) + Math.Pow((TargetY - StartY), 2)));
@@ -236,11 +256,61 @@ namespace KOF.Core
                 return -1;
             }
             else if (File.Exists(FilePath))
-            {
                 return new FileInfo(FilePath).Length;
-            }
 
             return 0;
+        }
+
+        public Image GetImageFromFile(string ImagePath)
+        {
+            try
+            {
+                return Image.FromFile(ImagePath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+            }
+        }
+
+        public string[] ParseArguments(string commandLine)
+        {
+            char[] parmChars = commandLine.ToCharArray();
+            bool inQuote = false;
+            for (int index = 0; index < parmChars.Length; index++)
+            {
+                if (parmChars[index] == '"')
+                    inQuote = !inQuote;
+                if (!inQuote && parmChars[index] == ' ')
+                    parmChars[index] = '\n';
+            }
+            return (new string(parmChars)).Split('\n');
+        }
+
+        public Position GetMiniMapPositionToWorld(PictureBox Picture, Zone Zone, int X, int Y)
+        {
+            int fWidth = (Picture.Right - Picture.Left);
+            int fHeight = (Picture.Bottom - Picture.Top);
+
+            Position Coordinate = new Position(
+                    X * (Zone.ScaleX / fWidth),
+                    (fHeight - Y) * (Zone.ScaleY / fHeight));
+
+            return Coordinate;
+        }
+
+
+        public Position GetWorldPositionToMinimap(PictureBox Picture, Zone Zone, int X, int Y)
+        {
+            int fWidth = (Picture.Right - Picture.Left);
+            int fHeight = (Picture.Bottom - Picture.Top);
+
+            Position Coordinate = new Position(
+                    X / (Zone.ScaleX / fWidth),
+                    fHeight - (Y / (Zone.ScaleY / fHeight)));
+
+            return Coordinate;
         }
     }
 }

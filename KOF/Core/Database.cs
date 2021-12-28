@@ -6,6 +6,7 @@ using KOF.Common;
 using KOF.Models;
 using System.Threading;
 using System;
+using System.Diagnostics;
 
 namespace KOF.Core
 {
@@ -31,6 +32,7 @@ namespace KOF.Core
             _Connection.CreateTable<Sell>();
             _Connection.CreateTable<Skill>();
             _Connection.CreateTable<SkillBar>();
+            _Connection.CreateTable<Zone>();
 
             string MigrationFolder = @".\Migration\";
 
@@ -249,20 +251,38 @@ namespace KOF.Core
             return _Connection.Table<Npc>().ToList();
         }
 
-        public void SetNpc(int Zone, string Type, int RealId, int X, int Y, int Nation, string Platform)
+        public void SetNpc(int Zone, string Type, int RealId, int X, int Y, int Nation, string Platform, int Town)
         {
-            Npc NpcData = new Npc();
+            Npc NpcData  = _Connection.Table<Npc>().Where(t => t.RealId == RealId && t.Zone == Zone && t.Platform == Platform).FirstOrDefault();
 
-            NpcData.Zone = Zone;
-            NpcData.Type = Type;
-            NpcData.RealId = RealId;
-            NpcData.X = X;
-            NpcData.Y = Y;
-            NpcData.Town = 1;
-            NpcData.Nation = Nation;
-            NpcData.Platform = Platform;
+            if(NpcData != null)
+            {
+                NpcData.Town = Town;
+                NpcData.X = X;
+                NpcData.Y = Y;
+                NpcData.Nation = Nation;
 
-            _Connection.Insert(NpcData);
+                _Connection.Update(NpcData);
+
+                Debug.WriteLine(string.Format("{0} updated.", NpcData.Id));
+            }
+            else
+            {
+                NpcData = new Npc();
+
+                NpcData.Zone = Zone;
+                NpcData.Type = Type;
+                NpcData.RealId = RealId;
+                NpcData.X = X;
+                NpcData.Y = Y;
+                NpcData.Town = Town;
+                NpcData.Nation = Nation;
+                NpcData.Platform = Platform;
+
+                _Connection.Insert(NpcData);
+
+                Debug.WriteLine(string.Format("{0} inserted.", NpcData.Id));
+            }
         }
 
         public Skill GetSkillData(string User, int SkillId)
@@ -443,17 +463,14 @@ namespace KOF.Core
                 {
                     ControlList.ForEach(Control =>
                     {
-                        if (Control.Name != "AreaControl")
+                        if (Control.Id == 0)
                         {
-                            if (Control.Id == 0)
-                            {
-                                _Connection.Insert(Control);
+                            _Connection.Insert(Control);
 
-                                Control.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
-                            }
-                            else
-                                _Connection.Update(Control);
+                            Control.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
                         }
+                        else
+                            _Connection.Update(Control);
                     });
                 });
             }
@@ -505,6 +522,11 @@ namespace KOF.Core
             return AccountList;
         }
 
+
+        public Zone GetZoneById(int Id)
+        {
+            return _Connection.Table<Zone>().Where(t => t.Id == Id).FirstOrDefault();
+        }
 
     }
 }

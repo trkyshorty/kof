@@ -36,7 +36,7 @@
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
     <TrustUrlParameters>true</TrustUrlParameters>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.4.0</ApplicationVersion>
+    <ApplicationVersion>1.1.0.0</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -176,6 +176,7 @@
     <Compile Include="Models\Sell.cs" />
     <Compile Include="Models\Skill.cs" />
     <Compile Include="Models\SkillBar.cs" />
+    <Compile Include="Models\Zone.cs" />
     <Compile Include="UI\About.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -285,6 +286,44 @@
     <Content Include="Migration\1.0.0.sql" />
     <Content Include="Migration\1.0.1.sql" />
     <Content Include="Migration\1.0.2.sql" />
+    <Content Include="Migration\1.1.0.sql" />
+    <Content Include="Resource\Map\14th_oldmoradon.png" />
+    <Content Include="Resource\Map\battlezone.png" />
+    <Content Include="Resource\Map\battlezone_b.png" />
+    <Content Include="Resource\Map\battlezone_d.png" />
+    <Content Include="Resource\Map\battlezone_e.png" />
+    <Content Include="Resource\Map\battlezone_e_fl.png" />
+    <Content Include="Resource\Map\bat_b_20050718.png" />
+    <Content Include="Resource\Map\bossmode.png" />
+    <Content Include="Resource\Map\clanfight.png" />
+    <Content Include="Resource\Map\clanfight_b.png" />
+    <Content Include="Resource\Map\clanfight_c.png" />
+    <Content Include="Resource\Map\default.png" />
+    <Content Include="Resource\Map\dungeon_defense.png" />
+    <Content Include="Resource\Map\elmo2004.png" />
+    <Content Include="Resource\Map\elmorad_start.png" />
+    <Content Include="Resource\Map\eslantzone.png" />
+    <Content Include="Resource\Map\freezone.png" />
+    <Content Include="Resource\Map\freezone_a.png" />
+    <Content Include="Resource\Map\freezone_a_event2012.png" />
+    <Content Include="Resource\Map\freezone_bb.png" />
+    <Content Include="Resource\Map\freezone_c.png" />
+    <Content Include="Resource\Map\freezone_new.png" />
+    <Content Include="Resource\Map\In_dungeon01.png" />
+    <Content Include="Resource\Map\in_dungeon02.png" />
+    <Content Include="Resource\Map\in_dungeon03.png" />
+    <Content Include="Resource\Map\in_dungeon04.png" />
+    <Content Include="Resource\Map\in_dungeon06.png" />
+    <Content Include="Resource\Map\itemzone_a.png" />
+    <Content Include="Resource\Map\karus 2004.png" />
+    <Content Include="Resource\Map\karus2004.png" />
+    <Content Include="Resource\Map\karus_start.png" />
+    <Content Include="Resource\Map\moradon.png" />
+    <Content Include="Resource\Map\moradon_xmas.png" />
+    <Content Include="Resource\Map\new_runawar.png" />
+    <Content Include="Resource\Map\Old_Elmo.png" />
+    <Content Include="Resource\Map\Old_Karus.png" />
+    <Content Include="Resource\Map\war_a.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

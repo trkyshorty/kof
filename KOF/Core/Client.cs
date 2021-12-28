@@ -504,32 +504,42 @@ namespace KOF.Core
 
                         if (Convert.ToBoolean(GetControl("HpPotion")) == true && HpPotionPercent <= Convert.ToInt32(GetControl("HpPotionPercent")))
                         {
-                            int HpPotionItem = 0;
+                            Item HpPotionItem = null;
 
                             switch (GetControl("HpPotionItem"))
                             {
+                                case "Otomatik":
+                                    HpPotionItem = FindQuestHpPotion();
+                                    if (HpPotionItem == null)
+                                        HpPotionItem = FindHpPotion();
+                                    break;
                                 case "Water of favors":
-                                    HpPotionItem = 389014000;
+                                    HpPotionItem = FindHpPotion(389014000);
                                     break;
                                 case "Water of grace":
-                                    HpPotionItem = 389013000;
+                                    HpPotionItem = FindHpPotion(389013000);
                                     break;
                                 case "Water of love":
-                                    HpPotionItem = 389012000;
+                                    HpPotionItem = FindHpPotion(389012000);
                                     break;
                                 case "Water of life":
-                                    HpPotionItem = 389011000;
+                                    HpPotionItem = FindHpPotion(389011000);
                                     break;
                                 case "Holy water":
-                                    HpPotionItem = 389010000;
+                                    HpPotionItem = FindHpPotion(389010000);
+                                    break;
+                                case "Water of Ibexs":
+                                    HpPotionItem = FindIbexPotion();
+                                    break;
+                                case "Premium Potion HP":
+                                    HpPotionItem = FindPremiumHpPotion();
                                     break;
                             }
 
-                            if (IsInventoryItemExist(HpPotionItem))
+                            if (HpPotionItem != null)
                             {
                                 SendPacket("3103" +
-                                  AlignDWORD(490000 +
-                                    Convert.ToInt32(HpPotionItem.ToString().Substring(4, 2))).Substring(0, 6) +
+                                  AlignDWORD(HpPotionItem.CastSkill).Substring(0, 6) +
                                   "00" +
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   AlignDWORD(GetId()).Substring(0, 4) +
@@ -541,36 +551,47 @@ namespace KOF.Core
 
                         if (Convert.ToBoolean(GetControl("MpPotion")) == true && MpPotionPercent <= Convert.ToInt32(GetControl("MpPotionPercent")))
                         {
-                            int MpPotionItem = 0;
+                            Item MpPotionItem = null;
 
                             switch (GetControl("MpPotionItem"))
                             {
+                                case "Otomatik":
+                                    MpPotionItem = FindQuestMpPotion();
+                                    if (MpPotionItem == null)
+                                        MpPotionItem = FindMpPotion();
+                                    break;
                                 case "Potion of Soul":
-                                    MpPotionItem = 389020000;
+                                    MpPotionItem = FindMpPotion(389020000);
                                     break;
                                 case "Potion of Wisdom":
-                                    MpPotionItem = 389019000;
+                                    MpPotionItem = FindMpPotion(389019000);
                                     break;
                                 case "Potion of Sagacity":
-                                    MpPotionItem = 389018000;
+                                    MpPotionItem = FindMpPotion(389018000);
                                     break;
                                 case "Potion of Intelligence":
-                                    MpPotionItem = 389017000;
+                                    MpPotionItem = FindMpPotion(389017000);
                                     break;
                                 case "Potion of Spirit":
-                                    MpPotionItem = 389016000;
+                                    MpPotionItem = FindMpPotion(389016000);
+                                    break;
+                                case "Potion of Crisis":
+                                    MpPotionItem = FindCrisisPotion();
+                                    break;
+                                case "Premium Potion MP":
+                                    MpPotionItem = FindPremiumMpPotion();
                                     break;
                             }
 
-                            if (IsInventoryItemExist(MpPotionItem))
+                            if (MpPotionItem != null)
+                            {
                                 SendPacket("3103" +
-                                  AlignDWORD(490000 +
-                                    Convert.ToInt32(MpPotionItem.ToString().Substring(4, 2))).Substring(0, 6) +
+                                  AlignDWORD(MpPotionItem.CastSkill).Substring(0, 6) +
                                   "00" +
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   "0000000000000000000000000000");
-
+                            }
                         }
                     }
 
@@ -710,6 +731,12 @@ namespace KOF.Core
                         return;
 
                     if (IsCharacterAvailable() == false || IsInEnterGame())
+                    {
+                        Thread.Sleep(1250);
+                        continue;
+                    }
+
+                    if (Convert.ToBoolean(GetControl("TimedSkill")) == false)
                     {
                         Thread.Sleep(1250);
                         continue;

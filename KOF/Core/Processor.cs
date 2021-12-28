@@ -3490,5 +3490,124 @@ namespace KOF.Core
             return _MiniMapImage;
         }
 
+        public Item FindHpPotion(int PotionId = 0)
+        {
+            if (PotionId != 0)
+            {
+                if (IsInventoryItemExist(PotionId))
+                    return Storage.ItemCollection.Find(x => x.Id == PotionId);
+            }
+            else
+            {
+                int[] HpPotion = { 389014000, 389013000, 389012000, 389011000, 389010000 };
+
+                for (int i = 0; i < HpPotion.Length; i++)
+                {
+                    if (IsInventoryItemExist(HpPotion[i]))
+                        return Storage.ItemCollection.Find(x => x.Id == HpPotion[i]);
+                }
+            }
+
+            return null;
+        }
+
+        public Item FindMpPotion(int PotionId = 0)
+        {
+            if(PotionId != 0)
+            {
+                if (IsInventoryItemExist(PotionId))
+                    return Storage.ItemCollection.Find(x => x.Id == PotionId);
+            }
+            else
+            {
+                int[] MpPotion = { 389020000, 389019000, 389018000, 389017000, 389016000 };
+
+                for (int i = 0; i < MpPotion.Length; i++)
+                {
+                    if (IsInventoryItemExist(MpPotion[i]))
+                        return Storage.ItemCollection.Find(x => x.Id == MpPotion[i]);
+                }
+            }
+
+            return null;
+        }
+
+        public Item FindIbexPotion()
+        {
+            int[] IbexPotion = { 389070000, 389071000, 800124000, 800126000, 810189000, 810247000, 811006000, 811008000, 814679000, 900486000 };
+
+            for (int i = 0; i < IbexPotion.Length; i++)
+            {
+                if (IsInventoryItemExist(IbexPotion[i]))
+                    return Storage.ItemCollection.Find(x => x.Id == IbexPotion[i]);
+            }
+
+            return null;
+        }
+
+        public Item FindCrisisPotion()
+        {
+            int[] CrisisPotion = { 389072000, 800125000, 800127000, 810192000, 810248000, 900487000, 811006000, 811008000, 814679000, 900486000 };
+
+            for (int i = 0; i < CrisisPotion.Length; i++)
+            {
+                if (IsInventoryItemExist(CrisisPotion[i]))
+                    return Storage.ItemCollection.Find(x => x.Id == CrisisPotion[i]);
+            }
+
+            return null;
+        }
+
+        public Item FindPremiumHpPotion()
+        {
+            int[] PremiumHpPotion = { 389310000, 389320000, 389330000, 389390000, 900817000 };
+
+            for (int i = 0; i < PremiumHpPotion.Length; i++)
+            {
+                if (IsInventoryItemExist(PremiumHpPotion[i]))
+                    return Storage.ItemCollection.Find(x => x.Id == PremiumHpPotion[i]);
+            }
+
+            return null;
+        }
+
+        public Item FindPremiumMpPotion()
+        {
+            int[] PremiumMpPotion = { 389340000, 389350000, 389360000, 389400000, 900818000 };
+
+            for (int i = 0; i < PremiumMpPotion.Length; i++)
+            {
+                if (IsInventoryItemExist(PremiumMpPotion[i]))
+                    return Storage.ItemCollection.Find(x => x.Id == PremiumMpPotion[i]);
+            }
+
+            return null;
+        }
+
+        public Item FindQuestHpPotion()
+        {
+            int[] QuestHpPotion = { 931786000 };
+
+            for (int i = 0; i < QuestHpPotion.Length; i++)
+            {
+                if (IsInventoryItemExist(QuestHpPotion[i]))
+                    return Storage.ItemCollection.Find(x => x.Id == QuestHpPotion[i]);
+            }
+
+            return null;
+        }
+
+        public Item FindQuestMpPotion()
+        {
+            int[] QuestMpPotion = { 931787000 };
+
+            for (int i = 0; i < QuestMpPotion.Length; i++)
+            {
+                if (IsInventoryItemExist(QuestMpPotion[i]))
+                    return Storage.ItemCollection.Find(x => x.Id == QuestMpPotion[i]);
+            }
+
+            return null;
+        }
     }
 }

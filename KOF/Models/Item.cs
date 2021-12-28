@@ -20,5 +20,8 @@ namespace KOF.Models
 
         [Column("warehousetype")]
         public int WarehouseType { get; set; }
+
+        [Column("castskill")]
+        public int CastSkill { get; set; }
     }
 }

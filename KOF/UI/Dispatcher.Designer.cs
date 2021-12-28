@@ -31,7 +31,7 @@ namespace KOF.UI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Dispatcher));
             this.DispatcherTabControl = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.GeneralTabPage = new System.Windows.Forms.TabPage();
             this.groupBox24 = new System.Windows.Forms.GroupBox();
             this.Suicide = new System.Windows.Forms.CheckBox();
             this.label10 = new System.Windows.Forms.Label();
@@ -48,6 +48,7 @@ namespace KOF.UI
             this.RepairMagicHammer = new System.Windows.Forms.CheckBox();
             this.RepairSunderies = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.AlwaysOnTop = new System.Windows.Forms.CheckBox();
             this.RemoveAllMob = new System.Windows.Forms.CheckBox();
             this.AttackScroll = new System.Windows.Forms.CheckBox();
             this.StatScroll = new System.Windows.Forms.CheckBox();
@@ -70,8 +71,9 @@ namespace KOF.UI
             this.HpPotionPercent = new System.Windows.Forms.NumericUpDown();
             this.MpPotion = new System.Windows.Forms.CheckBox();
             this.HpPotion = new System.Windows.Forms.CheckBox();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.AttackTabPage = new System.Windows.Forms.TabPage();
             this.groupBox12 = new System.Windows.Forms.GroupBox();
+            this.AddSelected = new System.Windows.Forms.Button();
             this.ClearTargetList = new System.Windows.Forms.Button();
             this.SearchPlayer = new System.Windows.Forms.Button();
             this.SearchMob = new System.Windows.Forms.Button();
@@ -82,9 +84,11 @@ namespace KOF.UI
             this.AreaControlY = new System.Windows.Forms.NumericUpDown();
             this.AreaControlX = new System.Windows.Forms.NumericUpDown();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
+            this.ActionRoute = new System.Windows.Forms.CheckBox();
             this.ActionSetCoordinate = new System.Windows.Forms.CheckBox();
             this.ActionMove = new System.Windows.Forms.CheckBox();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.AttackOnSetAreaControl = new System.Windows.Forms.CheckBox();
             this.RAttack = new System.Windows.Forms.CheckBox();
             this.Attack = new System.Windows.Forms.CheckBox();
             this.AttackDistance = new System.Windows.Forms.NumericUpDown();
@@ -100,7 +104,24 @@ namespace KOF.UI
             this.TimedSkillList = new System.Windows.Forms.CheckedListBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.AttackSkillList = new System.Windows.Forms.CheckedListBox();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.PartyTabPage = new System.Windows.Forms.TabPage();
+            this.groupBox15 = new System.Windows.Forms.GroupBox();
+            this.PartyGroupHealMemberCount = new System.Windows.Forms.NumericUpDown();
+            this.PartyGroupHealValue = new System.Windows.Forms.NumericUpDown();
+            this.PartyGroupHeal = new System.Windows.Forms.CheckBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.PartyCureDisease = new System.Windows.Forms.CheckBox();
+            this.PartyStr = new System.Windows.Forms.CheckBox();
+            this.PartyCure = new System.Windows.Forms.CheckBox();
+            this.PartyHealSelect = new System.Windows.Forms.ComboBox();
+            this.PartyHealValue = new System.Windows.Forms.NumericUpDown();
+            this.PartyHeal = new System.Windows.Forms.CheckBox();
+            this.PartyMindSelect = new System.Windows.Forms.ComboBox();
+            this.PartyMind = new System.Windows.Forms.CheckBox();
+            this.PartyAcSelect = new System.Windows.Forms.ComboBox();
+            this.PartyAc = new System.Windows.Forms.CheckBox();
+            this.PartyBuffSelect = new System.Windows.Forms.ComboBox();
+            this.PartyBuff = new System.Windows.Forms.CheckBox();
             this.groupBox18 = new System.Windows.Forms.GroupBox();
             this.label11 = new System.Windows.Forms.Label();
             this.PartyList = new System.Windows.Forms.CheckedListBox();
@@ -114,21 +135,8 @@ namespace KOF.UI
             this.groupBox16 = new System.Windows.Forms.GroupBox();
             this.PartyMinor = new System.Windows.Forms.CheckBox();
             this.PartyMinorPercent = new System.Windows.Forms.NumericUpDown();
-            this.groupBox15 = new System.Windows.Forms.GroupBox();
-            this.PartyCureDisease = new System.Windows.Forms.CheckBox();
-            this.PartyStr = new System.Windows.Forms.CheckBox();
-            this.PartyCure = new System.Windows.Forms.CheckBox();
-            this.PartyHealSelect = new System.Windows.Forms.ComboBox();
-            this.PartyHealValue = new System.Windows.Forms.NumericUpDown();
-            this.PartyHeal = new System.Windows.Forms.CheckBox();
-            this.PartyMindSelect = new System.Windows.Forms.ComboBox();
-            this.PartyMind = new System.Windows.Forms.CheckBox();
-            this.PartyAcSelect = new System.Windows.Forms.ComboBox();
-            this.PartyAc = new System.Windows.Forms.CheckBox();
-            this.PartyBuffSelect = new System.Windows.Forms.ComboBox();
-            this.PartyBuff = new System.Windows.Forms.CheckBox();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.groupBox14 = new System.Windows.Forms.GroupBox();
+            this.SupplyTabPage = new System.Windows.Forms.TabPage();
+            this.SupplyInnHostesGroupBox = new System.Windows.Forms.GroupBox();
             this.SupplyInnMasterStoneItem = new System.Windows.Forms.ComboBox();
             this.SupplyInnMasterStoneCount = new System.Windows.Forms.NumericUpDown();
             this.SupplyInnBookCount = new System.Windows.Forms.NumericUpDown();
@@ -164,13 +172,22 @@ namespace KOF.UI
             this.SupplyHpPotionItem = new System.Windows.Forms.ComboBox();
             this.SupplyHpPotionCount = new System.Windows.Forms.NumericUpDown();
             this.SupplyHpPotion = new System.Windows.Forms.CheckBox();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.ToolTabPage = new System.Windows.Forms.TabPage();
+            this.groupBox10 = new System.Windows.Forms.GroupBox();
+            this.NpcNationCommon = new System.Windows.Forms.CheckBox();
+            this.NpcInTown = new System.Windows.Forms.CheckBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.AddMiner = new System.Windows.Forms.Button();
+            this.AddSunderies = new System.Windows.Forms.Button();
+            this.AddPotion = new System.Windows.Forms.Button();
+            this.AddInnHostes = new System.Windows.Forms.Button();
             this.GroupBox23 = new System.Windows.Forms.GroupBox();
             this.PacketLoggerButton = new System.Windows.Forms.Button();
             this.Label8 = new System.Windows.Forms.Label();
             this.SendPacket = new System.Windows.Forms.Button();
             this.Packet = new System.Windows.Forms.TextBox();
             this.GroupBox20 = new System.Windows.Forms.GroupBox();
+            this.CoordinateRouteButton = new System.Windows.Forms.Button();
             this.ToolCoordinateY = new System.Windows.Forms.NumericUpDown();
             this.ToolCoordinateX = new System.Windows.Forms.NumericUpDown();
             this.GetCoordinateButton = new System.Windows.Forms.Button();
@@ -179,11 +196,11 @@ namespace KOF.UI
             this.GroupBox21 = new System.Windows.Forms.GroupBox();
             this.TakeCswStone = new System.Windows.Forms.Button();
             this.MoveCswStone = new System.Windows.Forms.Button();
-            this.GroupBox22 = new System.Windows.Forms.GroupBox();
+            this.FolkGroupBox = new System.Windows.Forms.GroupBox();
             this.BlackMarketer = new System.Windows.Forms.CheckBox();
             this.BlackMarketerEventTime = new System.Windows.Forms.NumericUpDown();
             this.Label3 = new System.Windows.Forms.Label();
-            this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.OtherTabPage = new System.Windows.Forms.TabPage();
             this.groupBox26 = new System.Windows.Forms.GroupBox();
             this.label12 = new System.Windows.Forms.Label();
             this.MonsterStoneEnable = new System.Windows.Forms.CheckBox();
@@ -201,13 +218,23 @@ namespace KOF.UI
             this.UpgradeScroll = new System.Windows.Forms.ComboBox();
             this.StartUpgrade = new System.Windows.Forms.Button();
             this.DeveloperTabPage = new System.Windows.Forms.TabPage();
-            this.groupBox10 = new System.Windows.Forms.GroupBox();
-            this.DevAddMiner = new System.Windows.Forms.Button();
-            this.DevAddSunderies = new System.Windows.Forms.Button();
-            this.DevAddPotion = new System.Windows.Forms.Button();
-            this.DevAddInnHostes = new System.Windows.Forms.Button();
+            this.groupBox27 = new System.Windows.Forms.GroupBox();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.label16 = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.SavedLocationList = new System.Windows.Forms.CheckedListBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.RouteTestStart = new System.Windows.Forms.Button();
+            this.RouteTestStop = new System.Windows.Forms.Button();
+            this.TestButton = new System.Windows.Forms.Button();
+            this.groupBox22 = new System.Windows.Forms.GroupBox();
+            this.groupBox29 = new System.Windows.Forms.GroupBox();
+            this.groupBox28 = new System.Windows.Forms.GroupBox();
+            this.MiniMap = new System.Windows.Forms.PictureBox();
+            this.ZoneXYInfo = new System.Windows.Forms.Label();
             this.DispatcherTabControl.SuspendLayout();
-            this.tabPage1.SuspendLayout();
+            this.GeneralTabPage.SuspendLayout();
             this.groupBox24.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SuicidePercent)).BeginInit();
             this.groupBox4.SuspendLayout();
@@ -217,7 +244,7 @@ namespace KOF.UI
             ((System.ComponentModel.ISupportInitialize)(this.MinorPercent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MpPotionPercent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.HpPotionPercent)).BeginInit();
-            this.tabPage2.SuspendLayout();
+            this.AttackTabPage.SuspendLayout();
             this.groupBox12.SuspendLayout();
             this.groupBox11.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.AreaControlY)).BeginInit();
@@ -229,15 +256,17 @@ namespace KOF.UI
             this.groupBox7.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox5.SuspendLayout();
-            this.tabPage3.SuspendLayout();
+            this.PartyTabPage.SuspendLayout();
+            this.groupBox15.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PartyGroupHealMemberCount)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PartyGroupHealValue)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PartyHealValue)).BeginInit();
             this.groupBox18.SuspendLayout();
             this.groupBox17.SuspendLayout();
             this.groupBox16.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PartyMinorPercent)).BeginInit();
-            this.groupBox15.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PartyHealValue)).BeginInit();
-            this.tabPage4.SuspendLayout();
-            this.groupBox14.SuspendLayout();
+            this.SupplyTabPage.SuspendLayout();
+            this.SupplyInnHostesGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyInnMasterStoneCount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyInnBookCount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyInnTsGemCount)).BeginInit();
@@ -253,53 +282,57 @@ namespace KOF.UI
             ((System.ComponentModel.ISupportInitialize)(this.SupplyArrowCount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyMpPotionCount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyHpPotionCount)).BeginInit();
-            this.tabPage5.SuspendLayout();
+            this.ToolTabPage.SuspendLayout();
+            this.groupBox10.SuspendLayout();
             this.GroupBox23.SuspendLayout();
             this.GroupBox20.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ToolCoordinateY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ToolCoordinateX)).BeginInit();
             this.GroupBox21.SuspendLayout();
-            this.GroupBox22.SuspendLayout();
+            this.FolkGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.BlackMarketerEventTime)).BeginInit();
-            this.tabPage7.SuspendLayout();
+            this.OtherTabPage.SuspendLayout();
             this.groupBox26.SuspendLayout();
             this.groupBox25.SuspendLayout();
             this.groupBox19.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.UpgradeWait)).BeginInit();
             this.DeveloperTabPage.SuspendLayout();
-            this.groupBox10.SuspendLayout();
+            this.groupBox27.SuspendLayout();
+            this.groupBox22.SuspendLayout();
+            this.groupBox28.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.MiniMap)).BeginInit();
             this.SuspendLayout();
             // 
             // DispatcherTabControl
             // 
-            this.DispatcherTabControl.Controls.Add(this.tabPage1);
-            this.DispatcherTabControl.Controls.Add(this.tabPage2);
-            this.DispatcherTabControl.Controls.Add(this.tabPage3);
-            this.DispatcherTabControl.Controls.Add(this.tabPage4);
-            this.DispatcherTabControl.Controls.Add(this.tabPage5);
-            this.DispatcherTabControl.Controls.Add(this.tabPage7);
+            this.DispatcherTabControl.Controls.Add(this.GeneralTabPage);
+            this.DispatcherTabControl.Controls.Add(this.AttackTabPage);
+            this.DispatcherTabControl.Controls.Add(this.PartyTabPage);
+            this.DispatcherTabControl.Controls.Add(this.SupplyTabPage);
+            this.DispatcherTabControl.Controls.Add(this.ToolTabPage);
+            this.DispatcherTabControl.Controls.Add(this.OtherTabPage);
             this.DispatcherTabControl.Controls.Add(this.DeveloperTabPage);
-            this.DispatcherTabControl.Location = new System.Drawing.Point(0, 0);
+            this.DispatcherTabControl.Location = new System.Drawing.Point(276, 8);
             this.DispatcherTabControl.Name = "DispatcherTabControl";
             this.DispatcherTabControl.SelectedIndex = 0;
-            this.DispatcherTabControl.Size = new System.Drawing.Size(319, 581);
+            this.DispatcherTabControl.Size = new System.Drawing.Size(316, 581);
             this.DispatcherTabControl.TabIndex = 0;
-            this.DispatcherTabControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Configuration_KeyUp);
+            this.DispatcherTabControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Dispatcher_KeyUp);
             // 
-            // tabPage1
+            // GeneralTabPage
             // 
-            this.tabPage1.Controls.Add(this.groupBox24);
-            this.tabPage1.Controls.Add(this.groupBox4);
-            this.tabPage1.Controls.Add(this.groupBox3);
-            this.tabPage1.Controls.Add(this.groupBox2);
-            this.tabPage1.Controls.Add(this.groupBox1);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(311, 555);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "Genel";
-            this.tabPage1.UseVisualStyleBackColor = true;
+            this.GeneralTabPage.Controls.Add(this.groupBox24);
+            this.GeneralTabPage.Controls.Add(this.groupBox4);
+            this.GeneralTabPage.Controls.Add(this.groupBox3);
+            this.GeneralTabPage.Controls.Add(this.groupBox2);
+            this.GeneralTabPage.Controls.Add(this.groupBox1);
+            this.GeneralTabPage.Location = new System.Drawing.Point(4, 22);
+            this.GeneralTabPage.Name = "GeneralTabPage";
+            this.GeneralTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.GeneralTabPage.Size = new System.Drawing.Size(308, 555);
+            this.GeneralTabPage.TabIndex = 0;
+            this.GeneralTabPage.Text = "Genel";
+            this.GeneralTabPage.UseVisualStyleBackColor = true;
             // 
             // groupBox24
             // 
@@ -307,9 +340,9 @@ namespace KOF.UI
             this.groupBox24.Controls.Add(this.label10);
             this.groupBox24.Controls.Add(this.SuicidePercent);
             this.groupBox24.Controls.Add(this.label9);
-            this.groupBox24.Location = new System.Drawing.Point(4, 127);
+            this.groupBox24.Location = new System.Drawing.Point(3, 128);
             this.groupBox24.Name = "groupBox24";
-            this.groupBox24.Size = new System.Drawing.Size(297, 44);
+            this.groupBox24.Size = new System.Drawing.Size(301, 44);
             this.groupBox24.TabIndex = 4;
             this.groupBox24.TabStop = false;
             this.groupBox24.Text = "İntihar";
@@ -365,9 +398,9 @@ namespace KOF.UI
             this.groupBox4.Controls.Add(this.LootOnlyList);
             this.groupBox4.Controls.Add(this.SellInventoryFull);
             this.groupBox4.Controls.Add(this.OnlyNoah);
-            this.groupBox4.Location = new System.Drawing.Point(4, 398);
+            this.groupBox4.Location = new System.Drawing.Point(3, 399);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(297, 131);
+            this.groupBox4.Size = new System.Drawing.Size(300, 131);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Oto Kutu";
@@ -421,7 +454,7 @@ namespace KOF.UI
             this.SellInventoryFull.AutoSize = true;
             this.SellInventoryFull.Checked = true;
             this.SellInventoryFull.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.SellInventoryFull.Location = new System.Drawing.Point(191, 20);
+            this.SellInventoryFull.Location = new System.Drawing.Point(196, 20);
             this.SellInventoryFull.Name = "SellInventoryFull";
             this.SellInventoryFull.Size = new System.Drawing.Size(83, 17);
             this.SellInventoryFull.TabIndex = 1;
@@ -444,9 +477,9 @@ namespace KOF.UI
             // 
             this.groupBox3.Controls.Add(this.RepairMagicHammer);
             this.groupBox3.Controls.Add(this.RepairSunderies);
-            this.groupBox3.Location = new System.Drawing.Point(4, 343);
+            this.groupBox3.Location = new System.Drawing.Point(3, 344);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(297, 49);
+            this.groupBox3.Size = new System.Drawing.Size(301, 49);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Tamir";
@@ -454,7 +487,7 @@ namespace KOF.UI
             // RepairMagicHammer
             // 
             this.RepairMagicHammer.AutoSize = true;
-            this.RepairMagicHammer.Location = new System.Drawing.Point(191, 20);
+            this.RepairMagicHammer.Location = new System.Drawing.Point(196, 20);
             this.RepairMagicHammer.Name = "RepairMagicHammer";
             this.RepairMagicHammer.Size = new System.Drawing.Size(95, 17);
             this.RepairMagicHammer.TabIndex = 1;
@@ -477,6 +510,7 @@ namespace KOF.UI
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.AlwaysOnTop);
             this.groupBox2.Controls.Add(this.RemoveAllMob);
             this.groupBox2.Controls.Add(this.AttackScroll);
             this.groupBox2.Controls.Add(this.StatScroll);
@@ -488,12 +522,25 @@ namespace KOF.UI
             this.groupBox2.Controls.Add(this.AreaHeal);
             this.groupBox2.Controls.Add(this.Oreads);
             this.groupBox2.Controls.Add(this.Wallhack);
-            this.groupBox2.Location = new System.Drawing.Point(4, 177);
+            this.groupBox2.Location = new System.Drawing.Point(3, 178);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(297, 160);
+            this.groupBox2.Size = new System.Drawing.Size(301, 160);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Özellik";
+            // 
+            // AlwaysOnTop
+            // 
+            this.AlwaysOnTop.AutoSize = true;
+            this.AlwaysOnTop.Checked = true;
+            this.AlwaysOnTop.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.AlwaysOnTop.Location = new System.Drawing.Point(194, 20);
+            this.AlwaysOnTop.Name = "AlwaysOnTop";
+            this.AlwaysOnTop.Size = new System.Drawing.Size(71, 17);
+            this.AlwaysOnTop.TabIndex = 5;
+            this.AlwaysOnTop.Text = "Üstte Tut";
+            this.AlwaysOnTop.UseVisualStyleBackColor = true;
+            this.AlwaysOnTop.CheckedChanged += new System.EventHandler(this.AlwaysOnTop_CheckedChanged);
             // 
             // RemoveAllMob
             // 
@@ -510,7 +557,7 @@ namespace KOF.UI
             // 
             this.AttackScroll.AutoSize = true;
             this.AttackScroll.Enabled = false;
-            this.AttackScroll.Location = new System.Drawing.Point(191, 112);
+            this.AttackScroll.Location = new System.Drawing.Point(196, 135);
             this.AttackScroll.Name = "AttackScroll";
             this.AttackScroll.Size = new System.Drawing.Size(85, 17);
             this.AttackScroll.TabIndex = 9;
@@ -522,7 +569,7 @@ namespace KOF.UI
             // 
             this.StatScroll.AutoSize = true;
             this.StatScroll.Enabled = false;
-            this.StatScroll.Location = new System.Drawing.Point(191, 89);
+            this.StatScroll.Location = new System.Drawing.Point(196, 112);
             this.StatScroll.Name = "StatScroll";
             this.StatScroll.Size = new System.Drawing.Size(74, 17);
             this.StatScroll.TabIndex = 8;
@@ -533,7 +580,7 @@ namespace KOF.UI
             // DeathOnBorn
             // 
             this.DeathOnBorn.AutoSize = true;
-            this.DeathOnBorn.Location = new System.Drawing.Point(191, 66);
+            this.DeathOnBorn.Location = new System.Drawing.Point(196, 89);
             this.DeathOnBorn.Name = "DeathOnBorn";
             this.DeathOnBorn.Size = new System.Drawing.Size(81, 17);
             this.DeathOnBorn.TabIndex = 7;
@@ -545,7 +592,7 @@ namespace KOF.UI
             // 
             this.SpeedHack.AutoSize = true;
             this.SpeedHack.Enabled = false;
-            this.SpeedHack.Location = new System.Drawing.Point(191, 43);
+            this.SpeedHack.Location = new System.Drawing.Point(195, 66);
             this.SpeedHack.Name = "SpeedHack";
             this.SpeedHack.Size = new System.Drawing.Size(82, 17);
             this.SpeedHack.TabIndex = 6;
@@ -558,7 +605,7 @@ namespace KOF.UI
             this.FollowDisable.AutoSize = true;
             this.FollowDisable.Checked = true;
             this.FollowDisable.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.FollowDisable.Location = new System.Drawing.Point(191, 20);
+            this.FollowDisable.Location = new System.Drawing.Point(195, 43);
             this.FollowDisable.Name = "FollowDisable";
             this.FollowDisable.Size = new System.Drawing.Size(70, 17);
             this.FollowDisable.TabIndex = 5;
@@ -639,9 +686,9 @@ namespace KOF.UI
             this.groupBox1.Controls.Add(this.HpPotionPercent);
             this.groupBox1.Controls.Add(this.MpPotion);
             this.groupBox1.Controls.Add(this.HpPotion);
-            this.groupBox1.Location = new System.Drawing.Point(4, 5);
+            this.groupBox1.Location = new System.Drawing.Point(3, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(297, 116);
+            this.groupBox1.Size = new System.Drawing.Size(301, 116);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Koruma";
@@ -649,6 +696,7 @@ namespace KOF.UI
             // TransformationName
             // 
             this.TransformationName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.TransformationName.Enabled = false;
             this.TransformationName.FormattingEnabled = true;
             this.TransformationName.Items.AddRange(new object[] {
             "Kecoon",
@@ -675,6 +723,7 @@ namespace KOF.UI
             // Transformation
             // 
             this.Transformation.AutoSize = true;
+            this.Transformation.Enabled = false;
             this.Transformation.Location = new System.Drawing.Point(6, 87);
             this.Transformation.Name = "Transformation";
             this.Transformation.Size = new System.Drawing.Size(59, 17);
@@ -800,25 +849,26 @@ namespace KOF.UI
             this.HpPotion.UseVisualStyleBackColor = true;
             this.HpPotion.CheckedChanged += new System.EventHandler(this.HpPotion_CheckedChanged);
             // 
-            // tabPage2
+            // AttackTabPage
             // 
-            this.tabPage2.Controls.Add(this.groupBox12);
-            this.tabPage2.Controls.Add(this.groupBox11);
-            this.tabPage2.Controls.Add(this.groupBox9);
-            this.tabPage2.Controls.Add(this.groupBox8);
-            this.tabPage2.Controls.Add(this.groupBox7);
-            this.tabPage2.Controls.Add(this.groupBox6);
-            this.tabPage2.Controls.Add(this.groupBox5);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(311, 555);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Saldırı";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.AttackTabPage.Controls.Add(this.groupBox12);
+            this.AttackTabPage.Controls.Add(this.groupBox11);
+            this.AttackTabPage.Controls.Add(this.groupBox9);
+            this.AttackTabPage.Controls.Add(this.groupBox8);
+            this.AttackTabPage.Controls.Add(this.groupBox7);
+            this.AttackTabPage.Controls.Add(this.groupBox6);
+            this.AttackTabPage.Controls.Add(this.groupBox5);
+            this.AttackTabPage.Location = new System.Drawing.Point(4, 22);
+            this.AttackTabPage.Name = "AttackTabPage";
+            this.AttackTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.AttackTabPage.Size = new System.Drawing.Size(308, 555);
+            this.AttackTabPage.TabIndex = 1;
+            this.AttackTabPage.Text = "Saldırı";
+            this.AttackTabPage.UseVisualStyleBackColor = true;
             // 
             // groupBox12
             // 
+            this.groupBox12.Controls.Add(this.AddSelected);
             this.groupBox12.Controls.Add(this.ClearTargetList);
             this.groupBox12.Controls.Add(this.SearchPlayer);
             this.groupBox12.Controls.Add(this.SearchMob);
@@ -830,9 +880,19 @@ namespace KOF.UI
             this.groupBox12.TabStop = false;
             this.groupBox12.Text = "Hedef Listesi";
             // 
+            // AddSelected
+            // 
+            this.AddSelected.Location = new System.Drawing.Point(163, 78);
+            this.AddSelected.Name = "AddSelected";
+            this.AddSelected.Size = new System.Drawing.Size(123, 23);
+            this.AddSelected.TabIndex = 5;
+            this.AddSelected.Text = "Seçileni Ekle";
+            this.AddSelected.UseVisualStyleBackColor = true;
+            this.AddSelected.Click += new System.EventHandler(this.AddSelected_Click);
+            // 
             // ClearTargetList
             // 
-            this.ClearTargetList.Location = new System.Drawing.Point(164, 78);
+            this.ClearTargetList.Location = new System.Drawing.Point(163, 108);
             this.ClearTargetList.Name = "ClearTargetList";
             this.ClearTargetList.Size = new System.Drawing.Size(123, 23);
             this.ClearTargetList.TabIndex = 4;
@@ -881,16 +941,16 @@ namespace KOF.UI
             this.groupBox11.Size = new System.Drawing.Size(144, 100);
             this.groupBox11.TabIndex = 3;
             this.groupBox11.TabStop = false;
-            this.groupBox11.Text = "Alan Kontrol";
+            this.groupBox11.Text = "Merkez Yönetimi";
             // 
             // AreaControl
             // 
             this.AreaControl.AutoSize = true;
             this.AreaControl.Location = new System.Drawing.Point(6, 20);
             this.AreaControl.Name = "AreaControl";
-            this.AreaControl.Size = new System.Drawing.Size(67, 17);
+            this.AreaControl.Size = new System.Drawing.Size(82, 17);
             this.AreaControl.TabIndex = 3;
-            this.AreaControl.Text = "Geri Dön";
+            this.AreaControl.Text = "Merkez Dön";
             this.AreaControl.UseVisualStyleBackColor = true;
             this.AreaControl.CheckedChanged += new System.EventHandler(this.AreaControl_CheckedChanged);
             // 
@@ -900,7 +960,7 @@ namespace KOF.UI
             this.SetAreaControl.Name = "SetAreaControl";
             this.SetAreaControl.Size = new System.Drawing.Size(75, 23);
             this.SetAreaControl.TabIndex = 2;
-            this.SetAreaControl.Text = "Alan Seç";
+            this.SetAreaControl.Text = "Merkez Seç";
             this.SetAreaControl.UseVisualStyleBackColor = true;
             this.SetAreaControl.Click += new System.EventHandler(this.SetAreaControl_Click);
             // 
@@ -934,19 +994,33 @@ namespace KOF.UI
             // 
             // groupBox9
             // 
+            this.groupBox9.Controls.Add(this.ActionRoute);
             this.groupBox9.Controls.Add(this.ActionSetCoordinate);
             this.groupBox9.Controls.Add(this.ActionMove);
-            this.groupBox9.Location = new System.Drawing.Point(161, 200);
+            this.groupBox9.Location = new System.Drawing.Point(161, 188);
             this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Size = new System.Drawing.Size(144, 51);
+            this.groupBox9.Size = new System.Drawing.Size(144, 63);
             this.groupBox9.TabIndex = 0;
             this.groupBox9.TabStop = false;
             this.groupBox9.Text = "Hareket";
             // 
+            // ActionRoute
+            // 
+            this.ActionRoute.AutoSize = true;
+            this.ActionRoute.Enabled = false;
+            this.ActionRoute.Location = new System.Drawing.Point(7, 39);
+            this.ActionRoute.Name = "ActionRoute";
+            this.ActionRoute.Size = new System.Drawing.Size(49, 17);
+            this.ActionRoute.TabIndex = 9;
+            this.ActionRoute.Text = "Rota";
+            this.ActionRoute.UseVisualStyleBackColor = true;
+            this.ActionRoute.CheckedChanged += new System.EventHandler(this.ActionRoute_CheckedChanged);
+            // 
             // ActionSetCoordinate
             // 
             this.ActionSetCoordinate.AutoSize = true;
-            this.ActionSetCoordinate.Location = new System.Drawing.Point(87, 24);
+            this.ActionSetCoordinate.Enabled = false;
+            this.ActionSetCoordinate.Location = new System.Drawing.Point(87, 15);
             this.ActionSetCoordinate.Name = "ActionSetCoordinate";
             this.ActionSetCoordinate.Size = new System.Drawing.Size(48, 17);
             this.ActionSetCoordinate.TabIndex = 5;
@@ -957,7 +1031,7 @@ namespace KOF.UI
             // ActionMove
             // 
             this.ActionMove.AutoSize = true;
-            this.ActionMove.Location = new System.Drawing.Point(9, 24);
+            this.ActionMove.Location = new System.Drawing.Point(7, 16);
             this.ActionMove.Name = "ActionMove";
             this.ActionMove.Size = new System.Drawing.Size(48, 17);
             this.ActionMove.TabIndex = 4;
@@ -967,6 +1041,7 @@ namespace KOF.UI
             // 
             // groupBox8
             // 
+            this.groupBox8.Controls.Add(this.AttackOnSetAreaControl);
             this.groupBox8.Controls.Add(this.RAttack);
             this.groupBox8.Controls.Add(this.Attack);
             this.groupBox8.Controls.Add(this.AttackDistance);
@@ -979,6 +1054,17 @@ namespace KOF.UI
             this.groupBox8.TabIndex = 0;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Saldırı";
+            // 
+            // AttackOnSetAreaControl
+            // 
+            this.AttackOnSetAreaControl.AutoSize = true;
+            this.AttackOnSetAreaControl.Location = new System.Drawing.Point(9, 42);
+            this.AttackOnSetAreaControl.Name = "AttackOnSetAreaControl";
+            this.AttackOnSetAreaControl.Size = new System.Drawing.Size(119, 30);
+            this.AttackOnSetAreaControl.TabIndex = 9;
+            this.AttackOnSetAreaControl.Text = "Saldırı başladığında \r\nmerkez al";
+            this.AttackOnSetAreaControl.UseVisualStyleBackColor = true;
+            this.AttackOnSetAreaControl.CheckedChanged += new System.EventHandler(this.AttackOnSetAreaControl_CheckedChanged);
             // 
             // RAttack
             // 
@@ -1121,7 +1207,7 @@ namespace KOF.UI
             this.groupBox6.Controls.Add(this.TimedSkillList);
             this.groupBox6.Location = new System.Drawing.Point(161, 6);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(144, 188);
+            this.groupBox6.Size = new System.Drawing.Size(144, 181);
             this.groupBox6.TabIndex = 1;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Zamanlı Skiller";
@@ -1129,11 +1215,11 @@ namespace KOF.UI
             // WaitTime
             // 
             this.WaitTime.AutoSize = true;
-            this.WaitTime.Location = new System.Drawing.Point(9, 160);
+            this.WaitTime.Location = new System.Drawing.Point(8, 155);
             this.WaitTime.Name = "WaitTime";
-            this.WaitTime.Size = new System.Drawing.Size(69, 17);
+            this.WaitTime.Size = new System.Drawing.Size(88, 17);
             this.WaitTime.TabIndex = 3;
-            this.WaitTime.Text = "Süre Say";
+            this.WaitTime.Text = "Zamanı Bekle";
             this.WaitTime.UseVisualStyleBackColor = true;
             this.WaitTime.CheckedChanged += new System.EventHandler(this.WaitTime_CheckedChanged);
             // 
@@ -1149,7 +1235,7 @@ namespace KOF.UI
             // groupBox5
             // 
             this.groupBox5.Controls.Add(this.AttackSkillList);
-            this.groupBox5.Location = new System.Drawing.Point(4, 5);
+            this.groupBox5.Location = new System.Drawing.Point(3, 6);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(144, 188);
             this.groupBox5.TabIndex = 0;
@@ -1165,168 +1251,25 @@ namespace KOF.UI
             this.AttackSkillList.TabIndex = 0;
             this.AttackSkillList.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.AttackSkillList_ItemCheck);
             // 
-            // tabPage3
+            // PartyTabPage
             // 
-            this.tabPage3.Controls.Add(this.groupBox18);
-            this.tabPage3.Controls.Add(this.groupBox17);
-            this.tabPage3.Controls.Add(this.groupBox16);
-            this.tabPage3.Controls.Add(this.groupBox15);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(311, 555);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Party";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // groupBox18
-            // 
-            this.groupBox18.Controls.Add(this.label11);
-            this.groupBox18.Controls.Add(this.PartyList);
-            this.groupBox18.Controls.Add(this.RefreshPartyList);
-            this.groupBox18.Controls.Add(this.ClearPartyList);
-            this.groupBox18.Location = new System.Drawing.Point(8, 269);
-            this.groupBox18.Name = "groupBox18";
-            this.groupBox18.Size = new System.Drawing.Size(294, 194);
-            this.groupBox18.TabIndex = 7;
-            this.groupBox18.TabStop = false;
-            this.groupBox18.Text = "Party Listesi";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.ForeColor = System.Drawing.Color.Red;
-            this.label11.Location = new System.Drawing.Point(9, 160);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(279, 26);
-            this.label11.TabIndex = 3;
-            this.label11.Text = "Party listesinden seçim yaparsanız party işlemleri sadece \r\nseçilen karakterlere " +
-    "uygulanır.";
-            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // PartyList
-            // 
-            this.PartyList.FormattingEnabled = true;
-            this.PartyList.Location = new System.Drawing.Point(6, 20);
-            this.PartyList.Name = "PartyList";
-            this.PartyList.Size = new System.Drawing.Size(159, 132);
-            this.PartyList.TabIndex = 0;
-            this.PartyList.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.PartyList_ItemCheck);
-            // 
-            // RefreshPartyList
-            // 
-            this.RefreshPartyList.Location = new System.Drawing.Point(170, 20);
-            this.RefreshPartyList.Name = "RefreshPartyList";
-            this.RefreshPartyList.Size = new System.Drawing.Size(117, 23);
-            this.RefreshPartyList.TabIndex = 1;
-            this.RefreshPartyList.Text = "Yenile";
-            this.RefreshPartyList.UseVisualStyleBackColor = true;
-            this.RefreshPartyList.Click += new System.EventHandler(this.RefreshPartyList_Click);
-            // 
-            // ClearPartyList
-            // 
-            this.ClearPartyList.Location = new System.Drawing.Point(170, 49);
-            this.ClearPartyList.Name = "ClearPartyList";
-            this.ClearPartyList.Size = new System.Drawing.Size(117, 23);
-            this.ClearPartyList.TabIndex = 2;
-            this.ClearPartyList.Text = "Temizle";
-            this.ClearPartyList.UseVisualStyleBackColor = true;
-            this.ClearPartyList.Click += new System.EventHandler(this.ClearPartyList_Click);
-            // 
-            // groupBox17
-            // 
-            this.groupBox17.Controls.Add(this.GlacierResist);
-            this.groupBox17.Controls.Add(this.FlameResist);
-            this.groupBox17.Controls.Add(this.LightningResist);
-            this.groupBox17.Controls.Add(this.PullAway);
-            this.groupBox17.Location = new System.Drawing.Point(8, 211);
-            this.groupBox17.Name = "groupBox17";
-            this.groupBox17.Size = new System.Drawing.Size(294, 52);
-            this.groupBox17.TabIndex = 2;
-            this.groupBox17.TabStop = false;
-            this.groupBox17.Text = "Mage";
-            // 
-            // GlacierResist
-            // 
-            this.GlacierResist.AutoSize = true;
-            this.GlacierResist.Location = new System.Drawing.Point(247, 20);
-            this.GlacierResist.Name = "GlacierResist";
-            this.GlacierResist.Size = new System.Drawing.Size(40, 17);
-            this.GlacierResist.TabIndex = 6;
-            this.GlacierResist.Text = "GR";
-            this.GlacierResist.UseVisualStyleBackColor = true;
-            this.GlacierResist.CheckedChanged += new System.EventHandler(this.GlacierResist_CheckedChanged);
-            // 
-            // FlameResist
-            // 
-            this.FlameResist.AutoSize = true;
-            this.FlameResist.Location = new System.Drawing.Point(203, 20);
-            this.FlameResist.Name = "FlameResist";
-            this.FlameResist.Size = new System.Drawing.Size(39, 17);
-            this.FlameResist.TabIndex = 5;
-            this.FlameResist.Text = "FR";
-            this.FlameResist.UseVisualStyleBackColor = true;
-            this.FlameResist.CheckedChanged += new System.EventHandler(this.FlameResist_CheckedChanged);
-            // 
-            // LightningResist
-            // 
-            this.LightningResist.AutoSize = true;
-            this.LightningResist.Location = new System.Drawing.Point(159, 20);
-            this.LightningResist.Name = "LightningResist";
-            this.LightningResist.Size = new System.Drawing.Size(38, 17);
-            this.LightningResist.TabIndex = 4;
-            this.LightningResist.Text = "LR";
-            this.LightningResist.UseVisualStyleBackColor = true;
-            this.LightningResist.CheckedChanged += new System.EventHandler(this.LightningResist_CheckedChanged);
-            // 
-            // PullAway
-            // 
-            this.PullAway.AutoSize = true;
-            this.PullAway.Location = new System.Drawing.Point(6, 20);
-            this.PullAway.Name = "PullAway";
-            this.PullAway.Size = new System.Drawing.Size(100, 17);
-            this.PullAway.TabIndex = 3;
-            this.PullAway.Text = "Uzaklaşınca çek";
-            this.PullAway.UseVisualStyleBackColor = true;
-            this.PullAway.CheckedChanged += new System.EventHandler(this.PullAway_CheckedChanged);
-            // 
-            // groupBox16
-            // 
-            this.groupBox16.Controls.Add(this.PartyMinor);
-            this.groupBox16.Controls.Add(this.PartyMinorPercent);
-            this.groupBox16.Location = new System.Drawing.Point(8, 151);
-            this.groupBox16.Name = "groupBox16";
-            this.groupBox16.Size = new System.Drawing.Size(294, 54);
-            this.groupBox16.TabIndex = 1;
-            this.groupBox16.TabStop = false;
-            this.groupBox16.Text = "Rogue";
-            // 
-            // PartyMinor
-            // 
-            this.PartyMinor.AutoSize = true;
-            this.PartyMinor.Location = new System.Drawing.Point(6, 21);
-            this.PartyMinor.Name = "PartyMinor";
-            this.PartyMinor.Size = new System.Drawing.Size(52, 17);
-            this.PartyMinor.TabIndex = 1;
-            this.PartyMinor.Text = "Minor";
-            this.PartyMinor.UseVisualStyleBackColor = true;
-            this.PartyMinor.CheckedChanged += new System.EventHandler(this.PartyMinor_CheckedChanged);
-            // 
-            // PartyMinorPercent
-            // 
-            this.PartyMinorPercent.Location = new System.Drawing.Point(113, 20);
-            this.PartyMinorPercent.Name = "PartyMinorPercent";
-            this.PartyMinorPercent.Size = new System.Drawing.Size(52, 21);
-            this.PartyMinorPercent.TabIndex = 0;
-            this.PartyMinorPercent.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.PartyMinorPercent.Value = new decimal(new int[] {
-            75,
-            0,
-            0,
-            0});
-            this.PartyMinorPercent.ValueChanged += new System.EventHandler(this.PartyMinorPercent_ValueChanged);
+            this.PartyTabPage.Controls.Add(this.groupBox15);
+            this.PartyTabPage.Controls.Add(this.groupBox18);
+            this.PartyTabPage.Controls.Add(this.groupBox17);
+            this.PartyTabPage.Controls.Add(this.groupBox16);
+            this.PartyTabPage.Location = new System.Drawing.Point(4, 22);
+            this.PartyTabPage.Name = "PartyTabPage";
+            this.PartyTabPage.Size = new System.Drawing.Size(308, 555);
+            this.PartyTabPage.TabIndex = 2;
+            this.PartyTabPage.Text = "Party";
+            this.PartyTabPage.UseVisualStyleBackColor = true;
             // 
             // groupBox15
             // 
+            this.groupBox15.Controls.Add(this.PartyGroupHealMemberCount);
+            this.groupBox15.Controls.Add(this.PartyGroupHealValue);
+            this.groupBox15.Controls.Add(this.PartyGroupHeal);
+            this.groupBox15.Controls.Add(this.label14);
             this.groupBox15.Controls.Add(this.PartyCureDisease);
             this.groupBox15.Controls.Add(this.PartyStr);
             this.groupBox15.Controls.Add(this.PartyCure);
@@ -1339,17 +1282,77 @@ namespace KOF.UI
             this.groupBox15.Controls.Add(this.PartyAc);
             this.groupBox15.Controls.Add(this.PartyBuffSelect);
             this.groupBox15.Controls.Add(this.PartyBuff);
-            this.groupBox15.Location = new System.Drawing.Point(8, 8);
+            this.groupBox15.Location = new System.Drawing.Point(3, 6);
             this.groupBox15.Name = "groupBox15";
-            this.groupBox15.Size = new System.Drawing.Size(294, 137);
-            this.groupBox15.TabIndex = 0;
+            this.groupBox15.Size = new System.Drawing.Size(294, 186);
+            this.groupBox15.TabIndex = 8;
             this.groupBox15.TabStop = false;
             this.groupBox15.Text = "Priest";
+            // 
+            // PartyGroupHealMemberCount
+            // 
+            this.PartyGroupHealMemberCount.Location = new System.Drawing.Point(171, 108);
+            this.PartyGroupHealMemberCount.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.PartyGroupHealMemberCount.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.PartyGroupHealMemberCount.Name = "PartyGroupHealMemberCount";
+            this.PartyGroupHealMemberCount.Size = new System.Drawing.Size(119, 21);
+            this.PartyGroupHealMemberCount.TabIndex = 15;
+            this.PartyGroupHealMemberCount.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.PartyGroupHealMemberCount.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            this.PartyGroupHealMemberCount.ValueChanged += new System.EventHandler(this.PartyGroupHealMemberCount_ValueChanged);
+            // 
+            // PartyGroupHealValue
+            // 
+            this.PartyGroupHealValue.Location = new System.Drawing.Point(113, 108);
+            this.PartyGroupHealValue.Name = "PartyGroupHealValue";
+            this.PartyGroupHealValue.Size = new System.Drawing.Size(52, 21);
+            this.PartyGroupHealValue.TabIndex = 14;
+            this.PartyGroupHealValue.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.PartyGroupHealValue.Value = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+            this.PartyGroupHealValue.ValueChanged += new System.EventHandler(this.PartyGroupHealValue_ValueChanged);
+            // 
+            // PartyGroupHeal
+            // 
+            this.PartyGroupHeal.AutoSize = true;
+            this.PartyGroupHeal.Location = new System.Drawing.Point(6, 109);
+            this.PartyGroupHeal.Name = "PartyGroupHeal";
+            this.PartyGroupHeal.Size = new System.Drawing.Size(79, 17);
+            this.PartyGroupHeal.TabIndex = 13;
+            this.PartyGroupHeal.Text = "Group Heal";
+            this.PartyGroupHeal.UseVisualStyleBackColor = true;
+            this.PartyGroupHeal.CheckedChanged += new System.EventHandler(this.PartyGroupHeal_CheckedChanged);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.ForeColor = System.Drawing.Color.Red;
+            this.label14.Location = new System.Drawing.Point(5, 160);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(285, 13);
+            this.label14.TabIndex = 12;
+            this.label14.Text = "Party içerisinde olmasa bile kendini korumaya devam eder.";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // PartyCureDisease
             // 
             this.PartyCureDisease.AutoSize = true;
-            this.PartyCureDisease.Location = new System.Drawing.Point(113, 110);
+            this.PartyCureDisease.Location = new System.Drawing.Point(113, 136);
             this.PartyCureDisease.Name = "PartyCureDisease";
             this.PartyCureDisease.Size = new System.Drawing.Size(89, 17);
             this.PartyCureDisease.TabIndex = 11;
@@ -1360,7 +1363,7 @@ namespace KOF.UI
             // PartyStr
             // 
             this.PartyStr.AutoSize = true;
-            this.PartyStr.Location = new System.Drawing.Point(247, 110);
+            this.PartyStr.Location = new System.Drawing.Point(247, 136);
             this.PartyStr.Name = "PartyStr";
             this.PartyStr.Size = new System.Drawing.Size(40, 17);
             this.PartyStr.TabIndex = 10;
@@ -1371,7 +1374,7 @@ namespace KOF.UI
             // PartyCure
             // 
             this.PartyCure.AutoSize = true;
-            this.PartyCure.Location = new System.Drawing.Point(6, 110);
+            this.PartyCure.Location = new System.Drawing.Point(6, 134);
             this.PartyCure.Name = "PartyCure";
             this.PartyCure.Size = new System.Drawing.Size(49, 17);
             this.PartyCure.TabIndex = 9;
@@ -1405,7 +1408,7 @@ namespace KOF.UI
             this.PartyHealValue.TabIndex = 7;
             this.PartyHealValue.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.PartyHealValue.Value = new decimal(new int[] {
-            90,
+            75,
             0,
             0,
             0});
@@ -1515,42 +1518,190 @@ namespace KOF.UI
             this.PartyBuff.UseVisualStyleBackColor = true;
             this.PartyBuff.CheckedChanged += new System.EventHandler(this.PartyBuff_CheckedChanged);
             // 
-            // tabPage4
+            // groupBox18
             // 
-            this.tabPage4.Controls.Add(this.groupBox14);
-            this.tabPage4.Controls.Add(this.groupBox13);
-            this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Size = new System.Drawing.Size(311, 555);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "Tedarik";
-            this.tabPage4.UseVisualStyleBackColor = true;
+            this.groupBox18.Controls.Add(this.label11);
+            this.groupBox18.Controls.Add(this.PartyList);
+            this.groupBox18.Controls.Add(this.RefreshPartyList);
+            this.groupBox18.Controls.Add(this.ClearPartyList);
+            this.groupBox18.Location = new System.Drawing.Point(3, 297);
+            this.groupBox18.Name = "groupBox18";
+            this.groupBox18.Size = new System.Drawing.Size(294, 201);
+            this.groupBox18.TabIndex = 7;
+            this.groupBox18.TabStop = false;
+            this.groupBox18.Text = "Party Listesi";
             // 
-            // groupBox14
+            // label11
             // 
-            this.groupBox14.Controls.Add(this.SupplyInnMasterStoneItem);
-            this.groupBox14.Controls.Add(this.SupplyInnMasterStoneCount);
-            this.groupBox14.Controls.Add(this.SupplyInnBookCount);
-            this.groupBox14.Controls.Add(this.SupplyInnTsGemCount);
-            this.groupBox14.Controls.Add(this.SupplyInnWolfCount);
-            this.groupBox14.Controls.Add(this.SupplyInnMasterStone);
-            this.groupBox14.Controls.Add(this.SupplyInnBook);
-            this.groupBox14.Controls.Add(this.SupplyInnTsGem);
-            this.groupBox14.Controls.Add(this.SupplyInnWolf);
-            this.groupBox14.Controls.Add(this.SupplyInnArrowCount);
-            this.groupBox14.Controls.Add(this.SupplyInnArrow);
-            this.groupBox14.Controls.Add(this.SupplyInnMpPotionItem);
-            this.groupBox14.Controls.Add(this.SupplyInnMpPotionCount);
-            this.groupBox14.Controls.Add(this.SupplyInnMpPotion);
-            this.groupBox14.Controls.Add(this.SupplyInnHpPotionItem);
-            this.groupBox14.Controls.Add(this.SupplyInnHpPotionCount);
-            this.groupBox14.Controls.Add(this.SupplyInnHpPotion);
-            this.groupBox14.Location = new System.Drawing.Point(8, 188);
-            this.groupBox14.Name = "groupBox14";
-            this.groupBox14.Size = new System.Drawing.Size(294, 180);
-            this.groupBox14.TabIndex = 1;
-            this.groupBox14.TabStop = false;
-            this.groupBox14.Text = "Inn Hostes";
+            this.label11.AutoSize = true;
+            this.label11.ForeColor = System.Drawing.Color.Red;
+            this.label11.Location = new System.Drawing.Point(25, 164);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(248, 26);
+            this.label11.TabIndex = 3;
+            this.label11.Text = "Party listesinden seçim yaparsanız işlemler sadece \r\nseçilen karakterlere uygulan" +
+    "ır.";
+            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // PartyList
+            // 
+            this.PartyList.FormattingEnabled = true;
+            this.PartyList.Location = new System.Drawing.Point(6, 20);
+            this.PartyList.Name = "PartyList";
+            this.PartyList.Size = new System.Drawing.Size(159, 132);
+            this.PartyList.TabIndex = 0;
+            this.PartyList.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.PartyList_ItemCheck);
+            // 
+            // RefreshPartyList
+            // 
+            this.RefreshPartyList.Location = new System.Drawing.Point(170, 20);
+            this.RefreshPartyList.Name = "RefreshPartyList";
+            this.RefreshPartyList.Size = new System.Drawing.Size(117, 23);
+            this.RefreshPartyList.TabIndex = 1;
+            this.RefreshPartyList.Text = "Yenile";
+            this.RefreshPartyList.UseVisualStyleBackColor = true;
+            this.RefreshPartyList.Click += new System.EventHandler(this.RefreshPartyList_Click);
+            // 
+            // ClearPartyList
+            // 
+            this.ClearPartyList.Location = new System.Drawing.Point(170, 49);
+            this.ClearPartyList.Name = "ClearPartyList";
+            this.ClearPartyList.Size = new System.Drawing.Size(117, 23);
+            this.ClearPartyList.TabIndex = 2;
+            this.ClearPartyList.Text = "Temizle";
+            this.ClearPartyList.UseVisualStyleBackColor = true;
+            this.ClearPartyList.Click += new System.EventHandler(this.ClearPartyList_Click);
+            // 
+            // groupBox17
+            // 
+            this.groupBox17.Controls.Add(this.GlacierResist);
+            this.groupBox17.Controls.Add(this.FlameResist);
+            this.groupBox17.Controls.Add(this.LightningResist);
+            this.groupBox17.Controls.Add(this.PullAway);
+            this.groupBox17.Location = new System.Drawing.Point(3, 249);
+            this.groupBox17.Name = "groupBox17";
+            this.groupBox17.Size = new System.Drawing.Size(294, 43);
+            this.groupBox17.TabIndex = 2;
+            this.groupBox17.TabStop = false;
+            this.groupBox17.Text = "Mage";
+            // 
+            // GlacierResist
+            // 
+            this.GlacierResist.AutoSize = true;
+            this.GlacierResist.Location = new System.Drawing.Point(247, 20);
+            this.GlacierResist.Name = "GlacierResist";
+            this.GlacierResist.Size = new System.Drawing.Size(40, 17);
+            this.GlacierResist.TabIndex = 6;
+            this.GlacierResist.Text = "GR";
+            this.GlacierResist.UseVisualStyleBackColor = true;
+            this.GlacierResist.CheckedChanged += new System.EventHandler(this.GlacierResist_CheckedChanged);
+            // 
+            // FlameResist
+            // 
+            this.FlameResist.AutoSize = true;
+            this.FlameResist.Location = new System.Drawing.Point(203, 20);
+            this.FlameResist.Name = "FlameResist";
+            this.FlameResist.Size = new System.Drawing.Size(39, 17);
+            this.FlameResist.TabIndex = 5;
+            this.FlameResist.Text = "FR";
+            this.FlameResist.UseVisualStyleBackColor = true;
+            this.FlameResist.CheckedChanged += new System.EventHandler(this.FlameResist_CheckedChanged);
+            // 
+            // LightningResist
+            // 
+            this.LightningResist.AutoSize = true;
+            this.LightningResist.Location = new System.Drawing.Point(159, 20);
+            this.LightningResist.Name = "LightningResist";
+            this.LightningResist.Size = new System.Drawing.Size(38, 17);
+            this.LightningResist.TabIndex = 4;
+            this.LightningResist.Text = "LR";
+            this.LightningResist.UseVisualStyleBackColor = true;
+            this.LightningResist.CheckedChanged += new System.EventHandler(this.LightningResist_CheckedChanged);
+            // 
+            // PullAway
+            // 
+            this.PullAway.AutoSize = true;
+            this.PullAway.Location = new System.Drawing.Point(6, 20);
+            this.PullAway.Name = "PullAway";
+            this.PullAway.Size = new System.Drawing.Size(100, 17);
+            this.PullAway.TabIndex = 3;
+            this.PullAway.Text = "Uzaklaşınca çek";
+            this.PullAway.UseVisualStyleBackColor = true;
+            this.PullAway.CheckedChanged += new System.EventHandler(this.PullAway_CheckedChanged);
+            // 
+            // groupBox16
+            // 
+            this.groupBox16.Controls.Add(this.PartyMinor);
+            this.groupBox16.Controls.Add(this.PartyMinorPercent);
+            this.groupBox16.Location = new System.Drawing.Point(3, 197);
+            this.groupBox16.Name = "groupBox16";
+            this.groupBox16.Size = new System.Drawing.Size(294, 46);
+            this.groupBox16.TabIndex = 1;
+            this.groupBox16.TabStop = false;
+            this.groupBox16.Text = "Rogue";
+            // 
+            // PartyMinor
+            // 
+            this.PartyMinor.AutoSize = true;
+            this.PartyMinor.Location = new System.Drawing.Point(6, 21);
+            this.PartyMinor.Name = "PartyMinor";
+            this.PartyMinor.Size = new System.Drawing.Size(52, 17);
+            this.PartyMinor.TabIndex = 1;
+            this.PartyMinor.Text = "Minor";
+            this.PartyMinor.UseVisualStyleBackColor = true;
+            this.PartyMinor.CheckedChanged += new System.EventHandler(this.PartyMinor_CheckedChanged);
+            // 
+            // PartyMinorPercent
+            // 
+            this.PartyMinorPercent.Location = new System.Drawing.Point(113, 18);
+            this.PartyMinorPercent.Name = "PartyMinorPercent";
+            this.PartyMinorPercent.Size = new System.Drawing.Size(52, 21);
+            this.PartyMinorPercent.TabIndex = 0;
+            this.PartyMinorPercent.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.PartyMinorPercent.Value = new decimal(new int[] {
+            75,
+            0,
+            0,
+            0});
+            this.PartyMinorPercent.ValueChanged += new System.EventHandler(this.PartyMinorPercent_ValueChanged);
+            // 
+            // SupplyTabPage
+            // 
+            this.SupplyTabPage.Controls.Add(this.SupplyInnHostesGroupBox);
+            this.SupplyTabPage.Controls.Add(this.groupBox13);
+            this.SupplyTabPage.Location = new System.Drawing.Point(4, 22);
+            this.SupplyTabPage.Name = "SupplyTabPage";
+            this.SupplyTabPage.Size = new System.Drawing.Size(308, 555);
+            this.SupplyTabPage.TabIndex = 3;
+            this.SupplyTabPage.Text = "Tedarik";
+            this.SupplyTabPage.UseVisualStyleBackColor = true;
+            // 
+            // SupplyInnHostesGroupBox
+            // 
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnMasterStoneItem);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnMasterStoneCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnBookCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnTsGemCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnWolfCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnMasterStone);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnBook);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnTsGem);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnWolf);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnArrowCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnArrow);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnMpPotionItem);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnMpPotionCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnMpPotion);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnHpPotionItem);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnHpPotionCount);
+            this.SupplyInnHostesGroupBox.Controls.Add(this.SupplyInnHpPotion);
+            this.SupplyInnHostesGroupBox.Enabled = false;
+            this.SupplyInnHostesGroupBox.Location = new System.Drawing.Point(3, 185);
+            this.SupplyInnHostesGroupBox.Name = "SupplyInnHostesGroupBox";
+            this.SupplyInnHostesGroupBox.Size = new System.Drawing.Size(294, 180);
+            this.SupplyInnHostesGroupBox.TabIndex = 1;
+            this.SupplyInnHostesGroupBox.TabStop = false;
+            this.SupplyInnHostesGroupBox.Text = "Inn Hostes";
             // 
             // SupplyInnMasterStoneItem
             // 
@@ -1828,7 +1979,7 @@ namespace KOF.UI
             this.groupBox13.Controls.Add(this.SupplyHpPotionItem);
             this.groupBox13.Controls.Add(this.SupplyHpPotionCount);
             this.groupBox13.Controls.Add(this.SupplyHpPotion);
-            this.groupBox13.Location = new System.Drawing.Point(8, 8);
+            this.groupBox13.Location = new System.Drawing.Point(3, 6);
             this.groupBox13.Name = "groupBox13";
             this.groupBox13.Size = new System.Drawing.Size(294, 177);
             this.groupBox13.TabIndex = 0;
@@ -2092,18 +2243,108 @@ namespace KOF.UI
             this.SupplyHpPotion.UseVisualStyleBackColor = true;
             this.SupplyHpPotion.CheckedChanged += new System.EventHandler(this.SupplyHpPotion_CheckedChanged);
             // 
-            // tabPage5
+            // ToolTabPage
             // 
-            this.tabPage5.Controls.Add(this.GroupBox23);
-            this.tabPage5.Controls.Add(this.GroupBox20);
-            this.tabPage5.Controls.Add(this.GroupBox21);
-            this.tabPage5.Controls.Add(this.GroupBox22);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(311, 555);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Araçlar";
-            this.tabPage5.UseVisualStyleBackColor = true;
+            this.ToolTabPage.Controls.Add(this.groupBox10);
+            this.ToolTabPage.Controls.Add(this.GroupBox23);
+            this.ToolTabPage.Controls.Add(this.GroupBox20);
+            this.ToolTabPage.Controls.Add(this.GroupBox21);
+            this.ToolTabPage.Controls.Add(this.FolkGroupBox);
+            this.ToolTabPage.Location = new System.Drawing.Point(4, 22);
+            this.ToolTabPage.Name = "ToolTabPage";
+            this.ToolTabPage.Size = new System.Drawing.Size(308, 555);
+            this.ToolTabPage.TabIndex = 4;
+            this.ToolTabPage.Text = "Araçlar";
+            this.ToolTabPage.UseVisualStyleBackColor = true;
+            // 
+            // groupBox10
+            // 
+            this.groupBox10.Controls.Add(this.NpcNationCommon);
+            this.groupBox10.Controls.Add(this.NpcInTown);
+            this.groupBox10.Controls.Add(this.label13);
+            this.groupBox10.Controls.Add(this.AddMiner);
+            this.groupBox10.Controls.Add(this.AddSunderies);
+            this.groupBox10.Controls.Add(this.AddPotion);
+            this.groupBox10.Controls.Add(this.AddInnHostes);
+            this.groupBox10.Location = new System.Drawing.Point(3, 6);
+            this.groupBox10.Name = "groupBox10";
+            this.groupBox10.Size = new System.Drawing.Size(298, 192);
+            this.groupBox10.TabIndex = 14;
+            this.groupBox10.TabStop = false;
+            this.groupBox10.Text = "Npc Ekle";
+            // 
+            // NpcNationCommon
+            // 
+            this.NpcNationCommon.AutoSize = true;
+            this.NpcNationCommon.Location = new System.Drawing.Point(209, 20);
+            this.NpcNationCommon.Name = "NpcNationCommon";
+            this.NpcNationCommon.Size = new System.Drawing.Size(82, 17);
+            this.NpcNationCommon.TabIndex = 6;
+            this.NpcNationCommon.Text = "Irk bağımsız";
+            this.NpcNationCommon.UseVisualStyleBackColor = true;
+            this.NpcNationCommon.CheckedChanged += new System.EventHandler(this.NpcNationCommon_CheckedChanged);
+            // 
+            // NpcInTown
+            // 
+            this.NpcInTown.AutoSize = true;
+            this.NpcInTown.Location = new System.Drawing.Point(6, 20);
+            this.NpcInTown.Name = "NpcInTown";
+            this.NpcInTown.Size = new System.Drawing.Size(105, 17);
+            this.NpcInTown.TabIndex = 5;
+            this.NpcInTown.Text = "NPC Townda mı?";
+            this.NpcInTown.UseVisualStyleBackColor = true;
+            this.NpcInTown.CheckedChanged += new System.EventHandler(this.NpcInTown_CheckedChanged);
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.ForeColor = System.Drawing.Color.Red;
+            this.label13.Location = new System.Drawing.Point(23, 106);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(249, 78);
+            this.label13.TabIndex = 4;
+            this.label13.Text = resources.GetString("label13.Text");
+            this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // AddMiner
+            // 
+            this.AddMiner.Location = new System.Drawing.Point(111, 75);
+            this.AddMiner.Name = "AddMiner";
+            this.AddMiner.Size = new System.Drawing.Size(75, 23);
+            this.AddMiner.TabIndex = 3;
+            this.AddMiner.Text = "Miner";
+            this.AddMiner.UseVisualStyleBackColor = true;
+            this.AddMiner.Click += new System.EventHandler(this.AddMiner_Click);
+            // 
+            // AddSunderies
+            // 
+            this.AddSunderies.Location = new System.Drawing.Point(4, 43);
+            this.AddSunderies.Name = "AddSunderies";
+            this.AddSunderies.Size = new System.Drawing.Size(75, 23);
+            this.AddSunderies.TabIndex = 0;
+            this.AddSunderies.Text = "Sunderies";
+            this.AddSunderies.UseVisualStyleBackColor = true;
+            this.AddSunderies.Click += new System.EventHandler(this.AddSunderies_Click);
+            // 
+            // AddPotion
+            // 
+            this.AddPotion.Location = new System.Drawing.Point(214, 43);
+            this.AddPotion.Name = "AddPotion";
+            this.AddPotion.Size = new System.Drawing.Size(77, 23);
+            this.AddPotion.TabIndex = 2;
+            this.AddPotion.Text = "Potion";
+            this.AddPotion.UseVisualStyleBackColor = true;
+            this.AddPotion.Click += new System.EventHandler(this.AddPotion_Click);
+            // 
+            // AddInnHostes
+            // 
+            this.AddInnHostes.Location = new System.Drawing.Point(111, 43);
+            this.AddInnHostes.Name = "AddInnHostes";
+            this.AddInnHostes.Size = new System.Drawing.Size(75, 23);
+            this.AddInnHostes.TabIndex = 1;
+            this.AddInnHostes.Text = "Inn Hostes";
+            this.AddInnHostes.UseVisualStyleBackColor = true;
+            this.AddInnHostes.Click += new System.EventHandler(this.AddInnHostes_Click);
             // 
             // GroupBox23
             // 
@@ -2111,9 +2352,9 @@ namespace KOF.UI
             this.GroupBox23.Controls.Add(this.Label8);
             this.GroupBox23.Controls.Add(this.SendPacket);
             this.GroupBox23.Controls.Add(this.Packet);
-            this.GroupBox23.Location = new System.Drawing.Point(4, 209);
+            this.GroupBox23.Location = new System.Drawing.Point(3, 435);
             this.GroupBox23.Name = "GroupBox23";
-            this.GroupBox23.Size = new System.Drawing.Size(298, 129);
+            this.GroupBox23.Size = new System.Drawing.Size(298, 117);
             this.GroupBox23.TabIndex = 13;
             this.GroupBox23.TabStop = false;
             this.GroupBox23.Text = "Paket";
@@ -2134,8 +2375,8 @@ namespace KOF.UI
             // 
             this.Label8.AutoSize = true;
             this.Label8.Font = new System.Drawing.Font("Tahoma", 8.25F);
-            this.Label8.ForeColor = System.Drawing.Color.Black;
-            this.Label8.Location = new System.Drawing.Point(51, 89);
+            this.Label8.ForeColor = System.Drawing.Color.Red;
+            this.Label8.Location = new System.Drawing.Point(50, 81);
             this.Label8.Name = "Label8";
             this.Label8.Size = new System.Drawing.Size(202, 26);
             this.Label8.TabIndex = 3;
@@ -2164,21 +2405,33 @@ namespace KOF.UI
             // 
             // GroupBox20
             // 
+            this.GroupBox20.Controls.Add(this.CoordinateRouteButton);
             this.GroupBox20.Controls.Add(this.ToolCoordinateY);
             this.GroupBox20.Controls.Add(this.ToolCoordinateX);
             this.GroupBox20.Controls.Add(this.GetCoordinateButton);
             this.GroupBox20.Controls.Add(this.CoordinateSetButton);
             this.GroupBox20.Controls.Add(this.CoordinateMoveButton);
-            this.GroupBox20.Location = new System.Drawing.Point(4, 121);
+            this.GroupBox20.Location = new System.Drawing.Point(3, 203);
             this.GroupBox20.Name = "GroupBox20";
-            this.GroupBox20.Size = new System.Drawing.Size(298, 82);
+            this.GroupBox20.Size = new System.Drawing.Size(298, 108);
             this.GroupBox20.TabIndex = 12;
             this.GroupBox20.TabStop = false;
             this.GroupBox20.Text = "Kordinat";
             // 
+            // CoordinateRouteButton
+            // 
+            this.CoordinateRouteButton.Enabled = false;
+            this.CoordinateRouteButton.Location = new System.Drawing.Point(190, 80);
+            this.CoordinateRouteButton.Name = "CoordinateRouteButton";
+            this.CoordinateRouteButton.Size = new System.Drawing.Size(59, 23);
+            this.CoordinateRouteButton.TabIndex = 10;
+            this.CoordinateRouteButton.Text = "Rota";
+            this.CoordinateRouteButton.UseVisualStyleBackColor = true;
+            this.CoordinateRouteButton.Click += new System.EventHandler(this.CoordinateRouteButton_Click);
+            // 
             // ToolCoordinateY
             // 
-            this.ToolCoordinateY.Location = new System.Drawing.Point(147, 24);
+            this.ToolCoordinateY.Location = new System.Drawing.Point(162, 24);
             this.ToolCoordinateY.Maximum = new decimal(new int[] {
             1410065407,
             2,
@@ -2191,7 +2444,7 @@ namespace KOF.UI
             // 
             // ToolCoordinateX
             // 
-            this.ToolCoordinateX.Location = new System.Drawing.Point(21, 24);
+            this.ToolCoordinateX.Location = new System.Drawing.Point(16, 24);
             this.ToolCoordinateX.Maximum = new decimal(new int[] {
             1410065407,
             2,
@@ -2204,9 +2457,9 @@ namespace KOF.UI
             // 
             // GetCoordinateButton
             // 
-            this.GetCoordinateButton.Location = new System.Drawing.Point(14, 51);
+            this.GetCoordinateButton.Location = new System.Drawing.Point(15, 51);
             this.GetCoordinateButton.Name = "GetCoordinateButton";
-            this.GetCoordinateButton.Size = new System.Drawing.Size(121, 23);
+            this.GetCoordinateButton.Size = new System.Drawing.Size(122, 23);
             this.GetCoordinateButton.TabIndex = 7;
             this.GetCoordinateButton.Text = "Kordinatı al";
             this.GetCoordinateButton.UseVisualStyleBackColor = true;
@@ -2214,6 +2467,7 @@ namespace KOF.UI
             // 
             // CoordinateSetButton
             // 
+            this.CoordinateSetButton.Enabled = false;
             this.CoordinateSetButton.Location = new System.Drawing.Point(224, 51);
             this.CoordinateSetButton.Name = "CoordinateSetButton";
             this.CoordinateSetButton.Size = new System.Drawing.Size(67, 23);
@@ -2236,7 +2490,7 @@ namespace KOF.UI
             // 
             this.GroupBox21.Controls.Add(this.TakeCswStone);
             this.GroupBox21.Controls.Add(this.MoveCswStone);
-            this.GroupBox21.Location = new System.Drawing.Point(4, 66);
+            this.GroupBox21.Location = new System.Drawing.Point(3, 317);
             this.GroupBox21.Name = "GroupBox21";
             this.GroupBox21.Size = new System.Drawing.Size(298, 49);
             this.GroupBox21.TabIndex = 5;
@@ -2263,17 +2517,18 @@ namespace KOF.UI
             this.MoveCswStone.UseVisualStyleBackColor = true;
             this.MoveCswStone.Click += new System.EventHandler(this.MoveCswStone_Click);
             // 
-            // GroupBox22
+            // FolkGroupBox
             // 
-            this.GroupBox22.Controls.Add(this.BlackMarketer);
-            this.GroupBox22.Controls.Add(this.BlackMarketerEventTime);
-            this.GroupBox22.Controls.Add(this.Label3);
-            this.GroupBox22.Location = new System.Drawing.Point(3, 3);
-            this.GroupBox22.Name = "GroupBox22";
-            this.GroupBox22.Size = new System.Drawing.Size(298, 57);
-            this.GroupBox22.TabIndex = 4;
-            this.GroupBox22.TabStop = false;
-            this.GroupBox22.Text = "Folk (Black Marketer)";
+            this.FolkGroupBox.Controls.Add(this.BlackMarketer);
+            this.FolkGroupBox.Controls.Add(this.BlackMarketerEventTime);
+            this.FolkGroupBox.Controls.Add(this.Label3);
+            this.FolkGroupBox.Enabled = false;
+            this.FolkGroupBox.Location = new System.Drawing.Point(3, 372);
+            this.FolkGroupBox.Name = "FolkGroupBox";
+            this.FolkGroupBox.Size = new System.Drawing.Size(298, 57);
+            this.FolkGroupBox.TabIndex = 4;
+            this.FolkGroupBox.TabStop = false;
+            this.FolkGroupBox.Text = "Folk (Black Marketer)";
             // 
             // BlackMarketer
             // 
@@ -2319,17 +2574,17 @@ namespace KOF.UI
             this.Label3.TabIndex = 6;
             this.Label3.Text = "Hız (Ms) :";
             // 
-            // tabPage7
+            // OtherTabPage
             // 
-            this.tabPage7.Controls.Add(this.groupBox26);
-            this.tabPage7.Controls.Add(this.groupBox25);
-            this.tabPage7.Controls.Add(this.groupBox19);
-            this.tabPage7.Location = new System.Drawing.Point(4, 22);
-            this.tabPage7.Name = "tabPage7";
-            this.tabPage7.Size = new System.Drawing.Size(311, 555);
-            this.tabPage7.TabIndex = 6;
-            this.tabPage7.Text = "Diğer";
-            this.tabPage7.UseVisualStyleBackColor = true;
+            this.OtherTabPage.Controls.Add(this.groupBox26);
+            this.OtherTabPage.Controls.Add(this.groupBox25);
+            this.OtherTabPage.Controls.Add(this.groupBox19);
+            this.OtherTabPage.Location = new System.Drawing.Point(4, 22);
+            this.OtherTabPage.Name = "OtherTabPage";
+            this.OtherTabPage.Size = new System.Drawing.Size(308, 555);
+            this.OtherTabPage.TabIndex = 6;
+            this.OtherTabPage.Text = "Diğer";
+            this.OtherTabPage.UseVisualStyleBackColor = true;
             // 
             // groupBox26
             // 
@@ -2349,11 +2604,11 @@ namespace KOF.UI
             this.label12.ForeColor = System.Drawing.Color.Red;
             this.label12.Location = new System.Drawing.Point(18, 43);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(266, 65);
+            this.label12.Size = new System.Drawing.Size(260, 65);
             this.label12.TabIndex = 14;
             this.label12.Text = "UYARI: Başlaması için Inventory\'de minimum \r\n2 adet boş alan olmalı, Otomatik hed" +
-    "ef açık değilse \r\nhedef listesinden bir kere boss seçmeniz geerekecektir\r\nseçili" +
-    " değilse otomatik saldırmayacaktır.\r\n\r\n";
+    "ef açık değilse \r\nhedef listesinden bir kere boss seçmeniz gerekecektir\r\nseçili " +
+    "değilse otomatik saldırmayacaktır.\r\n\r\n";
             this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // MonsterStoneEnable
@@ -2445,7 +2700,7 @@ namespace KOF.UI
             this.groupBox19.Controls.Add(this.Label5);
             this.groupBox19.Controls.Add(this.UpgradeScroll);
             this.groupBox19.Controls.Add(this.StartUpgrade);
-            this.groupBox19.Location = new System.Drawing.Point(3, 4);
+            this.groupBox19.Location = new System.Drawing.Point(3, 6);
             this.groupBox19.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.groupBox19.Name = "groupBox19";
             this.groupBox19.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -2544,86 +2799,184 @@ namespace KOF.UI
             // 
             // DeveloperTabPage
             // 
-            this.DeveloperTabPage.Controls.Add(this.groupBox10);
+            this.DeveloperTabPage.Controls.Add(this.groupBox27);
+            this.DeveloperTabPage.Controls.Add(this.RouteTestStart);
+            this.DeveloperTabPage.Controls.Add(this.RouteTestStop);
+            this.DeveloperTabPage.Controls.Add(this.TestButton);
             this.DeveloperTabPage.Location = new System.Drawing.Point(4, 22);
             this.DeveloperTabPage.Name = "DeveloperTabPage";
-            this.DeveloperTabPage.Size = new System.Drawing.Size(311, 555);
+            this.DeveloperTabPage.Size = new System.Drawing.Size(308, 555);
             this.DeveloperTabPage.TabIndex = 5;
             this.DeveloperTabPage.Text = "Developer";
             this.DeveloperTabPage.UseVisualStyleBackColor = true;
             // 
-            // groupBox10
+            // groupBox27
             // 
-            this.groupBox10.Controls.Add(this.DevAddMiner);
-            this.groupBox10.Controls.Add(this.DevAddSunderies);
-            this.groupBox10.Controls.Add(this.DevAddPotion);
-            this.groupBox10.Controls.Add(this.DevAddInnHostes);
-            this.groupBox10.Location = new System.Drawing.Point(4, 5);
-            this.groupBox10.Name = "groupBox10";
-            this.groupBox10.Size = new System.Drawing.Size(295, 100);
-            this.groupBox10.TabIndex = 3;
-            this.groupBox10.TabStop = false;
-            this.groupBox10.Text = "Npc Ekle";
+            this.groupBox27.Controls.Add(this.button2);
+            this.groupBox27.Controls.Add(this.button1);
+            this.groupBox27.Controls.Add(this.label16);
+            this.groupBox27.Controls.Add(this.textBox1);
+            this.groupBox27.Controls.Add(this.SavedLocationList);
+            this.groupBox27.Controls.Add(this.label15);
+            this.groupBox27.Location = new System.Drawing.Point(24, 12);
+            this.groupBox27.Name = "groupBox27";
+            this.groupBox27.Size = new System.Drawing.Size(250, 238);
+            this.groupBox27.TabIndex = 7;
+            this.groupBox27.TabStop = false;
+            this.groupBox27.Text = "Kayıtlı Lokasyonlar";
             // 
-            // DevAddMiner
+            // button2
             // 
-            this.DevAddMiner.Location = new System.Drawing.Point(6, 49);
-            this.DevAddMiner.Name = "DevAddMiner";
-            this.DevAddMiner.Size = new System.Drawing.Size(75, 23);
-            this.DevAddMiner.TabIndex = 3;
-            this.DevAddMiner.Text = "Miner";
-            this.DevAddMiner.UseVisualStyleBackColor = true;
-            this.DevAddMiner.Click += new System.EventHandler(this.DevAddMiner_Click);
+            this.button2.Location = new System.Drawing.Point(132, 102);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(112, 23);
+            this.button2.TabIndex = 8;
+            this.button2.Text = "Sil";
+            this.button2.UseVisualStyleBackColor = true;
             // 
-            // DevAddSunderies
+            // button1
             // 
-            this.DevAddSunderies.Location = new System.Drawing.Point(6, 20);
-            this.DevAddSunderies.Name = "DevAddSunderies";
-            this.DevAddSunderies.Size = new System.Drawing.Size(75, 23);
-            this.DevAddSunderies.TabIndex = 0;
-            this.DevAddSunderies.Text = "Sunderies";
-            this.DevAddSunderies.UseVisualStyleBackColor = true;
-            this.DevAddSunderies.Click += new System.EventHandler(this.DevAddSunderies_Click);
+            this.button1.Location = new System.Drawing.Point(132, 73);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(112, 23);
+            this.button1.TabIndex = 7;
+            this.button1.Text = "Kaydet";
+            this.button1.UseVisualStyleBackColor = true;
             // 
-            // DevAddPotion
+            // label16
             // 
-            this.DevAddPotion.Location = new System.Drawing.Point(168, 20);
-            this.DevAddPotion.Name = "DevAddPotion";
-            this.DevAddPotion.Size = new System.Drawing.Size(75, 23);
-            this.DevAddPotion.TabIndex = 2;
-            this.DevAddPotion.Text = "Potion";
-            this.DevAddPotion.UseVisualStyleBackColor = true;
-            this.DevAddPotion.Click += new System.EventHandler(this.DevAddPotion_Click);
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(153, 23);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(70, 13);
+            this.label16.TabIndex = 6;
+            this.label16.Text = "Lokasyon Adı";
             // 
-            // DevAddInnHostes
+            // textBox1
             // 
-            this.DevAddInnHostes.Location = new System.Drawing.Point(87, 20);
-            this.DevAddInnHostes.Name = "DevAddInnHostes";
-            this.DevAddInnHostes.Size = new System.Drawing.Size(75, 23);
-            this.DevAddInnHostes.TabIndex = 1;
-            this.DevAddInnHostes.Text = "Inn Hostes";
-            this.DevAddInnHostes.UseVisualStyleBackColor = true;
-            this.DevAddInnHostes.Click += new System.EventHandler(this.DevAddInnHostes_Click);
+            this.textBox1.Location = new System.Drawing.Point(132, 44);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(112, 21);
+            this.textBox1.TabIndex = 5;
+            // 
+            // SavedLocationList
+            // 
+            this.SavedLocationList.FormattingEnabled = true;
+            this.SavedLocationList.Location = new System.Drawing.Point(6, 20);
+            this.SavedLocationList.Name = "SavedLocationList";
+            this.SavedLocationList.Size = new System.Drawing.Size(120, 164);
+            this.SavedLocationList.TabIndex = 4;
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.ForeColor = System.Drawing.Color.Red;
+            this.label15.Location = new System.Drawing.Point(23, 198);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(212, 26);
+            this.label15.TabIndex = 3;
+            this.label15.Text = "Karakterin mevcut lokasyonunu kaydeder. \r\nSeçim yapıldığında hızlıca merkez alını" +
+    "r.";
+            this.label15.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // RouteTestStart
+            // 
+            this.RouteTestStart.Location = new System.Drawing.Point(24, 269);
+            this.RouteTestStart.Name = "RouteTestStart";
+            this.RouteTestStart.Size = new System.Drawing.Size(91, 23);
+            this.RouteTestStart.TabIndex = 6;
+            this.RouteTestStart.Text = "Rota Test Start";
+            this.RouteTestStart.UseVisualStyleBackColor = true;
+            this.RouteTestStart.Click += new System.EventHandler(this.RouteTestStart_Click);
+            // 
+            // RouteTestStop
+            // 
+            this.RouteTestStop.Location = new System.Drawing.Point(136, 269);
+            this.RouteTestStop.Name = "RouteTestStop";
+            this.RouteTestStop.Size = new System.Drawing.Size(97, 23);
+            this.RouteTestStop.TabIndex = 5;
+            this.RouteTestStop.Text = "Rota Test Stop";
+            this.RouteTestStop.UseVisualStyleBackColor = true;
+            this.RouteTestStop.Click += new System.EventHandler(this.RouteTestStop_Click);
+            // 
+            // TestButton
+            // 
+            this.TestButton.Location = new System.Drawing.Point(40, 320);
+            this.TestButton.Name = "TestButton";
+            this.TestButton.Size = new System.Drawing.Size(75, 23);
+            this.TestButton.TabIndex = 4;
+            this.TestButton.Text = "Test";
+            this.TestButton.UseVisualStyleBackColor = true;
+            this.TestButton.Click += new System.EventHandler(this.TestButton_Click);
+            // 
+            // groupBox22
+            // 
+            this.groupBox22.Controls.Add(this.groupBox29);
+            this.groupBox22.Controls.Add(this.groupBox28);
+            this.groupBox22.Location = new System.Drawing.Point(2, 2);
+            this.groupBox22.Name = "groupBox22";
+            this.groupBox22.Size = new System.Drawing.Size(272, 587);
+            this.groupBox22.TabIndex = 1;
+            this.groupBox22.TabStop = false;
+            this.groupBox22.Text = "Kontroller";
+            // 
+            // groupBox29
+            // 
+            this.groupBox29.Location = new System.Drawing.Point(10, 306);
+            this.groupBox29.Name = "groupBox29";
+            this.groupBox29.Size = new System.Drawing.Size(256, 274);
+            this.groupBox29.TabIndex = 6;
+            this.groupBox29.TabStop = false;
+            // 
+            // groupBox28
+            // 
+            this.groupBox28.Controls.Add(this.MiniMap);
+            this.groupBox28.Controls.Add(this.ZoneXYInfo);
+            this.groupBox28.Location = new System.Drawing.Point(10, 12);
+            this.groupBox28.Name = "groupBox28";
+            this.groupBox28.Size = new System.Drawing.Size(256, 289);
+            this.groupBox28.TabIndex = 5;
+            this.groupBox28.TabStop = false;
+            // 
+            // MiniMap
+            // 
+            this.MiniMap.ErrorImage = ((System.Drawing.Image)(resources.GetObject("MiniMap.ErrorImage")));
+            this.MiniMap.Location = new System.Drawing.Point(3, 35);
+            this.MiniMap.Name = "MiniMap";
+            this.MiniMap.Size = new System.Drawing.Size(250, 250);
+            this.MiniMap.TabIndex = 2;
+            this.MiniMap.TabStop = false;
+            this.MiniMap.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MiniMap_MouseDown);
+            // 
+            // ZoneXYInfo
+            // 
+            this.ZoneXYInfo.AutoSize = true;
+            this.ZoneXYInfo.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.ZoneXYInfo.Location = new System.Drawing.Point(6, 14);
+            this.ZoneXYInfo.Name = "ZoneXYInfo";
+            this.ZoneXYInfo.Size = new System.Drawing.Size(0, 13);
+            this.ZoneXYInfo.TabIndex = 4;
+            this.ZoneXYInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Dispatcher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(318, 579);
+            this.ClientSize = new System.Drawing.Size(590, 588);
+            this.Controls.Add(this.groupBox22);
             this.Controls.Add(this.DispatcherTabControl);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Name = "Dispatcher";
             this.Text = "Dispatcher";
-            this.Closing += new System.ComponentModel.CancelEventHandler(this.Configuration_Closing);
-            this.Load += new System.EventHandler(this.Configuration_Load);
-            this.Shown += new System.EventHandler(this.Configuration_Show);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Configuration_KeyUp);
+            this.Closing += new System.ComponentModel.CancelEventHandler(this.Dispatcher_Closing);
+            this.Load += new System.EventHandler(this.Dispatcher_Load);
+            this.VisibleChanged += new System.EventHandler(this.Dispatcher_VisibleChanged);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Dispatcher_KeyUp);
             this.DispatcherTabControl.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
+            this.GeneralTabPage.ResumeLayout(false);
             this.groupBox24.ResumeLayout(false);
             this.groupBox24.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SuicidePercent)).EndInit();
@@ -2638,7 +2991,7 @@ namespace KOF.UI
             ((System.ComponentModel.ISupportInitialize)(this.MinorPercent)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.MpPotionPercent)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.HpPotionPercent)).EndInit();
-            this.tabPage2.ResumeLayout(false);
+            this.AttackTabPage.ResumeLayout(false);
             this.groupBox12.ResumeLayout(false);
             this.groupBox11.ResumeLayout(false);
             this.groupBox11.PerformLayout();
@@ -2655,7 +3008,12 @@ namespace KOF.UI
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBox5.ResumeLayout(false);
-            this.tabPage3.ResumeLayout(false);
+            this.PartyTabPage.ResumeLayout(false);
+            this.groupBox15.ResumeLayout(false);
+            this.groupBox15.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PartyGroupHealMemberCount)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PartyGroupHealValue)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PartyHealValue)).EndInit();
             this.groupBox18.ResumeLayout(false);
             this.groupBox18.PerformLayout();
             this.groupBox17.ResumeLayout(false);
@@ -2663,12 +3021,9 @@ namespace KOF.UI
             this.groupBox16.ResumeLayout(false);
             this.groupBox16.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PartyMinorPercent)).EndInit();
-            this.groupBox15.ResumeLayout(false);
-            this.groupBox15.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PartyHealValue)).EndInit();
-            this.tabPage4.ResumeLayout(false);
-            this.groupBox14.ResumeLayout(false);
-            this.groupBox14.PerformLayout();
+            this.SupplyTabPage.ResumeLayout(false);
+            this.SupplyInnHostesGroupBox.ResumeLayout(false);
+            this.SupplyInnHostesGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyInnMasterStoneCount)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyInnBookCount)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyInnTsGemCount)).EndInit();
@@ -2685,17 +3040,19 @@ namespace KOF.UI
             ((System.ComponentModel.ISupportInitialize)(this.SupplyArrowCount)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyMpPotionCount)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.SupplyHpPotionCount)).EndInit();
-            this.tabPage5.ResumeLayout(false);
+            this.ToolTabPage.ResumeLayout(false);
+            this.groupBox10.ResumeLayout(false);
+            this.groupBox10.PerformLayout();
             this.GroupBox23.ResumeLayout(false);
             this.GroupBox23.PerformLayout();
             this.GroupBox20.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.ToolCoordinateY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ToolCoordinateX)).EndInit();
             this.GroupBox21.ResumeLayout(false);
-            this.GroupBox22.ResumeLayout(false);
-            this.GroupBox22.PerformLayout();
+            this.FolkGroupBox.ResumeLayout(false);
+            this.FolkGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.BlackMarketerEventTime)).EndInit();
-            this.tabPage7.ResumeLayout(false);
+            this.OtherTabPage.ResumeLayout(false);
             this.groupBox26.ResumeLayout(false);
             this.groupBox26.PerformLayout();
             this.groupBox25.ResumeLayout(false);
@@ -2704,7 +3061,12 @@ namespace KOF.UI
             this.groupBox19.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.UpgradeWait)).EndInit();
             this.DeveloperTabPage.ResumeLayout(false);
-            this.groupBox10.ResumeLayout(false);
+            this.groupBox27.ResumeLayout(false);
+            this.groupBox27.PerformLayout();
+            this.groupBox22.ResumeLayout(false);
+            this.groupBox28.ResumeLayout(false);
+            this.groupBox28.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.MiniMap)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -2712,11 +3074,11 @@ namespace KOF.UI
         #endregion
 
         private System.Windows.Forms.TabControl DispatcherTabControl;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.TabPage GeneralTabPage;
+        private System.Windows.Forms.TabPage AttackTabPage;
+        private System.Windows.Forms.TabPage PartyTabPage;
+        private System.Windows.Forms.TabPage SupplyTabPage;
+        private System.Windows.Forms.TabPage ToolTabPage;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ComboBox MpPotionItem;
         private System.Windows.Forms.ComboBox HpPotionItem;
@@ -2762,12 +3124,7 @@ namespace KOF.UI
         private System.Windows.Forms.NumericUpDown AttackSpeed;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.CheckBox WaitTime;
         private System.Windows.Forms.TabPage DeveloperTabPage;
-        private System.Windows.Forms.Button DevAddSunderies;
-        private System.Windows.Forms.Button DevAddPotion;
-        private System.Windows.Forms.Button DevAddInnHostes;
-        private System.Windows.Forms.GroupBox groupBox10;
         private System.Windows.Forms.CheckBox ActionSetCoordinate;
         private System.Windows.Forms.CheckBox ActionMove;
         private System.Windows.Forms.CheckBox TargetAutoSelect;
@@ -2783,7 +3140,7 @@ namespace KOF.UI
         private System.Windows.Forms.NumericUpDown AreaControlY;
         private System.Windows.Forms.NumericUpDown AreaControlX;
         private System.Windows.Forms.CheckBox TargetOpponentNation;
-        private System.Windows.Forms.GroupBox groupBox14;
+        private System.Windows.Forms.GroupBox SupplyInnHostesGroupBox;
         private System.Windows.Forms.NumericUpDown SupplyInnMasterStoneCount;
         private System.Windows.Forms.NumericUpDown SupplyInnBookCount;
         private System.Windows.Forms.NumericUpDown SupplyInnTsGemCount;
@@ -2821,26 +3178,9 @@ namespace KOF.UI
         private System.Windows.Forms.CheckedListBox PartyList;
         private System.Windows.Forms.Button RefreshPartyList;
         private System.Windows.Forms.Button ClearPartyList;
-        private System.Windows.Forms.GroupBox groupBox17;
-        private System.Windows.Forms.CheckBox GlacierResist;
-        private System.Windows.Forms.CheckBox FlameResist;
-        private System.Windows.Forms.CheckBox LightningResist;
-        private System.Windows.Forms.CheckBox PullAway;
         private System.Windows.Forms.GroupBox groupBox16;
         private System.Windows.Forms.CheckBox PartyMinor;
         private System.Windows.Forms.NumericUpDown PartyMinorPercent;
-        private System.Windows.Forms.GroupBox groupBox15;
-        private System.Windows.Forms.CheckBox PartyStr;
-        private System.Windows.Forms.CheckBox PartyCure;
-        private System.Windows.Forms.ComboBox PartyHealSelect;
-        private System.Windows.Forms.NumericUpDown PartyHealValue;
-        private System.Windows.Forms.CheckBox PartyHeal;
-        private System.Windows.Forms.ComboBox PartyMindSelect;
-        private System.Windows.Forms.CheckBox PartyMind;
-        private System.Windows.Forms.ComboBox PartyAcSelect;
-        private System.Windows.Forms.CheckBox PartyAc;
-        private System.Windows.Forms.ComboBox PartyBuffSelect;
-        private System.Windows.Forms.CheckBox PartyBuff;
         internal System.Windows.Forms.GroupBox GroupBox23;
         internal System.Windows.Forms.Label Label8;
         internal System.Windows.Forms.Button SendPacket;
@@ -2852,7 +3192,7 @@ namespace KOF.UI
         internal System.Windows.Forms.GroupBox GroupBox21;
         internal System.Windows.Forms.Button TakeCswStone;
         internal System.Windows.Forms.Button MoveCswStone;
-        internal System.Windows.Forms.GroupBox GroupBox22;
+        internal System.Windows.Forms.GroupBox FolkGroupBox;
         internal System.Windows.Forms.CheckBox BlackMarketer;
         internal System.Windows.Forms.Label Label3;
         private System.Windows.Forms.ComboBox SupplyInnMasterStoneItem;
@@ -2865,10 +3205,9 @@ namespace KOF.UI
         private System.Windows.Forms.NumericUpDown ToolCoordinateY;
         private System.Windows.Forms.NumericUpDown ToolCoordinateX;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.CheckBox PartyCureDisease;
         internal System.Windows.Forms.NumericUpDown BlackMarketerEventTime;
         private System.Windows.Forms.CheckBox RemoveAllMob;
-        private System.Windows.Forms.TabPage tabPage7;
+        private System.Windows.Forms.TabPage OtherTabPage;
         private System.Windows.Forms.GroupBox groupBox26;
         private System.Windows.Forms.GroupBox groupBox25;
         internal System.Windows.Forms.GroupBox groupBox19;
@@ -2882,10 +3221,60 @@ namespace KOF.UI
         private System.Windows.Forms.CheckBox MiningFullExchange;
         private System.Windows.Forms.CheckBox MiningEnable;
         internal System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Button DevAddMiner;
         private System.Windows.Forms.CheckBox GoldenMattock;
         internal System.Windows.Forms.Label label12;
         private System.Windows.Forms.CheckBox MonsterStoneEnable;
         internal System.Windows.Forms.Button PacketLoggerButton;
+        private System.Windows.Forms.Button TestButton;
+        private System.Windows.Forms.Button RouteTestStart;
+        private System.Windows.Forms.Button RouteTestStop;
+        private System.Windows.Forms.GroupBox groupBox10;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Button AddMiner;
+        private System.Windows.Forms.Button AddSunderies;
+        private System.Windows.Forms.Button AddPotion;
+        private System.Windows.Forms.Button AddInnHostes;
+        internal System.Windows.Forms.Button CoordinateRouteButton;
+        private System.Windows.Forms.CheckBox NpcNationCommon;
+        private System.Windows.Forms.CheckBox NpcInTown;
+        private System.Windows.Forms.Button AddSelected;
+        private System.Windows.Forms.CheckBox AlwaysOnTop;
+        private System.Windows.Forms.GroupBox groupBox15;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.CheckBox PartyCureDisease;
+        private System.Windows.Forms.CheckBox PartyStr;
+        private System.Windows.Forms.CheckBox PartyCure;
+        private System.Windows.Forms.ComboBox PartyHealSelect;
+        private System.Windows.Forms.NumericUpDown PartyHealValue;
+        private System.Windows.Forms.CheckBox PartyHeal;
+        private System.Windows.Forms.ComboBox PartyMindSelect;
+        private System.Windows.Forms.CheckBox PartyMind;
+        private System.Windows.Forms.ComboBox PartyAcSelect;
+        private System.Windows.Forms.CheckBox PartyAc;
+        private System.Windows.Forms.ComboBox PartyBuffSelect;
+        private System.Windows.Forms.CheckBox PartyBuff;
+        private System.Windows.Forms.GroupBox groupBox17;
+        private System.Windows.Forms.CheckBox GlacierResist;
+        private System.Windows.Forms.CheckBox FlameResist;
+        private System.Windows.Forms.CheckBox LightningResist;
+        private System.Windows.Forms.CheckBox PullAway;
+        private System.Windows.Forms.CheckBox AttackOnSetAreaControl;
+        private System.Windows.Forms.CheckBox ActionRoute;
+        private System.Windows.Forms.CheckBox WaitTime;
+        private System.Windows.Forms.GroupBox groupBox22;
+        private System.Windows.Forms.PictureBox MiniMap;
+        private System.Windows.Forms.GroupBox groupBox27;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.CheckedListBox SavedLocationList;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Label ZoneXYInfo;
+        private System.Windows.Forms.GroupBox groupBox29;
+        private System.Windows.Forms.GroupBox groupBox28;
+        private System.Windows.Forms.NumericUpDown PartyGroupHealValue;
+        private System.Windows.Forms.CheckBox PartyGroupHeal;
+        private System.Windows.Forms.NumericUpDown PartyGroupHealMemberCount;
     }
 }

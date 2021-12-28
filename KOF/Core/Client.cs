@@ -25,6 +25,7 @@ namespace KOF.Core
         private bool _Started { get; set; } = false;
         private int _BlackMarketerEventTime { get; set; } = Environment.TickCount;
         private List<Thread> _ThreadPool { get; set; } = new List<Thread>();
+        private int _PriestSelfEventTime { get; set; } = Environment.TickCount;
 
         public Client(App App, Dispatcher DispatcherInterface)
         {
@@ -54,6 +55,8 @@ namespace KOF.Core
 
         public void Start()
         {
+            LoadZone();
+
             SetNameConst(GetName());
 
             Storage.ControlCollection.Add(GetNameConst(), Database().GetControlList(GetNameConst()));
@@ -72,7 +75,9 @@ namespace KOF.Core
             StartThread(ProtectionEvent);
             StartThread(AttackEvent);
             StartThread(TimedSkillEvent);
-            StartThread(PartyEvent);
+            StartThread(PriestSelfEvent);
+            StartThread(PartyBuffEvent);
+            StartThread(PartyHealEvent);
             StartThread(RepairEvent);
             StartThread(SupplyEvent);
             StartThread(TargetAndActionEvent);
@@ -144,7 +149,9 @@ namespace KOF.Core
                             SetDisconnectTime(0);
                     }
 
-                    Thread.Sleep(1);
+                    _DispatcherInterface.RenderMiniMap();
+
+                    Thread.Sleep(1250);
                 };
             }
             catch (ThreadAbortException ex)
@@ -291,7 +298,7 @@ namespace KOF.Core
 
                     if (_PartyRequestTime > 0 && Environment.TickCount - _PartyRequestTime > 3000)
                     {
-                        if(GetPartyCount() == 0)
+                        if (GetPartyCount() == 0)
                             SendPacket("2F0201");
 
                         _PartyRequestTime = 0;
@@ -397,7 +404,11 @@ namespace KOF.Core
                                 if (Convert.ToInt32(GetControl("AreaControlX")) > 0 && Convert.ToInt32(GetControl("AreaControlY")) > 0
                                 && CoordinateDistance(GetX(), GetY(), Convert.ToInt32(GetControl("AreaControlX")), Convert.ToInt32(GetControl("AreaControlY"))) > Convert.ToInt32(GetControl("AttackDistance")))
                                 {
-                                    SetCoordinate(Convert.ToInt32(GetControl("AreaControlX")), Convert.ToInt32(GetControl("AreaControlY")));
+                                    if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                                        StartRouteEvent(Convert.ToInt32(GetControl("AreaControlX")), Convert.ToInt32(GetControl("AreaControlY")));
+                                    else
+                                        SetCoordinate(Convert.ToInt32(GetControl("AreaControlX")), Convert.ToInt32(GetControl("AreaControlY")));
+
                                     Thread.Sleep(1250);
                                 }
                             }
@@ -642,7 +653,7 @@ namespace KOF.Core
                         continue;
                     }
 
-                    if(Convert.ToBoolean(GetControl("Attack")) == false)
+                    if (Convert.ToBoolean(GetControl("Attack")) == false)
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -667,11 +678,9 @@ namespace KOF.Core
                                 if (UseSkill(SkillData, GetTargetId()))
                                 {
                                     SkillBarData.UseTime = Environment.TickCount;
-
-                                    Thread.Sleep(1000);
+                                    Thread.Sleep(800);
                                 }
                             }
-
                         }
                     }
 
@@ -716,7 +725,7 @@ namespace KOF.Core
 
                             if (SkillBarData == null) continue;
 
-                            Skill SkillData = Database().GetSkillData(GetNameConst(), (int)SkillBarData.SkillId);
+                            Skill SkillData = Database().GetSkillData(GetNameConst(), SkillBarData.SkillId);
 
                             if (SkillData == null) continue;
 
@@ -748,16 +757,244 @@ namespace KOF.Core
             }
         }
 
-        private void PartyEvent()
+        private void PriestSelfEvent()
+        {
+            try
+            {
+                while (true)
+                {
+                    if (HasExited() || GetJob(GetClass()) != "Priest")
+                        return;
+
+                    if (IsCharacterAvailable() == false || GetPartyCount() != 0 || IsInEnterGame())
+                    {
+                        Thread.Sleep(1250);
+                        continue;
+                    }
+
+                    if((_PriestSelfEventTime % 800) == 0)
+                        PriestBuffAction();
+
+                    if ((_PriestSelfEventTime % 150) == 0)
+                        PriestHealAction();
+
+                    _PriestSelfEventTime = Environment.TickCount;
+
+                    Thread.Sleep(1);
+                }
+            }
+            catch (ThreadAbortException ex)
+            {
+                Debug.WriteLine("Thread is aborted and the code is "
+                                                 + ex.ExceptionState);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+            }
+        }
+
+        private void PriestHealAction(bool Self = true, Party CurrentMemberData = null)
+        {
+            if (HasExited() || GetJob(GetClass()) != "Priest" || IsCharacterAvailable() == false)
+                return;
+
+            if (Self)
+            {
+                CurrentMemberData = new Party();
+
+                CurrentMemberData.MemberId = GetId();
+                CurrentMemberData.MemberClass = GetClass();
+                CurrentMemberData.MemberHp = GetHp();
+                CurrentMemberData.MemberMaxHp = GetMaxHp();
+                CurrentMemberData.MemberBuffHp = 0;
+
+                CurrentMemberData.MemberName = GetName();
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyHeal")))
+            {
+                double HealPercent = Math.Round(((double)CurrentMemberData.MemberHp * 100) / CurrentMemberData.MemberMaxHp);
+
+                if (HealPercent <= Convert.ToInt32(GetControl("PartyHealValue")))
+                {
+                    string SelectedHeal = GetControl("PartyHealSelect");
+
+                    if (SelectedHeal == "Otomatik")
+                        SelectedHeal = GetProperHeal();
+
+                    Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedHeal);
+
+                    if (SkillData != null)
+                    {
+                        if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                            Thread.Sleep(150);
+                    }
+                }
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyGroupHeal")) && Self == false)
+            {
+                double HealPercent = Math.Round(((double)CurrentMemberData.MemberHp * 100) / CurrentMemberData.MemberMaxHp);
+
+                if (HealPercent <= Convert.ToInt32(GetControl("PartyGroupHealValue"))
+                    && GetPartyCount() >= Convert.ToInt32(GetControl("PartyGroupHealMemberCount")))
+                {
+                    string[] Skills = {"Group Complete Healing", "Group Massive Healing" };
+
+                    for (int i = 0; i < Skills.Length; i++)
+                    {
+                        Skill SkillData = Database().GetSkillData(GetNameConst(), Skills[i]);
+
+                        if (SkillData != null)
+                        {
+                            int LastUseTime = 0;
+
+                            bool CoolDown = _GroupHealCooldown.TryGetValue(SkillData.RealId, out LastUseTime);
+
+                            if (LastUseTime == 0 || Environment.TickCount > LastUseTime + (SkillData.Cooldown * 1000))
+                            {
+                                if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                                {
+                                    if (CoolDown == false)
+                                        _GroupHealCooldown.Add(SkillData.RealId, Environment.TickCount);
+                                    else
+                                        _GroupHealCooldown[SkillData.RealId] = Environment.TickCount;
+
+                                    Thread.Sleep(150);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyCure")))
+            {
+                if (CurrentMemberData.MemberCure1 == 256)
+                {
+                    Skill SkillData = Database().GetSkillData(GetNameConst(), "Cure Curse");
+
+                    if (SkillData != null)
+                    {
+                        if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                            Thread.Sleep(150);
+                    }
+                }
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyCureDisease")))
+            {
+                if (CurrentMemberData.MemberCure1 == 257 || CurrentMemberData.MemberCure1 == 1 || CurrentMemberData.MemberCure1 == 65536)
+                {
+                    Skill SkillData = Database().GetSkillData(GetNameConst(), "Cure Disease");
+
+                    if (SkillData != null)
+                    {
+                        if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                            Thread.Sleep(150);
+                    }
+                }
+            }
+        }
+
+       private void PriestBuffAction(bool Self = true, Party OldMemberData = null, Party CurrentMemberData = null)
+        {
+            if (HasExited() || GetJob(GetClass()) != "Priest" || IsCharacterAvailable() == false)
+                return;
+
+            if (Self)
+            {
+                CurrentMemberData = new Party();
+
+                CurrentMemberData.MemberId = GetId();
+                CurrentMemberData.MemberClass = GetClass();
+                CurrentMemberData.MemberHp = GetHp();
+                CurrentMemberData.MemberMaxHp = GetMaxHp();
+                CurrentMemberData.MemberBuffHp = 0;
+
+                CurrentMemberData.MemberName = GetName();
+
+                OldMemberData = CurrentMemberData;
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyBuff")) && OldMemberData.MemberBuffHp != CurrentMemberData.MemberMaxHp)
+            {
+                string SelectedHealthBuff = GetControl("PartyBuffSelect");
+
+                if (SelectedHealthBuff == "Otomatik")
+                    SelectedHealthBuff = GetProperHealthBuff(CurrentMemberData.MemberMaxHp);
+
+                Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedHealthBuff);
+
+                if (SkillData != null)
+                {
+                    if(Self == false || (Self && IsBuffAffected() == false))
+                    {
+                        if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                            Thread.Sleep(800);
+                    }
+                }
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyAc")) && OldMemberData.MemberBuffHp != CurrentMemberData.MemberMaxHp)
+            {
+                string SelectedDefenseBuff = GetControl("PartyAcSelect");
+
+                if (SelectedDefenseBuff == "Otomatik")
+                    SelectedDefenseBuff = GetProperDefenseBuff();
+
+                Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedDefenseBuff);
+
+                if (SkillData != null)
+                {
+                    if (Self == false || (Self && IsAcAffected() == false))
+                    {
+                        if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                            Thread.Sleep(800);
+                    }
+                }
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyMind")) && OldMemberData.MemberBuffHp != CurrentMemberData.MemberMaxHp)
+            {
+                string SelectedMindBuff = GetControl("PartyMindSelect");
+
+                if (SelectedMindBuff == "Otomatik")
+                    SelectedMindBuff = GetProperMindBuff();
+
+                Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedMindBuff);
+
+                if (SkillData != null)
+                {
+                    if (Self == false || (Self && IsMindAffected() == false))
+                    {
+                        if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                            Thread.Sleep(800);
+                    }
+                }
+            }
+
+            if (Convert.ToBoolean(GetControl("PartyStr")) && (GetJob(CurrentMemberData.MemberClass) == "Warrior" || Self) 
+                && OldMemberData.MemberBuffHp != CurrentMemberData.MemberMaxHp)
+            {
+                Skill SkillData = Database().GetSkillData(GetNameConst(), "Strength");
+
+                if (SkillData != null)
+                {
+                    if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
+                        Thread.Sleep(800);
+                }
+            }
+        }
+
+        private void PartyBuffEvent()
         {
             try
             {
                 while (true)
                 {
                     if (HasExited())
-                        return;
-
-                    if (GetPlatform() != AddressEnum.Platform.JPKO)
                         return;
 
                     if (IsCharacterAvailable() == false || GetPartyCount() == 0 || GetJob(GetClass()) == "Warrior" || IsInEnterGame())
@@ -775,6 +1012,9 @@ namespace KOF.Core
 
                         PartyList.ForEach(x =>
                         {
+                            if (HasExited())
+                                return;
+
                             Party OldMemberData = _PartyCollection.Find(y => y.MemberId == x.MemberId);
 
                             if (OldMemberData != null)
@@ -785,99 +1025,9 @@ namespace KOF.Core
                                         {
                                             if (GetPartyAllowedSize() == 0 || (GetPartyAllowedSize() > 0 && GetPartyAllowed(x.MemberName)))
                                             {
-                                                if (Convert.ToBoolean(GetControl("PartyBuff")) && OldMemberData.MemberBuffHp != x.MemberMaxHp)
-                                                {
-                                                    string SelectedHealthBuff = GetControl("PartyBuffSelect");
-
-                                                    if (SelectedHealthBuff == "Otomatik")
-                                                        SelectedHealthBuff = GetProperHealthBuff(x.MemberMaxHp);
-
-                                                    Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedHealthBuff);
-
-                                                    if (SkillData != null)
-                                                        UsePriestSkill(SkillData, x.MemberId);
-                                                }
-
-                                                if (Convert.ToBoolean(GetControl("PartyAc")) && OldMemberData.MemberBuffHp != x.MemberMaxHp)
-                                                {
-                                                    string SelectedDefenseBuff = GetControl("PartyAcSelect");
-
-                                                    if (SelectedDefenseBuff == "Otomatik")
-                                                        SelectedDefenseBuff = GetProperDefenseBuff();
-
-                                                    Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedDefenseBuff);
-
-                                                    if (SkillData != null)
-                                                        UsePriestSkill(SkillData, x.MemberId);
-
-                                                }
-
-                                                if (Convert.ToBoolean(GetControl("PartyMind")) && OldMemberData.MemberBuffHp != x.MemberMaxHp)
-                                                {
-                                                    string SelectedMindBuff = GetControl("PartyMindSelect");
-
-                                                    if (SelectedMindBuff == "Otomatik")
-                                                        SelectedMindBuff = GetProperMindBuff();
-
-                                                    Skill SkillData = Database().GetSkillData(GetNameConst(), SelectedMindBuff);
-
-                                                    if (SkillData != null)
-                                                        UsePriestSkill(SkillData, x.MemberId);
-
-                                                }
-
-                                                if (Convert.ToBoolean(GetControl("PartyStr")) && GetJob(x.MemberClass) == "Warrior" && OldMemberData.MemberBuffHp != x.MemberMaxHp)
-                                                {
-                                                    Skill SkillData = Database().GetSkillData(GetNameConst(), "Strength");
-
-                                                    if (SkillData != null)
-                                                        UsePriestSkill(SkillData, x.MemberId);
-
-                                                }
-
-                                                if (Convert.ToBoolean(GetControl("PartyCure")))
-                                                {
-                                                    if (x.MemberCure1 == 256)
-                                                    {
-                                                        Skill SkillData = Database().GetSkillData(GetNameConst(), "Cure Curse");
-
-                                                        if (SkillData != null)
-                                                            UsePriestSkill(SkillData, x.MemberId);
-                                                    }
-                                                }
-
-                                                if (Convert.ToBoolean(GetControl("PartyCureDisease")))
-                                                {
-                                                    if (x.MemberCure1 == 257 || x.MemberCure1 == 1 || x.MemberCure1 == 65536)
-                                                    {
-                                                        Skill SkillData = Database().GetSkillData(GetNameConst(), "Cure Disease");
-
-                                                        if (SkillData != null)
-                                                            UsePriestSkill(SkillData, x.MemberId);
-                                                    }
-                                                }
+                                                PriestBuffAction(false, OldMemberData, x);
 
                                                 OldMemberData.MemberBuffHp = x.MemberMaxHp;
-
-                                                Thread.Sleep(1250);
-                                            }
-                                        }
-                                        break;
-
-                                    case "Rogue":
-                                        {
-                                            if (GetPartyAllowedSize() == 0 || (GetPartyAllowedSize() > 0 && GetPartyAllowed(x.MemberName)))
-                                            {
-                                                if (Convert.ToBoolean(GetControl("PartyMinor")))
-                                                {
-                                                    double MinorPercent = Math.Round(((double)x.MemberHp * 100) / x.MemberMaxHp);
-
-                                                    if (MinorPercent <= Convert.ToInt32(GetControl("PartyMinorPercent")))
-                                                        UseMinorHealing(x.MemberId);
-
-                                                    Thread.Sleep(30);
-                                                }
-
                                             }
                                         }
                                         break;
@@ -901,8 +1051,6 @@ namespace KOF.Core
 
                                                         if (SkillData != null)
                                                             UseMageSkill(SkillData, x.MemberId);
-
-                                                        Thread.Sleep(1250);
                                                     }
                                                 }
 
@@ -926,8 +1074,6 @@ namespace KOF.Core
                                                                 if (UseMageSkill(SkillData, x.MemberId))
                                                                     OldMemberData.MemberResistTime = Environment.TickCount;
                                                             }
-
-                                                            Thread.Sleep(1250);
                                                         }
                                                     }
                                                 }
@@ -952,8 +1098,6 @@ namespace KOF.Core
                                                                 if (UseMageSkill(SkillData, x.MemberId))
                                                                     OldMemberData.MemberResistTime = Environment.TickCount;
                                                             }
-
-                                                            Thread.Sleep(1250);
                                                         }
                                                     }
                                                 }
@@ -978,8 +1122,6 @@ namespace KOF.Core
                                                                 if (UseMageSkill(SkillData, x.MemberId))
                                                                     OldMemberData.MemberResistTime = Environment.TickCount;
                                                             }
-
-                                                            Thread.Sleep(1250);
                                                         }
                                                     }
                                                 }
@@ -992,7 +1134,75 @@ namespace KOF.Core
                         });
                     }
 
-                    Thread.Sleep(150);
+                    Thread.Sleep(100);
+                };
+            }
+            catch (ThreadAbortException ex)
+            {
+                Debug.WriteLine("Thread is aborted and the code is "
+                                                 + ex.ExceptionState);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+            }
+        }
+
+        private void PartyHealEvent()
+        {
+            try
+            {
+                while (true)
+                {
+                    if (HasExited())
+                        return;
+
+                    if (IsCharacterAvailable() == false || GetJob(GetClass()) == "Warrior" || GetJob(GetClass()) == "Mage" || IsInEnterGame())
+                    {
+                        Thread.Sleep(1250);
+                        continue;
+                    }
+
+                    List<Party> PartyList = new List<Party>();
+
+                    if (GetPartyList(ref PartyList) > 0)
+                    {
+                        PartyList.ForEach(x =>
+                        {
+                            if (HasExited())
+                                return;
+
+                            switch (GetJob(GetClass()))
+                            {
+                                case "Priest":
+                                    {
+                                        if (GetPartyAllowedSize() == 0 || (GetPartyAllowedSize() > 0 && GetPartyAllowed(x.MemberName)))
+                                            PriestHealAction(false, x);
+                                    }
+                                    break;
+
+                                case "Rogue":
+                                    {
+                                        if (GetPartyAllowedSize() == 0 || (GetPartyAllowedSize() > 0 && GetPartyAllowed(x.MemberName)))
+                                        {
+                                            if (Convert.ToBoolean(GetControl("PartyMinor")))
+                                            {
+                                                double MinorPercent = Math.Round(((double)x.MemberHp * 100) / x.MemberMaxHp);
+
+                                                if (MinorPercent <= Convert.ToInt32(GetControl("PartyMinorPercent")))
+                                                {
+                                                    if (UseMinorHealing(x.MemberId))
+                                                        Thread.Sleep(30);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                            }
+                        });
+                    }
+
+                    Thread.Sleep(100);
                 };
             }
             catch (ThreadAbortException ex)
@@ -1228,14 +1438,19 @@ namespace KOF.Core
                         if ((Storage.FollowedClient != null && Storage.FollowedClient.GetProcessId() == GetProcessId())
                             || (Convert.ToBoolean(GetControl("FollowDisable")) == true))
                         {
-                            int TargetX = GetTargetX(); int TargetY = GetTargetY();
-                            if (GetTargetId() > 0 && (TargetX != GetX() || TargetY != GetY()))
+                            if(Convert.ToBoolean(GetControl("Attack")))
                             {
-                                if (Convert.ToBoolean(GetControl("ActionMove")) == true)
-                                    MoveCoordinate(TargetX, TargetY);
-                                else if (Convert.ToBoolean(GetControl("ActionSetCoordinate")) == true)
-                                    SetCoordinate(TargetX, TargetY);
-                            }
+                                int TargetX = GetTargetX(); int TargetY = GetTargetY();
+                                if (GetTargetId() > 0 && (TargetX != GetX() || TargetY != GetY()))
+                                {
+                                    if (Convert.ToBoolean(GetControl("ActionMove")) == true)
+                                        MoveCoordinate(TargetX, TargetY);
+                                    else if (Convert.ToBoolean(GetControl("ActionSetCoordinate")) == true)
+                                        SetCoordinate(TargetX, TargetY);
+                                    else if (Convert.ToBoolean(GetControl("ActionRoute")) == true)
+                                        StartRouteEvent(TargetX, TargetY);
+                                }
+                            } 
                         }
                     }
 
@@ -1270,7 +1485,7 @@ namespace KOF.Core
                         continue;
                     }
 
-                    if(Convert.ToBoolean(GetControl("RemoveAllMob")) == false)
+                    if (Convert.ToBoolean(GetControl("RemoveAllMob")) == false)
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -1307,7 +1522,7 @@ namespace KOF.Core
                         continue;
                     }
 
-                    if(Convert.ToBoolean(GetControl("MiningEnable")) == false || (GetZone() != 1 && GetZone() != 2))
+                    if (Convert.ToBoolean(GetControl("MiningEnable")) == false || (GetZoneId() != 1 && GetZoneId() != 2))
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -1318,7 +1533,7 @@ namespace KOF.Core
                         if (Convert.ToBoolean(GetControl("MiningFullExchange")) == true)
                         {
                             Npc Miner = Storage.NpcCollection
-                                            .FindAll(x => x.Type == "Miner" && x.Zone == GetZone() && (x.Nation == 0 || x.Nation == GetNation()))
+                                            .FindAll(x => x.Type == "Miner" && x.Zone == GetZoneId() && (x.Nation == 0 || x.Nation == GetNation()))
                                             .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
                                             .OrderBy(x => x.Key)
                                             ?.FirstOrDefault()
@@ -1389,7 +1604,7 @@ namespace KOF.Core
                     {
                         if (IsMining() == false)
                         {
-                            if (GetZone() == 1)
+                            if (GetZoneId() == 1)
                             {
                                 if (CoordinateDistance(GetX(), GetY(), 654, 1673) > 10)
                                     SetCoordinate(654, 1673, 2500);
@@ -1397,7 +1612,7 @@ namespace KOF.Core
                                     SendPacket("8601");
                             }
 
-                            if (GetZone() == 2)
+                            if (GetZoneId() == 2)
                             {
                                 if (CoordinateDistance(GetX(), GetY(), 1702, 572) > 10)
                                     SetCoordinate(1702, 572, 2500);

@@ -7,6 +7,8 @@ using System.ComponentModel;
 using KOF.Core;
 using KOF.Common;
 using KOF.Models;
+using System.Diagnostics;
+using System.Drawing;
 
 namespace KOF.UI
 {
@@ -56,19 +58,24 @@ namespace KOF.UI
         {
             if (Storage.SkillCollection.ContainsKey(Text))
             {
-                List<Skill> SkillCollection = Storage.SkillCollection[Text];
+                List<Skill> SkillCollection = Storage.SkillCollection[Text].OrderBy(x => x.RealId).ToList();
 
                 var AttackSkillCollection = new Dictionary<int, string>();
-
                 var TimedSkillCollection = new Dictionary<int, string>();
 
                 foreach (Skill SkillData in SkillCollection)
                 {
                     if (SkillData.Type == 1)
-                        AttackSkillCollection.Add((int)SkillData.Id, SkillData.Name);
+                    {
+                        if (((SkillData.Tab == -1 && GetClient().GetLevel() >= SkillData.Point) ||
+                            GetClient().GetSkillPoint(SkillData.Tab) >= SkillData.Point) && SkillData.Listed == 1)
+                            AttackSkillCollection.Add(SkillData.Id, SkillData.Name);
+                    }
 
                     if (SkillData.Type == 2)
-                        TimedSkillCollection.Add((int)SkillData.Id, SkillData.Name);
+                        if (((SkillData.Tab == -1 && GetClient().GetLevel() >= SkillData.Point) ||
+                            GetClient().GetSkillPoint(SkillData.Tab) >= SkillData.Point) && SkillData.Listed == 1)
+                            TimedSkillCollection.Add(SkillData.Id, SkillData.Name);
                 }
 
                 if (AttackSkillCollection.Count > 0)
@@ -104,7 +111,6 @@ namespace KOF.UI
                             TimedSkillList.SetItemChecked(i, false);
                     }
                 }
-
             }
 
             System.Windows.Forms.Control Control = GetNextControl(this, true);
@@ -150,7 +156,7 @@ namespace KOF.UI
             _LootableItem.InitializeControl();
             _SellableItem.InitializeControl();
 
-            if(GetClient().GetPlatform() == AddressEnum.Platform.JPKO)
+            if (GetClient().GetPlatform() == AddressEnum.Platform.JPKO)
             {
                 AreaHeal.Enabled = true;
                 SpeedHack.Enabled = true;
@@ -158,31 +164,40 @@ namespace KOF.UI
                 StatScroll.Enabled = true;
                 AcScroll.Enabled = true;
                 AttackScroll.Enabled = true;
+                ActionSetCoordinate.Enabled = true;
+                Oreads.Enabled = true;
+                CoordinateSetButton.Enabled = true;
+                FolkGroupBox.Enabled = true;
+                Transformation.Enabled = true;
+                TransformationName.Enabled = true;
+                SupplyInnHostesGroupBox.Enabled = true;
             }
 
+            if (GetClient().GetPlatform() == AddressEnum.Platform.USKO || GetClient().GetPlatform() == AddressEnum.Platform.CNKO)
+            {
+                CoordinateRouteButton.Enabled = true;
+                ActionRoute.Enabled = true;
+            }
         }
 
-        private void Configuration_KeyUp(object sender, KeyEventArgs e)
+        private void Dispatcher_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)
                 Close();
         }
 
-        private void Configuration_Load(object sender, EventArgs e)
+        private void Dispatcher_Load(object sender, EventArgs e)
         {
-            TopMost = true;
-
             Text = _Client.GetNameConst();
-
-            InitializeControl();
         }
 
-        private void Configuration_Show(object sender, EventArgs e)
+        private void Dispatcher_VisibleChanged(object sender, EventArgs e)
         {
-            TopMost = true;
+            if (Visible)
+                InitializeControl();
         }
 
-        private void Configuration_Closing(object sender, CancelEventArgs e)
+        private void Dispatcher_Closing(object sender, CancelEventArgs e)
         {
             Visible = false;
             e.Cancel = true;
@@ -342,6 +357,14 @@ namespace KOF.UI
         private void Attack_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(Attack.Name, Attack.Checked.ToString());
+
+            if (AttackOnSetAreaControl.Checked)
+            {
+                if (Attack.Checked)
+                    AreaControl.Checked = true;
+                else
+                    AreaControl.Checked = false;
+            }
         }
 
         private void RAttack_CheckedChanged(object sender, EventArgs e)
@@ -362,21 +385,6 @@ namespace KOF.UI
         private void WaitTime_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(WaitTime.Name, WaitTime.Checked.ToString());
-        }
-
-        private void DevAddSunderies_Click(object sender, EventArgs e)
-        {
-            _Client.Database().SetNpc(_Client.GetZone(), "Sunderies", _Client.GetTargetId(), _Client.GetTargetX(), _Client.GetTargetY(), _Client.GetNation(), _Client.GetPlatform().ToString());
-        }
-
-        private void DevAddInnHostes_Click(object sender, EventArgs e)
-        {
-            _Client.Database().SetNpc(_Client.GetZone(), "Inn", _Client.GetTargetId(), _Client.GetTargetX(), _Client.GetTargetY(), _Client.GetNation(), _Client.GetPlatform().ToString());
-        }
-
-        private void DevAddPotion_Click(object sender, EventArgs e)
-        {
-            _Client.Database().SetNpc(_Client.GetZone(), "Potion", _Client.GetTargetId(), _Client.GetTargetX(), _Client.GetTargetY(), _Client.GetNation(), _Client.GetPlatform().ToString());
         }
 
         private void TargetAutoSelect_CheckedChanged(object sender, EventArgs e)
@@ -402,6 +410,12 @@ namespace KOF.UI
         private void AreaControl_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(AreaControl.Name, AreaControl.Checked.ToString());
+
+            if (AttackOnSetAreaControl.Checked && Attack.Checked)
+            {
+                AreaControlX.Value = _Client.GetX();
+                AreaControlY.Value = _Client.GetY();
+            }
         }
 
         private void AreaControlX_ValueChanged(object sender, EventArgs e)
@@ -459,7 +473,6 @@ namespace KOF.UI
 
                 Storage.TargetCollection.ForEach(x =>
                 {
-
                     if (TargetList.Items.Contains(x.Name) == false)
                         TargetList.Items.Add(x.Name);
                 });
@@ -873,11 +886,6 @@ namespace KOF.UI
             _Client.SetControl(MiningRemoveTrashItem.Name, MiningRemoveTrashItem.Checked.ToString());
         }
 
-        private void DevAddMiner_Click(object sender, EventArgs e)
-        {
-            _Client.Database().SetNpc(_Client.GetZone(), "Miner", _Client.GetTargetId(), _Client.GetTargetX(), _Client.GetTargetY(), _Client.GetNation(), _Client.GetPlatform().ToString());
-        }
-
         private void GoldenMattock_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(GoldenMattock.Name, GoldenMattock.Checked.ToString());
@@ -894,6 +902,211 @@ namespace KOF.UI
         private void PacketLoggerButton_Click(object sender, EventArgs e)
         {
             _PacketLogger.ShowDialog();
+        }
+
+        private void TestButton_Click(object sender, EventArgs e)
+        {
+            _Client.Test();
+        }
+
+        private void RouteTestStart_Click(object sender, EventArgs e)
+        {
+            _Client.StartRouteEvent(807, 460);
+        }
+
+        private void RouteTestStop_Click(object sender, EventArgs e)
+        {
+            _Client.StopRouteEvent();
+        }
+
+        private void AddSunderies_Click(object sender, EventArgs e)
+        {
+            _Client.Database().SetNpc(_Client.GetZoneId(),
+                "Sunderies",
+                _Client.GetTargetId(),
+                _Client.GetTargetX(),
+                _Client.GetTargetY(),
+                NpcNationCommon.Checked ? 0 : _Client.GetNation(),
+                _Client.GetPlatform().ToString(),
+                NpcInTown.Checked ? 1 : 0);
+        }
+
+        private void AddInnHostes_Click(object sender, EventArgs e)
+        {
+            _Client.Database().SetNpc(_Client.GetZoneId(),
+                "Inn",
+                _Client.GetTargetId(),
+                _Client.GetTargetX(),
+                _Client.GetTargetY(),
+                NpcNationCommon.Checked ? 0 : _Client.GetNation(),
+                _Client.GetPlatform().ToString(),
+                NpcInTown.Checked ? 1 : 0);
+        }
+
+        private void AddPotion_Click(object sender, EventArgs e)
+        {
+            _Client.Database().SetNpc(_Client.GetZoneId(),
+                "Potion",
+                _Client.GetTargetId(),
+                _Client.GetTargetX(),
+                _Client.GetTargetY(),
+                NpcNationCommon.Checked ? 0 : _Client.GetNation(),
+                _Client.GetPlatform().ToString(),
+                NpcInTown.Checked ? 1 : 0);
+        }
+
+        private void AddMiner_Click(object sender, EventArgs e)
+        {
+            _Client.Database().SetNpc(_Client.GetZoneId(),
+                "Miner",
+                _Client.GetTargetId(),
+                _Client.GetTargetX(),
+                _Client.GetTargetY(),
+                NpcNationCommon.Checked ? 0 : _Client.GetNation(),
+                _Client.GetPlatform().ToString(),
+                NpcInTown.Checked ? 1 : 0);
+        }
+
+        private void NpcNationCommon_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(NpcNationCommon.Name, NpcNationCommon.Checked.ToString());
+        }
+
+        private void NpcInTown_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(NpcInTown.Name, NpcInTown.Checked.ToString());
+        }
+
+        private void CoordinateRouteButton_Click(object sender, EventArgs e)
+        {
+            _Client.StartRouteEvent(Convert.ToInt32(ToolCoordinateX.Value), Convert.ToInt32((ToolCoordinateY.Value)));
+        }
+
+        private void AlwaysOnTop_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(AlwaysOnTop.Name, AlwaysOnTop.Checked.ToString());
+
+            if (AlwaysOnTop.Checked)
+                TopMost = true;
+            else
+                TopMost = false;
+        }
+
+        private void AddSelected_Click(object sender, EventArgs e)
+        {
+            Target Target = new Target();
+
+            Target.Name = _Client.GetTargetName();
+
+            if (Target.Name == "") return;
+
+            Storage.TargetCollection.Add(Target);
+
+            if (TargetList.Items.Contains(Target.Name) == false)
+                TargetList.Items.Add(Target.Name);
+        }
+
+        private void ActionRoute_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(ActionRoute.Name, ActionRoute.Checked.ToString());
+        }
+
+        private void AttackOnSetAreaControl_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(AttackOnSetAreaControl.Name, AttackOnSetAreaControl.Checked.ToString());
+        }
+
+        public void RenderMiniMap()
+        {
+            if (Visible == false) return;
+            if (GetClient() == null) return;
+            Zone Zone = GetClient().GetZone();
+            if (Zone == null || GetClient().GetMiniMapImage() == null) return;
+
+            if (this.InvokeRequired)
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    ZoneXYInfo.Text = string.Format("{0} ({1}, {2})", Zone.Name, GetClient().GetX(), GetClient().GetY());
+                }));
+            }
+            else
+            {
+                ZoneXYInfo.Text = string.Format("{0} ({1}, {2})", Zone.Name, GetClient().GetX(), GetClient().GetY());
+            }
+
+            Bitmap Image = new Bitmap(GetClient().GetMiniMapImage());
+
+            Graphics Graphic = Graphics.FromImage(Image);
+
+            Brush CharacterColor = Brushes.SpringGreen;
+            Brush TargetColor = Brushes.Red;
+            Brush NeutralColor = Brushes.DarkBlue;
+
+            List<Target> TargetList = new List<Target>();
+            GetClient().SearchMob(ref TargetList);
+
+            if (TargetList.Count > 0)
+            {
+                GetClient().SearchPlayer(ref TargetList);
+
+                TargetList.ForEach(x =>
+                {
+                    Position TargetMapPosition = GetClient().GetWorldPositionToMinimap(MiniMap, GetClient().GetZone(), x.X, x.Y);
+
+                    if (GetClient().GetNation() == x.Nation || x.Nation == 0 || x.Nation > 2)
+                        Graphic.FillRectangle(NeutralColor, TargetMapPosition.X, TargetMapPosition.Y, 4, 4);
+                    else if (GetClient().GetNation() != x.Nation)
+                        Graphic.FillRectangle(TargetColor, TargetMapPosition.X, TargetMapPosition.Y, 4, 4);
+                });
+            }
+
+            Position CharacterMapPosition = GetClient().GetWorldPositionToMinimap(MiniMap, GetClient().GetZone(), GetClient().GetX(), GetClient().GetY());
+
+            int Radius = Convert.ToInt32(GetClient().GetControl("AttackDistance")) / 4;
+
+            if(GetClient().GetGoX() != 0 && GetClient().GetGoY() != 0 && GetClient().GetX() != GetClient().GetGoX() && GetClient().GetY() != GetClient().GetGoY())
+            {
+                Position CharacterMovePosition = GetClient().GetWorldPositionToMinimap(MiniMap, GetClient().GetZone(), GetClient().GetGoX(), GetClient().GetGoY());
+
+                Graphic.DrawLine(new Pen(CharacterColor), CharacterMapPosition.X, CharacterMapPosition.Y, CharacterMovePosition.X, CharacterMovePosition.Y);
+
+                Graphic.FillEllipse(new SolidBrush(Color.FromArgb(75, 0, 255, 0)), CharacterMovePosition.X - (Radius - 1), CharacterMovePosition.Y - (Radius - 1),
+                    Radius * 2, Radius * 2);
+            }
+
+            Graphic.FillEllipse(new SolidBrush(Color.FromArgb(75, 0, 0, 255)), CharacterMapPosition.X - (Radius - 1), CharacterMapPosition.Y - (Radius - 1),
+                Radius * 2, Radius * 2);
+
+            Graphic.FillRectangle(CharacterColor, CharacterMapPosition.X, CharacterMapPosition.Y, 4, 4);
+
+            MiniMap.Image = Image;
+        }
+
+        private void MiniMap_MouseDown(object sender, MouseEventArgs me)
+        {
+            if (GetClient().GetZone() == null || GetClient().GetMiniMapImage() == null) return;
+            Position MiniMapPosition = GetClient().GetMiniMapPositionToWorld(MiniMap, GetClient().GetZone(), me.X, me.Y);
+
+            if(GetClient().GetPlatform() == AddressEnum.Platform.USKO || GetClient().GetPlatform() == AddressEnum.Platform.CNKO)
+                GetClient().StartRouteEvent(MiniMapPosition.X, MiniMapPosition.Y);
+            else
+                GetClient().SetCoordinate(MiniMapPosition.X, MiniMapPosition.Y);
+        }
+
+        private void PartyGroupHeal_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(PartyGroupHeal.Name, PartyGroupHeal.Checked.ToString());
+        }
+
+        private void PartyGroupHealValue_ValueChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(PartyGroupHealValue.Name, PartyGroupHealValue.Value.ToString());
+        }
+
+        private void PartyGroupHealMemberCount_ValueChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(PartyGroupHealMemberCount.Name, PartyGroupHealMemberCount.Value.ToString());
         }
     }
 }

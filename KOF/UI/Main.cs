@@ -32,8 +32,6 @@ namespace KOF.UI
 
         private void Main_Load(object sender, EventArgs e)
         {
-            TopMost = true;
-
             Text = "KOF - v" + Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             _App.Load();
@@ -50,9 +48,6 @@ namespace KOF.UI
                     {
                         CheckBox CheckBox = ((CheckBox)Control);
                         bool Value = Convert.ToBoolean(_App.GetControl(CheckBox.Name, CheckBox.Checked.ToString()));
-
-                        if (CheckBox.Name == "AreaControl")
-                            continue;
 
                         if (Value != CheckBox.Checked)
                             CheckBox.Checked = Value;
@@ -279,7 +274,10 @@ namespace KOF.UI
                 ClientData.Destroy();
 
                 if (ClientData.GetProcess().HasExited == false)
+                {
                     ClientData.GetProcess().Kill();
+                    ClientData.GetProcess().WaitForExit();
+                }
             }
         }
 
@@ -308,6 +306,7 @@ namespace KOF.UI
                 TargetList.Enabled = true;
                 SearchMob.Enabled = true;
                 SearchPlayer.Enabled = true;
+                AddSelected.Enabled = true;
                 ClearTargetList.Enabled = true;
 
                 RepairAllEquipment.Enabled = true;
@@ -322,6 +321,10 @@ namespace KOF.UI
                 AreaControlX.Enabled = true;
                 AreaControlY.Enabled = true;
                 SetAreaControl.Enabled = true;
+
+                ActionRoute.Enabled = true;
+                AttackOnSetAreaControl.Enabled = true;
+                TargetWaitDown.Enabled = true;
             }
             else
             {
@@ -338,6 +341,7 @@ namespace KOF.UI
                 TargetList.Enabled = false;
                 SearchMob.Enabled = false;
                 SearchPlayer.Enabled = false;
+                AddSelected.Enabled = false;
                 ClearTargetList.Enabled = false;
 
                 RepairAllEquipment.Enabled = false;
@@ -352,6 +356,10 @@ namespace KOF.UI
                 AreaControlX.Enabled = false;
                 AreaControlY.Enabled = false;
                 SetAreaControl.Enabled = false;
+
+                ActionRoute.Enabled = false;
+                AttackOnSetAreaControl.Enabled = false;
+                TargetWaitDown.Enabled = false;
             }
         }
 
@@ -375,7 +383,7 @@ namespace KOF.UI
             if (ClientList.SelectedItem == null) return;
             var SelectedClient = (KeyValuePair<int, string>)ClientList.SelectedItem;
             Client Client = _App.GetProcess(SelectedClient.Key);
-            if (Client != null) Client.GetDispatcherInterface().ShowDialog();
+            if (Client != null) Client.GetDispatcherInterface().Show();
         }
 
         private void FollowComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -615,6 +623,14 @@ namespace KOF.UI
                         ClientData.SetControl(Attack.Name, Attack.Checked.ToString());
                 }
             }
+
+            if (AttackOnSetAreaControl.Checked)
+            {
+                if (Attack.Checked)
+                    AreaControl.Checked = true;
+                else
+                    AreaControl.Checked = false;
+            }
         }
 
         private void AutoPartyAccept_CheckedChanged(object sender, EventArgs e)
@@ -765,6 +781,12 @@ namespace KOF.UI
 
                 }
             }
+
+            if (AttackOnSetAreaControl.Checked && Attack.Checked)
+            {
+                AreaControlX.Value = Storage.FollowedClient.GetX();
+                AreaControlY.Value = Storage.FollowedClient.GetY();
+            }
         }
 
         private void Platform_SelectedIndexChanged(object sender, EventArgs e)
@@ -797,8 +819,76 @@ namespace KOF.UI
         private void KonsolToolStripMenuItem_Click(object sender, EventArgs e)
         {
 #if !DEBUG
-            this._App.CreateConsole();
+            _App.CreateConsole();
 #endif
+        }
+
+        private void AlwaysOnTop_CheckedChanged(object sender, EventArgs e)
+        {
+            _App.SetControl(AlwaysOnTop.Name, AlwaysOnTop.Checked.ToString());
+
+            if (AlwaysOnTop.Checked)
+                TopMost = true;
+            else
+                TopMost = false;
+        }
+
+        private void AddSelected_Click(object sender, EventArgs e)
+        {
+            if (Storage.FollowedClient == null) return;
+
+            Target Target = new Target();
+
+            Target.Name = Storage.FollowedClient.GetTargetName();
+
+            if (Target.Name == "") return;
+
+            Storage.TargetCollection.Add(Target);
+
+            if (TargetList.Items.Contains(Target.Name) == false)
+                TargetList.Items.Add(Target.Name);
+        }
+
+        private void ActionRoute_CheckedChanged(object sender, EventArgs e)
+        {
+            _App.SetControl(ActionRoute.Name, ActionRoute.Checked.ToString());
+
+            if (Storage.FollowedClient == null) return;
+
+            foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
+            {
+                if (ClientData == null) continue;
+                if (ClientData.GetPlatform() != AddressEnum.Platform.USKO && ClientData.GetPlatform() != AddressEnum.Platform.CNKO) continue;
+                if (ClientData.IsDisconnected() == false && ClientData.IsStarted()
+                    && ClientData.IsCharacterAvailable())
+                {
+                    if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false)
+                        ClientData.SetControl(ActionRoute.Name, ActionRoute.Checked.ToString());
+                }
+            }
+        }
+
+        private void AttackOnSetAreaControl_CheckedChanged(object sender, EventArgs e)
+        {
+            _App.SetControl(AttackOnSetAreaControl.Name, AttackOnSetAreaControl.Checked.ToString());
+        }
+
+        private void TargetWaitDown_CheckedChanged(object sender, EventArgs e)
+        {
+            _App.SetControl(TargetWaitDown.Name, TargetWaitDown.Checked.ToString());
+
+            if (Storage.FollowedClient == null) return;
+
+            foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
+            {
+                if (ClientData == null) continue;
+                if (ClientData.IsDisconnected() == false && ClientData.IsStarted()
+                    && ClientData.IsCharacterAvailable())
+                {
+                    if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false)
+                        ClientData.SetControl(TargetWaitDown.Name, TargetWaitDown.Checked.ToString());
+                }
+            }
         }
     }
 }

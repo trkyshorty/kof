@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using KOF.Common;
 using KOF.Models;
+using System.Drawing;
 
 namespace KOF.Core
 {
@@ -39,6 +40,10 @@ namespace KOF.Core
         private List<string> _PartyAllowedCollection { get; set; } = new List<string>();
         public List<AutoLoot> _AutoLootCollection { get; set; } = new List<AutoLoot>();
         public int _PartyRequestTime { get; set; }
+        private Zone _Zone { get; set; }
+        private Image _MiniMapImage { get; set; }
+        public Dictionary<int, int> _GroupHealCooldown { get; set; } = new Dictionary<int, int>();
+
 
         public enum EPhase : short
         {
@@ -61,6 +66,7 @@ namespace KOF.Core
         #endregion
 
         #region "Processor"
+
         public void HandleProcess(Process Process, ManagementObject Management)
         {
             _Process = Process;
@@ -68,26 +74,34 @@ namespace KOF.Core
             _Handle = Process.Handle;
             _ProcessId = Process.Id;
 
-            if (Process.MainWindowTitle == "ÆïÊ¿3.0")
+            string CommandLine = Process.StartInfo.Arguments;
+
+            if (Management != null)
+                CommandLine = Management["CommandLine"].ToString();
+
+            var Args = ParseArguments(CommandLine);
+
+            if (Process.MainWindowTitle == "ÆïÊ¿3.0" || (Management != null && Args.Length >= 2 && Args[2] == "CNKO"))
+            {
                 _Platform = AddressEnum.Platform.CNKO;
+
+                if (Args.Length >= 2)
+                {
+                    int Index = Management != null ? 3 : 2;
+                    SetAccountName(Args[Index]);
+                }
+            }
             else
             {
-                string CommandLine = Process.StartInfo.Arguments;
-
-                if (Management != null)
-                    CommandLine = Management["CommandLine"].ToString();
-
-                var Command = CommandLine.Split(' ');
-
-                if (Command.Length > 1 && (Command[0] == "MGAMEJP" || Command[1] == "MGAMEJP"))
+                if (Args.Length >= 1 && (Args[0] == "MGAMEJP" || Args[1] == "MGAMEJP"))
                 {
                     _Platform = AddressEnum.Platform.JPKO;
 
+                    int Index = Management != null ? 2 : 1;
+                    SetAccountName(Args[Index]);
+
                     if (Process.MainWindowTitle == "Knight OnLine Client")
-                    {
-                        Debug.WriteLine("Patch Mutant");
-                        PatchMutant(GetAccountName());
-                    }
+                        PatchMutant();
                 }
                 else
                     _Platform = AddressEnum.Platform.USKO;
@@ -98,10 +112,11 @@ namespace KOF.Core
 
             foreach (AddressStorage Address in GetAddressList())
             {
-                //Console.WriteLine(Address.Name + " : " + Address.Address);
+                Debug.WriteLine(Address.Name + " : " + Address.Address);
             }
 
-            PatchMailslot();
+            if(GetAccountName() != "")
+                SetWindowText(_Process.MainWindowHandle, GetAccountName());
         }
 
         public AddressEnum.Platform GetPlatform()
@@ -362,8 +377,6 @@ namespace KOF.Core
              */
             string Message = ByteToHex(Packet);
 
-            //Console.WriteLine(Message);
-
             switch (Message.Substring(0, 2))
             {
                 case "01": //WIZ_LOGIN
@@ -416,7 +429,7 @@ namespace KOF.Core
 
                         Debug.WriteLine("Chest drop " + Message.Substring(6, 8));
                     }
-                    
+
                     break;
 
                 case "24": //WIZ_BUNDLE_OPEN_REQ
@@ -436,7 +449,7 @@ namespace KOF.Core
 
                             if (Item == 900000000 || (Convert.ToBoolean(GetControl("OnlyNoah")) && Item == 900000000))
                                 Loot = true;
-                            
+
                             if (Convert.ToBoolean(GetControl("LootOnlyList")) && Database().GetLoot(GetNameConst(), Item, GetPlatform().ToString()) != null)
                                 Loot = true;
 
@@ -449,7 +462,7 @@ namespace KOF.Core
                             if (Convert.ToBoolean(GetControl("LootOnlySell")) && Database().GetSell(GetNameConst(), Item, GetPlatform().ToString()) != null)
                                 Loot = true;
 
-                            if(Loot)
+                            if (Loot)
                                 SendPacket("26" + Message.Substring(2, 4) + Message.Substring(6, 4) + ItemHex + "0" + i + "00");
                         }
                     }
@@ -512,8 +525,8 @@ namespace KOF.Core
                     switch (Message.Substring(2, 2))
                     {
                         case "02": //PartyPermit
-                            if (Storage.FollowedClient != null 
-                                && Storage.FollowedClient.GetProcessId() != GetProcessId() 
+                            if (Storage.FollowedClient != null
+                                && Storage.FollowedClient.GetProcessId() != GetProcessId()
                                 && Convert.ToBoolean(GetControl("FollowDisable")) == false
                                 && Storage.AutoPartyAccept)
                             {
@@ -535,7 +548,7 @@ namespace KOF.Core
              */
             string Message = ByteToHex(Packet);
 
-            //Console.WriteLine(Message);
+            //Debug.WriteLine(Message);
 
             switch (Message.Substring(0, 2))
             {
@@ -557,6 +570,7 @@ namespace KOF.Core
                 case "0D": //WIZ_GAMESTART
                     SetPhase(EPhase.Playing);
                     SetEnterGameTime(Environment.TickCount);
+                    LoadZone();
                     Debug.WriteLine("Game start " + Environment.TickCount);
                     break;
 
@@ -610,7 +624,7 @@ namespace KOF.Core
                 case "79": //WIZ_SKILLDATA
                     switch (Message.Substring(2, 2))
                     {
-                        case "02": 
+                        case "02":
                             {
                                 if (GetControl("CharacterSealPacket") != "")
                                     SendPacket(GetControl("CharacterSealPacket"));
@@ -623,6 +637,7 @@ namespace KOF.Core
                     switch (Message.Substring(2, 2))
                     {
                         case "01": //ZoneChangeLoaading
+                            LoadZone();
                             Debug.WriteLine("Zone change load");
                             break;
                     }
@@ -748,8 +763,7 @@ namespace KOF.Core
 
         public void ExecuteRemoteCode(String Code)
         {
-            IntPtr CodePtr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_READWRITE);
-
+            IntPtr CodePtr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
             byte[] CodeByte = StringToByte(Code);
             WriteProcessMemory(_Handle, CodePtr, CodeByte, CodeByte.Length, 0);
             IntPtr Thread = CreateRemoteThread(_Handle, IntPtr.Zero, 0, CodePtr, IntPtr.Zero, 0, IntPtr.Zero);
@@ -780,7 +794,7 @@ namespace KOF.Core
             {
                 return null;
             }
-               
+
 
             ipBasic = Marshal.AllocHGlobal(Marshal.SizeOf(objBasic));
             NtQueryObject(ipHandle, (int)ObjectInformationClass.ObjectBasicInformation,
@@ -966,8 +980,10 @@ namespace KOF.Core
             return lstHandles;
         }
 
-        public void PatchMutant(string NewWindowTitle)
+        public void PatchMutant()
         {
+            Debug.WriteLine("Mutant patching");
+
             String[] Names =
             {
                 "Mutant"
@@ -1004,22 +1020,15 @@ namespace KOF.Core
                     {
                         CloseHandle(ipHandle);
                     }
-                        
+
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.StackTrace); //Except -- Process(PID) is not running
                 }
             }
-
-            SetWindowText(_Process.MainWindowHandle, NewWindowTitle);
         }
         #endregion
-
-        /*public IntPtr GetRecvPointer()
-        {
-            return new IntPtr(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG") - 0x14)) + 0x8);
-        }*/
 
         public int GetRecvPointer()
         {
@@ -1041,7 +1050,7 @@ namespace KOF.Core
                 if (_MailslotRecvPtr == IntPtr.Zero)
                     _MailslotRecvPtr = CreateMailslot(MailslotRecvName, 0, 0, IntPtr.Zero);
 
-                _MailslotRecvFuncPtr = VirtualAllocEx(_Handle, _MailslotRecvFuncPtr, 1, MEM_COMMIT, PAGE_READWRITE);
+                _MailslotRecvFuncPtr = VirtualAllocEx(_Handle, _MailslotRecvFuncPtr, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
                 byte[] MailslotRecvNameByte = UnicodeEncoding.GetBytes(MailslotRecvName);
 
@@ -1079,7 +1088,7 @@ namespace KOF.Core
                     "C3"); //ret 
             }
 
-            _MailslotRecvHookPtr = VirtualAllocEx(_Handle, _MailslotRecvHookPtr, 1, MEM_COMMIT, PAGE_READWRITE);
+            _MailslotRecvHookPtr = VirtualAllocEx(_Handle, _MailslotRecvHookPtr, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
             Patch(_Handle, _MailslotRecvHookPtr,
                 "55" + //push ebp
@@ -1110,6 +1119,7 @@ namespace KOF.Core
                 "C20800"); //ret 0008
 
             uint MemoryProtection;
+
             VirtualProtectEx(_Handle, new IntPtr(GetRecvPointer()), 4, PAGE_EXECUTE_READWRITE, out MemoryProtection);
             Write4Byte(GetRecvPointer(), _MailslotRecvHookPtr.ToInt32());
             VirtualProtectEx(_Handle, new IntPtr(GetRecvPointer()), 4, MemoryProtection, out MemoryProtection);
@@ -1120,7 +1130,7 @@ namespace KOF.Core
 
             _MailslotSendPtr = CreateMailslot(MailslotSendName, 0, 0, IntPtr.Zero);
 
-            _MailslotSendHookPtr = VirtualAllocEx(_Handle, _MailslotSendHookPtr, 1, MEM_COMMIT, PAGE_READWRITE);
+            _MailslotSendHookPtr = VirtualAllocEx(_Handle, _MailslotSendHookPtr, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
             byte[] MailslotSendNameByte = UnicodeEncoding.GetBytes(MailslotSendName);
 
@@ -1262,6 +1272,18 @@ namespace KOF.Core
             return Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOB"));
         }
 
+        public string GetTargetName()
+        {
+            if (GetTargetId() == 0) return "";
+            int Base = GetTargetBase();
+            if (Base == 0) return "";
+            int NameLen = Read4Byte(Base + GetAddress("KO_OFF_NAME_LEN"));
+            if (NameLen > 15)
+                return ReadString(Read4Byte(Base + GetAddress("KO_OFF_NAME")), NameLen);
+
+            return ReadString(Base + GetAddress("KO_OFF_NAME"), NameLen);
+        }
+
         public int GetTargetX()
         {
             if (GetTargetId() == 0) return 0;
@@ -1299,7 +1321,7 @@ namespace KOF.Core
             return ReadByte(Read4Byte(GetAddress("KO_PTR_CHR")) + StateOffset);
         }
 
-        public int GetZone()
+        public int GetZoneId()
         {
             return Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_ZONE"));
         }
@@ -1314,19 +1336,19 @@ namespace KOF.Core
             return Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MAX_EXP"));
         }
 
-        protected int GetGoX()
+        public int GetGoX()
         {
             return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX")));
         }
 
-        protected int GetGoY()
+        public int GetGoY()
         {
             return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY")));
         }
 
-        protected int GetGoZ()
+        public int GetGoZ()
         {
-            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoZ")));
+            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY")));
         }
 
         protected int GetSkill(int Slot)
@@ -1334,7 +1356,7 @@ namespace KOF.Core
             return Read4Byte(Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SBARBase")) + 0x184 + (Slot * 4) + 0x68)));
         }
 
-        protected int GetSkillPoint(int Slot)
+        public int GetSkillPoint(int Slot)
         {
             return Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SBARBase")) + GetAddress("KO_OFF_BSkPoint") + (Slot * 4));
         }
@@ -1348,7 +1370,7 @@ namespace KOF.Core
         {
             if (Enable)
             {
-                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A006858BFB929B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0168" + AlignDWORD(700039000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
 
                 Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C4, 1);
                 Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C6, 1);
@@ -1356,7 +1378,7 @@ namespace KOF.Core
             }
             else
             {
-                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A006858BFB929B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700039000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
 
                 Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C4, 0);
                 Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C6, 0);
@@ -1366,29 +1388,57 @@ namespace KOF.Core
 
         protected bool IsWallhackOn()
         {
-
-
             return Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_WH")) == 0 ? true : false;
         }
 
         protected void Wallhack(bool Enable)
         {
-
-
-
             Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_WH"), Enable ? 0 : 1);
-
-            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_DLG")) + "6A006858BFB929B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
         }
-
 
         public void MoveCoordinate(int GoX, int GoY)
         {
             if (GoX <= 0 || GoY <= 0) return;
+            if (GoX == GetX() && GoY == GetY()) return;
             Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVE"), 1);
             WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX"), GoX);
             WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY"), GoY);
             Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVEType"), 2);
+        }
+
+        public void StartRouteEvent(int GoX, int GoY, int GoZ = 0)
+        {
+            if (GoX <= 0 || GoY <= 0) return;
+            if (GoX == GetX() && GoY == GetY()) return;
+            if (CoordinateDistance(GoX, GoY, GetX(), GetY()) <= 50)
+                MoveCoordinate(GoX, GoY);
+            else
+            {
+                ExecuteRemoteCode("60" +
+                       "8B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) +
+                       "C700" + FloatToHex(GoX) +
+                       "C74004" + FloatToHex(GoZ) +
+                       "C74008" + FloatToHex(GoY) +
+                       "50" +
+                       "B8" + AlignDWORD(GetAddress("KO_ROTA_START")) +
+                       "FFD0" +
+                       "61" +
+                       "C3");
+            }
+        }
+
+        public void StopRouteEvent()
+        {
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX"), GetX());
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoZ"), GetZ());
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY"), GetY());
+
+            ExecuteRemoteCode("60" +
+                   "8B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) +
+                   "B8" + AlignDWORD(GetAddress("KO_ROTA_STOP")) +
+                   "FFD0" +
+                   "61" +
+                   "C3");
         }
 
         public void SetCoordinate(int GoX, int GoY, int ExecutionAfterWait = 0)
@@ -1468,6 +1518,36 @@ namespace KOF.Core
             return 0;
         }
 
+        public bool IsBuffAffected()
+        {
+            string[] Skills = { "606", "615", "624", "633", "642", "654", "655", "657", "670", "675" };
+
+            for (int i = 0; i < Skills.Length; i++)
+                if (IsSkillRightAffected(Skills[i])) return true;
+
+            return false;
+        }
+
+        public bool IsAcAffected()
+        {
+            string[] Skills = { "603", "612", "621", "630", "639", "651", "660", "674" };
+
+            for (int i = 0; i < Skills.Length; i++)
+                if (IsSkillRightAffected(Skills[i])) return true;
+
+            return false;
+        }
+
+        public bool IsMindAffected()
+        {
+            string[] Skills = { "609", "627", "636", "645" };
+
+            for (int i = 0; i < Skills.Length; i++)
+                if (IsSkillRightAffected(Skills[i])) return true;
+
+            return false;
+        }
+
         protected bool IsSkillAffected(int Skill)
         {
             for (int i = 1; i < 20; i++)
@@ -1525,12 +1605,12 @@ namespace KOF.Core
                 int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
                 if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
                 {
-                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == 0) 
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == 0)
                         return false;
                 }
                 else
                 {
-                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == 0) 
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == 0)
                         return false;
                 }
             }
@@ -1546,7 +1626,7 @@ namespace KOF.Core
                 int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
                 if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
                 {
-                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == 0) 
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == 0)
                         Count++;
                 }
                 else
@@ -1586,31 +1666,48 @@ namespace KOF.Core
             {
                 return Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74));
             }
-                
             else
             {
                 return Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C));
             }
         }
-                
+
 
         protected string GetInventoryItemName(int SlotId)
         {
             int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
             int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * SlotId)));
-            int Name = Read4Byte(Length + 0x68);
-            int NameLength = Read4Byte(Name + 0x1C);
-            if(NameLength > 15)
-                return ReadString(Read4Byte(Name + 0xC), NameLength);
+
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+            {
+                int Name = Read4Byte(Length + 0x70);
+                int NameLength = Read4Byte(Name + 0x1C);
+
+                if (NameLength > 15)
+                    return ReadString(Read4Byte(Name + 0xC), NameLength);
+                else
+                    return ReadString(Name + 0xC, NameLength);
+            }
             else
-                return ReadString(Name + 0xC, NameLength);
+            {
+                int Name = Read4Byte(Length + 0x68);
+                int NameLength = Read4Byte(Name + 0x1C);
+
+                if (NameLength > 15)
+                    return ReadString(Read4Byte(Name + 0xC), NameLength);
+                else
+                    return ReadString(Name + 0xC, NameLength);
+            }
+
+
+           
         }
 
         protected int GetInventoryEmptySlot()
         {
             for (int i = 14; i < 42; i++)
             {
-                if (GetInventoryItemId(i) == 0) 
+                if (GetInventoryItemId(i) == 0)
                     return i;
             }
             return -1;
@@ -1618,7 +1715,7 @@ namespace KOF.Core
 
         protected bool IsInventorySlotEmpty(int Slot)
         {
-            if (GetInventoryItemId(Slot) > 0) 
+            if (GetInventoryItemId(Slot) > 0)
                 return false;
 
             return true;
@@ -1637,7 +1734,7 @@ namespace KOF.Core
                 }
                 else
                 {
-                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId) 
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
                         return true;
                 }
             }
@@ -1672,7 +1769,7 @@ namespace KOF.Core
             {
                 int Item = GetInventoryItemId(i);
 
-                if(Item > 0)
+                if (Item > 0)
                 {
                     Inventory Inventory = new Inventory();
                     Inventory.Id = Item;
@@ -1700,7 +1797,7 @@ namespace KOF.Core
                     case 13:
                         {
                             if (IsInventorySlotEmpty(i) == false && GetInventoryItemDurability(i) == 0)
-                                return true; 
+                                return true;
                         }
                         break;
                 }
@@ -1723,7 +1820,7 @@ namespace KOF.Core
                     case 12:
                     case 13:
                         {
-                            if(Force == true || (IsInventorySlotEmpty(i) == false && GetInventoryItemDurability(i) == 0))
+                            if (Force == true || (IsInventorySlotEmpty(i) == false && GetInventoryItemDurability(i) == 0))
                             {
                                 SendPacket("3B01" + AlignDWORD(i).Substring(0, 2) + AlignDWORD(NpcId).Substring(0, 4) + AlignDWORD(GetInventoryItemId(i)));
                                 Thread.Sleep(500);
@@ -1731,7 +1828,7 @@ namespace KOF.Core
                                 if (Convert.ToBoolean(GetControl("MiningEnable")) == true)
                                     SetInventoryItemDurability(i, 30000);
                             }
-                                
+
                         }
                         break;
                 }
@@ -1741,7 +1838,7 @@ namespace KOF.Core
                 Thread.Sleep(ExecutionAfterWait);
         }
 
-        public bool IsNeedSupply(ref List<Supply>refSupply, bool Force = false)
+        public bool IsNeedSupply(ref List<Supply> refSupply, bool Force = false)
         {
             foreach (var x in Storage.SupplyCollection)
             {
@@ -1756,7 +1853,7 @@ namespace KOF.Core
                     if (Force == true || (GetInventoryItemCount(Item.Id) < 8 && GetInventoryItemCount(Item.Id) < Convert.ToInt32(GetControl(x.ControlCount))))
                     {
                         Npc Npc = Storage.NpcCollection
-                            .FindAll(y => y.Type == x.Type && y.Zone == GetZone() && (y.Nation == 0 || y.Nation == GetNation()))
+                            .FindAll(y => y.Type == x.Type && y.Zone == GetZoneId() && (y.Nation == 0 || y.Nation == GetNation()))
                             .GroupBy(y => Math.Pow((GetX() - y.X), 2) + Math.Pow((GetY() - y.Y), 2))
                             .OrderBy(y => y.Key)
                             ?.FirstOrDefault()
@@ -1818,7 +1915,7 @@ namespace KOF.Core
         {
             if (IsDisconnected()) return;
 
-            IntPtr PacketPtr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_READWRITE);
+            IntPtr PacketPtr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
             WriteProcessMemory(_Handle, PacketPtr, Packet, Packet.Length, 0);
             ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_PKT")) + "68" + AlignDWORD(Packet.Length) + "68" + AlignDWORD(PacketPtr) + "BF" + AlignDWORD(GetAddress("KO_PTR_SND")) + "FFD7C605" + AlignDWORD(GetAddress("KO_PTR_PKT") + 0xC5) + "0061C3");
@@ -1837,7 +1934,7 @@ namespace KOF.Core
 
                 if (ClientData.GetPhase() == Processor.EPhase.Playing || ClientData.GetPhase() == Processor.EPhase.Warping)
                 {
-                    if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false && Storage.FollowedClient.GetZone() == ClientData.GetZone())
+                    if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false && Storage.FollowedClient.GetZoneId() == ClientData.GetZoneId())
                         ClientData.SendPacket(Packet);
                 }
             }
@@ -1856,7 +1953,7 @@ namespace KOF.Core
 
                 if (ClientData.GetPhase() == Processor.EPhase.Playing || ClientData.GetPhase() == Processor.EPhase.Warping)
                 {
-                    if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false && Storage.FollowedClient.GetZone() == ClientData.GetZone())
+                    if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false && Storage.FollowedClient.GetZoneId() == ClientData.GetZoneId())
                     {
                         ClientData.SendPacket(Packet);
                     }
@@ -1902,7 +1999,7 @@ namespace KOF.Core
             SendPacket("3106" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "000000000000000000000000");
         }
 
-        private void UseTargetSkill(int SkillId, int TargetId = 0)
+        private void UseTargetSkill(int SkillId, int TargetId)
         {
             SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000F00");
             Thread.Sleep(10);
@@ -1945,7 +2042,8 @@ namespace KOF.Core
 
             int SkillId = Int32.Parse(GetClass().ToString() + Skill.RealId.ToString("D3"));
 
-            if ((Skill.Type == 2 && TargetId == 0 && IsSkillAffected(SkillId)) || (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false)) return false;
+            if (Skill.Type == 2 && (TargetId == 0 || TargetId == GetId()) && IsSkillAffected(SkillId)) return false;
+            if (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false) return false;
             if (Skill.ItemCount > 0 && GetInventoryItemCount(Skill.Item) < Skill.ItemCount) return false;
 
             switch (Skill.Name)
@@ -2004,13 +2102,16 @@ namespace KOF.Core
             return false;
         }
 
-       public bool UseRogueSkill(Skill Skill, int TargetId = 0)
+        public bool UseRogueSkill(Skill Skill, int TargetId = 0)
         {
             if (IsCharacterAvailable() == false) return false;
             if (Skill.Mana > 0 && GetMp() < Skill.Mana) return false;
             if (Skill.Type == 1 && TargetId <= 0) return false;
+
             int SkillId = Int32.Parse(GetClass().ToString() + Skill.RealId.ToString("D3"));
-            if ((Skill.Type == 2 && TargetId == 0 && IsSkillAffected(SkillId)) || (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false)) return false;
+
+            if (Skill.Type == 2 && (TargetId == 0 || TargetId == GetId()) && IsSkillAffected(SkillId)) return false;
+            if (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false) return false;
             if (Skill.ItemCount > 0 && GetInventoryItemCount(Skill.Item) < Skill.ItemCount) return false;
 
             int TargetX = GetTargetX(); int TargetY = GetTargetY(); int TargetZ = GetTargetZ();
@@ -2156,7 +2257,7 @@ namespace KOF.Core
                         }
                         else
                         {
-                            if(Convert.ToBoolean(GetControl("RAttack")) == true)
+                            if (Convert.ToBoolean(GetControl("RAttack")) == true)
                             {
                                 SendAttackPacket(TargetId);
                                 Thread.Sleep(250);
@@ -2234,7 +2335,8 @@ namespace KOF.Core
 
             int SkillId = Int32.Parse(GetClass().ToString() + Skill.RealId.ToString("D3"));
 
-            if ((Skill.Type == 2 && TargetId == 0 && IsSkillAffected(SkillId)) || (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false)) return false;
+            if (Skill.Type == 2 && (TargetId == 0 || TargetId == GetId()) && IsSkillAffected(SkillId)) return false;
+            if (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false) return false;
             if (Skill.ItemCount > 0 && GetInventoryItemCount(Skill.Item) < Skill.ItemCount) return false;
 
             switch (Skill.Name)
@@ -2280,6 +2382,26 @@ namespace KOF.Core
                         if (IsAttackableTarget() == false) return false;
 
                         UseTargetSkill(SkillId, TargetId);
+
+                        return true;
+                    }
+
+                case "Superior Healing":
+                case "Massive Healing":
+                case "Great Healing":
+                case "Major Healing":
+                case "Healing":
+                case "Minor Healing":
+                    {
+                        UseTargetSkill(SkillId, TargetId > 0 ? TargetId : GetId());
+
+                        return true;
+                    }
+
+                case "Group Massive Healing":
+                case "Group Complete Healing":
+                    {
+                        UseTargetAreaSkill(SkillId, GetX(), GetY(), GetZ());
 
                         return true;
                     }
@@ -2348,7 +2470,8 @@ namespace KOF.Core
 
             int SkillId = Int32.Parse(GetClass().ToString() + Skill.RealId.ToString("D3"));
 
-            if ((Skill.Type == 2 && TargetId == 0 && IsSkillAffected(SkillId)) || (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false)) return false;
+            if (Skill.Type == 2 && (TargetId == 0 || TargetId == GetId()) && IsSkillAffected(SkillId)) return false;
+            if (Skill.Item > 0 && IsInventoryItemExist(Skill.Item) == false) return false;
             if (Skill.ItemCount > 0 && GetInventoryItemCount(Skill.Item) < Skill.ItemCount) return false;
 
             int TargetX = GetTargetX(); int TargetY = GetTargetY(); int TargetZ = GetTargetZ();
@@ -2494,7 +2617,7 @@ namespace KOF.Core
             if (GetAction() != EAction.None) return;
 
             Npc Sunderies = Storage.NpcCollection
-                .FindAll(x => x.Type == "Sunderies" && x.Zone == GetZone() && (x.Nation == 0 || x.Nation == GetNation()))
+                .FindAll(x => x.Type == "Sunderies" && x.Zone == GetZoneId() && (x.Nation == 0 || x.Nation == GetNation()))
                 .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
                 .OrderBy(x => x.Key)
                 ?.FirstOrDefault()
@@ -2506,30 +2629,51 @@ namespace KOF.Core
 
                 SetAction(EAction.Repairing);
 
+                SelectTarget(0);
+
                 Thread.Sleep(1250);
 
                 int iLastX = GetX(); int iLastY = GetY();
 
-                SetCoordinate(Sunderies.X, Sunderies.Y, 2500);
+                if (Sunderies.Town == 1)
+                    SendPacket("4800", 2500);
 
                 while (GetAction() == EAction.Repairing)
                 {
                     if (CoordinateDistance(GetX(), GetY(), Sunderies.X, Sunderies.Y) > 5)
-                        SetCoordinate(Sunderies.X, Sunderies.Y, 2500);
+                    {
+                        if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                        {
+                            if (GetState() == 0)
+                                StartRouteEvent(Sunderies.X, Sunderies.Y);
+                        }
+                        else
+                            SetCoordinate(Sunderies.X, Sunderies.Y, 2500);
+                    }
                     else
                     {
                         RepairAllEquipment(Sunderies.RealId, Force, 5000);
 
-                        SetCoordinate(iLastX, iLastY, 2500);
-
                         while (GetAction() == EAction.Repairing)
                         {
                             if (CoordinateDistance(GetX(), GetY(), iLastX, iLastY) > 5)
-                                SetCoordinate(iLastX, iLastY, 2500);
+                            {
+                                if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                                {
+                                    if(GetState() == 0)
+                                        StartRouteEvent(iLastX, iLastY);
+                                }  
+                                else
+                                    SetCoordinate(iLastX, iLastY, 2500);
+                            }
                             else
                                 SetAction(EAction.None);
+
+                            Thread.Sleep(1250);
                         }
                     }
+
+                    Thread.Sleep(1250);
                 }
 
                 _RepairEventAfterWaitTime = Environment.TickCount;
@@ -2538,7 +2682,7 @@ namespace KOF.Core
             }
             else
             {
-                Debug.WriteLine("Sunderies does not exist (" + GetZone() + ")");
+                Debug.WriteLine("Sunderies does not exist (" + GetZoneId() + ")");
             }
         }
 
@@ -2593,7 +2737,7 @@ namespace KOF.Core
                 if (GetWarehouseItemCount(i) < Count)
                     return;
 
-                int Slot =  0; 
+                int Slot = 0;
                 int Page = 0;
 
                 if (i >= 0 && i <= 23)
@@ -2601,7 +2745,7 @@ namespace KOF.Core
                     Page = 0;
                     Slot = i;
                 }
-                else if(i >= 24 && i <= 47)
+                else if (i >= 24 && i <= 47)
                 {
                     Page = 1;
                     Slot = i - 24;
@@ -2715,12 +2859,23 @@ namespace KOF.Core
 
             int iLastX = GetX(); int iLastY = GetY();
 
-            OrderedSupply.ForEach(x => {
-
-                SetCoordinate(x.Npc.X, x.Npc.Y, 2500);
+            OrderedSupply.ForEach(x =>
+            {
+                if (x.Npc.Town == 1)
+                    SendPacket("4800", 2500);
 
                 while (CoordinateDistance(GetX(), GetY(), x.Npc.X, x.Npc.Y) > 5)
-                    SetCoordinate(x.Npc.X, x.Npc.Y, 2500);
+                {
+                    if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                    {
+                        if (GetState() == 0)
+                            StartRouteEvent(x.Npc.X, x.Npc.Y);
+                    }
+                    else
+                        SetCoordinate(x.Npc.X, x.Npc.Y, 2500);
+
+                    Thread.Sleep(1250);
+                }
 
                 if (x.Npc.Type == "Inn")
                     WarehouseItemCheckOut(x.Item, x.Npc, Math.Abs(GetInventoryItemCount(x.Item.Id) - x.Count), 2500);
@@ -2738,10 +2893,18 @@ namespace KOF.Core
                 }
             });
 
-            SetCoordinate(iLastX, iLastY, 2500);
-
             while (CoordinateDistance(GetX(), GetY(), iLastX, iLastY) > 5)
-                SetCoordinate(iLastX, iLastY, 2500);
+            {
+                if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                {
+                    if (GetState() == 0)
+                        StartRouteEvent(iLastX, iLastY);
+                }
+                else
+                    SetCoordinate(iLastX, iLastY, 2500);
+
+                Thread.Sleep(1250);
+            }
 
             SetAction(EAction.None);
 
@@ -2856,7 +3019,7 @@ namespace KOF.Core
         {
             if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
             {
-                IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_READWRITE);
+                IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
                 ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_FLDB")) + "6A0168" + AlignDWORD(MobId) + "BF" + AlignDWORD(GetAddress("KO_FMBS")) + "FFD7A3" + AlignDWORD(Addr) + "61C3");
                 int Base = Read4Byte(Addr);
                 VirtualFreeEx(_Handle, Addr, 0, MEM_RELEASE);
@@ -2882,7 +3045,7 @@ namespace KOF.Core
         {
             if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
             {
-                IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_READWRITE);
+                IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
                 ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_FLDB")) + "6A0168" + AlignDWORD(PlayerId) + "BF" + AlignDWORD(GetAddress("KO_FPBS")) + "FFD7A3" + AlignDWORD(Addr) + "61C3");
                 int Base = Read4Byte(Addr);
                 VirtualFreeEx(_Handle, Addr, 0, MEM_RELEASE);
@@ -2928,24 +3091,45 @@ namespace KOF.Core
 
                 Party.MemberId = Read4Byte(Base + 0x8);
                 Party.MemberClass = Read4Byte(Base + 0x10);
-                Party.MemberHp = Read4Byte(Base + 0x14);
-                Party.MemberMaxHp = Read4Byte(Base + 0x18);
-                Party.MemberBuffHp = 0;
 
-                Party.MemberCure1 = Read4Byte(Base + 0x24);
-                Party.MemberCure2 = Read4Byte(Base + 0x25);
-                Party.MemberCure3 = Read4Byte(Base + 0x26);
-                Party.MemberCure4 = Read4Byte(Base + 0x27);
+                if (GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    Party.MemberHp = Read4Byte(Base + 0x18);
+                    Party.MemberMaxHp = Read4Byte(Base + 0x1C);
+                    Party.MemberBuffHp = 0;
 
-                int MemberNickLen = Read4Byte(Base + 0x40);
+                    Party.MemberCure1 = Read4Byte(Base + 0x28);
+                    Party.MemberCure2 = Read4Byte(Base + 0x29);
+                    Party.MemberCure3 = Read4Byte(Base + 0x2A);
+                    Party.MemberCure4 = Read4Byte(Base + 0x2B);
 
-                if (MemberNickLen > 15)
-                    Party.MemberName = ReadString(Read4Byte(Base + 0x30), MemberNickLen);
+                    int MemberNickLen = Read4Byte(Base + 0x44);
+
+                    if (MemberNickLen > 15)
+                        Party.MemberName = ReadString(Read4Byte(Base + 0x34), MemberNickLen);
+                    else
+                        Party.MemberName = ReadString(Base + 0x34, MemberNickLen);
+                }
                 else
-                    Party.MemberName = ReadString(Base + 0x30, MemberNickLen);
-               
+                {
+                    Party.MemberHp = Read4Byte(Base + 0x14);
+                    Party.MemberMaxHp = Read4Byte(Base + 0x18);
+                    Party.MemberBuffHp = 0;
 
-                if(PartyList.Contains(Party) == false)
+                    Party.MemberCure1 = Read4Byte(Base + 0x24);
+                    Party.MemberCure2 = Read4Byte(Base + 0x25);
+                    Party.MemberCure3 = Read4Byte(Base + 0x26);
+                    Party.MemberCure4 = Read4Byte(Base + 0x27);
+
+                    int MemberNickLen = Read4Byte(Base + 0x40);
+
+                    if (MemberNickLen > 15)
+                        Party.MemberName = ReadString(Read4Byte(Base + 0x30), MemberNickLen);
+                    else
+                        Party.MemberName = ReadString(Base + 0x30, MemberNickLen);
+                }
+
+                if (PartyList.Contains(Party) == false)
                     PartyList.Add(Party);
 
                 Base = Read4Byte(Base);
@@ -2965,16 +3149,28 @@ namespace KOF.Core
 
             for (int i = 0; i <= GetPartyCount() - 1; i++)
             {
-                int MemberNickLen = Read4Byte(Base + 0x40);
-
                 string MemberName = "";
 
-                if (MemberNickLen > 15)
-                    MemberName = ReadString(Read4Byte(Base + 0x30), MemberNickLen);
-                else
-                    MemberName = ReadString(Base + 0x30, MemberNickLen);
+                if (GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    int MemberNickLen = Read4Byte(Base + 0x44);
 
-                if(Name == MemberName)
+                    if (MemberNickLen > 15)
+                        MemberName = ReadString(Read4Byte(Base + 0x34), MemberNickLen);
+                    else
+                        MemberName = ReadString(Base + 0x34, MemberNickLen);
+                }
+                else
+                {
+                    int MemberNickLen = Read4Byte(Base + 0x40);
+
+                    if (MemberNickLen > 15)
+                        MemberName = ReadString(Read4Byte(Base + 0x30), MemberNickLen);
+                    else
+                        MemberName = ReadString(Base + 0x30, MemberNickLen);
+                }
+
+                if (Name == MemberName)
                     return true;
 
                 Base = Read4Byte(Base);
@@ -2991,6 +3187,12 @@ namespace KOF.Core
             {
                 int MemberHp = Read4Byte(Base + 0x14);
                 int MemberMaxHp = Read4Byte(Base + 0x18);
+
+                if (GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    MemberHp = Read4Byte(Base + 0x18);
+                    MemberMaxHp = Read4Byte(Base + 0x1C);
+                }
 
                 if (MemberHp < MemberMaxHp)
                     return true;
@@ -3018,7 +3220,7 @@ namespace KOF.Core
                     return "Undying";
                 else
                     return "Superioris";
-            } 
+            }
             else if (GetSkill(112) > 0 && GetSkillPoint(1) >= 70)
             {
                 if (UndyHp >= 2000)
@@ -3090,9 +3292,27 @@ namespace KOF.Core
             return "";
         }
 
+        public string GetProperHeal()
+        {
+            if (GetSkillPoint(1) >= 45)
+                return "Superior Healing";
+            else if (GetSkillPoint(1) >= 36)
+                return "Massive Healing";
+            else if (GetSkillPoint(1) >= 27)
+                return "Great Healing";
+            else if (GetSkillPoint(1) >= 18)
+                return "Major Healing";
+            else if (GetSkillPoint(1) >= 9)
+                return "Healing";
+            else if (GetSkillPoint(1) >= 0)
+                return "Minor Healing";
+
+            return "";
+        }
+
         public bool IsTransformationAvailableZone()
         {
-            if (GetZone() == 30 || GetZone() == 71 || GetZone() == 73 || GetZone() == 75 || GetZone() == 81 || GetZone() == 82 || GetZone() == 83)
+            if (GetZoneId() == 30 || GetZoneId() == 71 || GetZoneId() == 73 || GetZoneId() == 75 || GetZoneId() == 81 || GetZoneId() == 82 || GetZoneId() == 83)
                 return false;
 
             return true;
@@ -3100,6 +3320,7 @@ namespace KOF.Core
 
         public void SendNotice(string Text)
         {
+            if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO) return;
             SendPacket("1013" + AlignDWORD(Text.Length).Substring(0, 2) + "00" + StringToHex(Text));
         }
 
@@ -3127,12 +3348,12 @@ namespace KOF.Core
                     int ItemSlot = GetInventoryItemSlot(ItemId);
 
                     SendPacket("5B02" + "01" + "1427" + AlignDWORD(ItemId) + AlignDWORD(ItemSlot - 14).Substring(0, 2) + AlignDWORD(UpgradeScroll.Id) + AlignDWORD(UpgradeScrollSlot - 14).Substring(0, 2) + "00000000FF00000000FF00000000FF00000000FF00000000FF00000000FF00000000FF00000000FF");
-                   
+
 
                     Thread.Sleep(Convert.ToInt32(GetControl("UpgradeWait")));
                 }
 
-                 SendPacket("790101001E7A0700");
+                SendPacket("790101001E7A0700");
             });
 
             UpgradeThread.IsBackground = true;
@@ -3146,7 +3367,8 @@ namespace KOF.Core
 
         public void RemoveAllMiningTrashItem()
         {
-            Storage.MiningTrashItemCollection.ForEach(x => {
+            Storage.MiningTrashItemCollection.ForEach(x =>
+            {
                 int ItemSlot = GetInventoryItemSlot(x);
 
                 if (ItemSlot != -1)
@@ -3156,9 +3378,117 @@ namespace KOF.Core
 
         public bool IsInMonsterStoneZone()
         {
-            return GetZone() == 81 || GetZone() == 82 || GetZone() == 83;
+            return GetZoneId() == 81 || GetZoneId() == 82 || GetZoneId() == 83;
         }
-    }
 
-    
+        public void Test()
+        {
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700039000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C4, 1);
+            //Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C6, 1);
+            //Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C7, 1);
+
+            //Debug.WriteLine(GetInventoryItemId(14));
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(160210195) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(84738048) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700038000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //StartRouteEvent(807, 460);
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700038000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //SendPacket("4800");
+        }
+
+        public void ChannelList()
+        {
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x12C) +
+                "68" + AlignDWORD(0xDD) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_01")) +
+                "FFD761C3");
+        }
+
+        public void SelectChannel(int ChannelId)
+        {
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x15C) +
+                "6A" + AlignDWORD(ChannelId).Substring(0, 2) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_02")) +
+                "FFD761C3");
+        }
+
+        public void SelectServer(int ServerId)
+        {
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x15C) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_03")) + "FFD731C931FF" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x15C) +
+                "6A" + AlignDWORD(ServerId).Substring(0, 2) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_04")) +
+                "FFD761C3");
+        }
+
+        public int SkillBase(int SkillId)
+        {
+            IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(0xEFE114) +
+                "68" + AlignDWORD(SkillId) +
+                "BF" + AlignDWORD(0x51D1F0) +
+                "FFD7" +
+                "A3" + AlignDWORD(Addr) +
+                "61" +
+                "C3");
+
+            int Base = Read4Byte(Addr);
+
+            return Base;
+        }
+
+        public void LegalAttack(int SkillId)
+        {
+
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_PTR_DLG")) +
+                "8B89" + AlignDWORD(0x458) +
+                "68 " + AlignDWORD(SkillBase(207003)) + //207003 - Archery 
+                "68 " + AlignDWORD(GetTargetId()).Substring(0, 4) + "0000" +
+                "B8" + AlignDWORD(0x10624DD3) + "FFD0" +
+                "61" +
+                "C3");
+        }
+
+        public void LoadZone()
+        {
+            _Zone = Database().GetZoneById(GetZoneId());
+
+            if (_Zone != null)
+                _MiniMapImage = GetImageFromFile(string.Format(".\\Resource\\Map\\{0}", _Zone.Image));
+        }
+
+        public Zone GetZone()
+        {
+            return _Zone;
+        }
+
+        public Image GetMiniMapImage()
+        {
+            return _MiniMapImage;
+        }
+
+    }
 }

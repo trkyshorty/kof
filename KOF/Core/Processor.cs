@@ -9,6 +9,7 @@ using System.Linq;
 using KOF.Common;
 using KOF.Models;
 using System.Drawing;
+using System.IO;
 
 namespace KOF.Core
 {
@@ -43,7 +44,6 @@ namespace KOF.Core
         private Zone _Zone { get; set; }
         private Image _MiniMapImage { get; set; }
         public Dictionary<int, int> _GroupHealCooldown { get; set; } = new Dictionary<int, int>();
-
 
         public enum EPhase : short
         {
@@ -3477,7 +3477,7 @@ namespace KOF.Core
             _Zone = Database().GetZoneById(GetZoneId());
 
             if (_Zone != null)
-                _MiniMapImage = GetImageFromFile(string.Format(".\\Resource\\Map\\{0}", _Zone.Image));
+                _MiniMapImage = GetImageFromFile(string.Format("{0}\\Resource\\Map\\{1}", Directory.GetCurrentDirectory(), _Zone.Image));
         }
 
         public Zone GetZone()

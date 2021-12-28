@@ -115,8 +115,8 @@ namespace KOF.Core
                 new AddressStorage(){ Active = true, Name = "KO_OFF_WH",               Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "8B0D{0}83B9", BaseAddress = "KO_PTR_CHR" },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_MCOR",             Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "894C2424895424288944242CD94424248B8B" },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_PtBase",           Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}3998", BaseAddress = "KO_PTR_DLG" },
-                new AddressStorage(){ Active = true, Name = "KO_OFF_PtCount",          Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "751FA1{0}83B8", BaseAddress = "KO_PTR_DLG" },
-                new AddressStorage(){ Active = true, Name = "KO_OFF_Pt",               Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "751BA1{0}83B8", BaseAddress = "KO_PTR_DLG" },
+                new AddressStorage(){ Active = true, Name = "KO_OFF_PtCount",          Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "751FA1{0}83B8", BaseAddress = "KO_PTR_DLG", AddressOffset = 0x4  },
+                new AddressStorage(){ Active = true, Name = "KO_OFF_Pt",               Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "751FA1{0}83B8", BaseAddress = "KO_PTR_DLG", AddressOffset = 0x20 },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_MAX_EXP",          Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B90QQ6AXXXX8B90", BaseAddress = "KO_PTR_CHR" },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_EXP",              Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B90QQ6AXXXX8B90", BaseAddress = "KO_PTR_CHR", AddressOffset = 0x8 },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_MOB",              Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "0F8AQQ8B0D{0}0FB791", BaseAddress = "KO_PTR_CHR" },
@@ -142,7 +142,7 @@ namespace KOF.Core
                 new AddressStorage(){ Active = true, Name = "KO_OFF_MAXWEIGHT",        Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "8B0D{0}55578981", BaseAddress = "KO_PTR_CHR" },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_WEIGHT",           Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "8B0D{0}55578981", BaseAddress = "KO_PTR_CHR", AddressOffset = 0x8 },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_SBARBase",         Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "E8QQA1{0}83B8", BaseAddress = "KO_PTR_DLG" },
-                new AddressStorage(){ Active = true, Name = "KO_OFF_BSkPoint",         Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B88QQ6AXXE8QQ8B8E", BaseAddress = "KO_PTR_DLG" },
+                new AddressStorage(){ Active = true, Name = "KO_OFF_BSkPoint",         Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B88QQ6AXXE8QQ8B8E", BaseAddress = "KO_PTR_DLG", AddressOffset = 0x10 },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_SPoint1",          Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B88QQ6AXXE8QQ8B8E", BaseAddress = "KO_PTR_DLG", AddressOffset = 0x10 },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_SPoint2",          Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B88QQ6AXXE8QQ8B8E", BaseAddress = "KO_PTR_DLG", AddressOffset = 0x14 },
                 new AddressStorage(){ Active = true, Name = "KO_OFF_SPoint3",          Start = DefaultStart,  Length = DefaultLength, Type = AddressEnum.Type.Pointer,   Hex = "A1{0}8B88QQ6AXXE8QQ8B8E", BaseAddress = "KO_PTR_DLG", AddressOffset = 0x18 },
@@ -248,14 +248,17 @@ namespace KOF.Core
 
                             case "KO_OFF_PtBase":
                                 Address.Hex = "83C428C20400CCCCCCCCCCCCCC8B81";
+                                Address.AddressOffset = 0x0;
                                 break;
 
                             case "KO_OFF_PtCount":
                                 Address.Hex = "D95C24508BCFD986";
+                                Address.AddressOffset = 0x0;
                                 break;
 
                             case "KO_OFF_Pt":
                                 Address.Hex = "CCCCCC83ECXX53558BD98B83";
+                                Address.AddressOffset = 0x0;
                                 break;
 
                             case "KO_OFF_BSkPoint":

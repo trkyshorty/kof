@@ -47,6 +47,9 @@ namespace KOF.UI
             this.Follow = new System.Windows.Forms.CheckBox();
             this.ClientList = new System.Windows.Forms.ListBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.groupBox13 = new System.Windows.Forms.GroupBox();
+            this.TargetWaitDown = new System.Windows.Forms.CheckBox();
+            this.AttackOnSetAreaControl = new System.Windows.Forms.CheckBox();
             this.groupBox12 = new System.Windows.Forms.GroupBox();
             this.AreaControl = new System.Windows.Forms.CheckBox();
             this.SetAreaControl = new System.Windows.Forms.Button();
@@ -65,6 +68,7 @@ namespace KOF.UI
             this.TargetOpponentNation = new System.Windows.Forms.CheckBox();
             this.TargetAutoSelect = new System.Windows.Forms.CheckBox();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.ActionRoute = new System.Windows.Forms.CheckBox();
             this.ActionSetCoordinate = new System.Windows.Forms.CheckBox();
             this.ActionMove = new System.Windows.Forms.CheckBox();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
@@ -90,14 +94,11 @@ namespace KOF.UI
             this.HakkindaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.WebSitesiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AlwaysOnTop = new System.Windows.Forms.CheckBox();
-            this.groupBox13 = new System.Windows.Forms.GroupBox();
-            this.AttackOnSetAreaControl = new System.Windows.Forms.CheckBox();
-            this.TargetWaitDown = new System.Windows.Forms.CheckBox();
-            this.ActionRoute = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
+            this.groupBox13.SuspendLayout();
             this.groupBox12.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.AreaControlY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.AreaControlX)).BeginInit();
@@ -111,7 +112,6 @@ namespace KOF.UI
             this.groupBox5.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.MenuStrip1.SuspendLayout();
-            this.groupBox13.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -208,7 +208,7 @@ namespace KOF.UI
             this.ClientHandle.Name = "ClientHandle";
             this.ClientHandle.Size = new System.Drawing.Size(129, 23);
             this.ClientHandle.TabIndex = 1;
-            this.ClientHandle.Text = "Yenile";
+            this.ClientHandle.Text = "Yakala";
             this.ClientHandle.UseVisualStyleBackColor = true;
             this.ClientHandle.Click += new System.EventHandler(this.ClientHandle_Click);
             // 
@@ -296,6 +296,41 @@ namespace KOF.UI
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Multi Kontrolleri";
+            // 
+            // groupBox13
+            // 
+            this.groupBox13.Controls.Add(this.TargetWaitDown);
+            this.groupBox13.Controls.Add(this.AttackOnSetAreaControl);
+            this.groupBox13.Location = new System.Drawing.Point(149, 127);
+            this.groupBox13.Name = "groupBox13";
+            this.groupBox13.Size = new System.Drawing.Size(142, 100);
+            this.groupBox13.TabIndex = 11;
+            this.groupBox13.TabStop = false;
+            this.groupBox13.Text = "Ayarlar";
+            // 
+            // TargetWaitDown
+            // 
+            this.TargetWaitDown.AutoSize = true;
+            this.TargetWaitDown.Enabled = false;
+            this.TargetWaitDown.Location = new System.Drawing.Point(8, 52);
+            this.TargetWaitDown.Name = "TargetWaitDown";
+            this.TargetWaitDown.Size = new System.Drawing.Size(101, 17);
+            this.TargetWaitDown.TabIndex = 2;
+            this.TargetWaitDown.Text = "Düşmesini bekle";
+            this.TargetWaitDown.UseVisualStyleBackColor = true;
+            this.TargetWaitDown.CheckedChanged += new System.EventHandler(this.TargetWaitDown_CheckedChanged);
+            // 
+            // AttackOnSetAreaControl
+            // 
+            this.AttackOnSetAreaControl.AutoSize = true;
+            this.AttackOnSetAreaControl.Enabled = false;
+            this.AttackOnSetAreaControl.Location = new System.Drawing.Point(8, 20);
+            this.AttackOnSetAreaControl.Name = "AttackOnSetAreaControl";
+            this.AttackOnSetAreaControl.Size = new System.Drawing.Size(119, 30);
+            this.AttackOnSetAreaControl.TabIndex = 0;
+            this.AttackOnSetAreaControl.Text = "Saldırı başladığında \r\nmerkez al";
+            this.AttackOnSetAreaControl.UseVisualStyleBackColor = true;
+            this.AttackOnSetAreaControl.CheckedChanged += new System.EventHandler(this.AttackOnSetAreaControl_CheckedChanged);
             // 
             // groupBox12
             // 
@@ -509,6 +544,18 @@ namespace KOF.UI
             this.groupBox8.TabIndex = 7;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Hareket";
+            // 
+            // ActionRoute
+            // 
+            this.ActionRoute.AutoSize = true;
+            this.ActionRoute.Enabled = false;
+            this.ActionRoute.Location = new System.Drawing.Point(9, 66);
+            this.ActionRoute.Name = "ActionRoute";
+            this.ActionRoute.Size = new System.Drawing.Size(49, 17);
+            this.ActionRoute.TabIndex = 8;
+            this.ActionRoute.Text = "Rota";
+            this.ActionRoute.UseVisualStyleBackColor = true;
+            this.ActionRoute.CheckedChanged += new System.EventHandler(this.ActionRoute_CheckedChanged);
             // 
             // ActionSetCoordinate
             // 
@@ -796,53 +843,6 @@ namespace KOF.UI
             this.AlwaysOnTop.UseVisualStyleBackColor = true;
             this.AlwaysOnTop.CheckedChanged += new System.EventHandler(this.AlwaysOnTop_CheckedChanged);
             // 
-            // groupBox13
-            // 
-            this.groupBox13.Controls.Add(this.TargetWaitDown);
-            this.groupBox13.Controls.Add(this.AttackOnSetAreaControl);
-            this.groupBox13.Location = new System.Drawing.Point(149, 127);
-            this.groupBox13.Name = "groupBox13";
-            this.groupBox13.Size = new System.Drawing.Size(142, 100);
-            this.groupBox13.TabIndex = 11;
-            this.groupBox13.TabStop = false;
-            this.groupBox13.Text = "Ayarlar";
-            // 
-            // AttackOnSetAreaControl
-            // 
-            this.AttackOnSetAreaControl.AutoSize = true;
-            this.AttackOnSetAreaControl.Enabled = false;
-            this.AttackOnSetAreaControl.Location = new System.Drawing.Point(8, 20);
-            this.AttackOnSetAreaControl.Name = "AttackOnSetAreaControl";
-            this.AttackOnSetAreaControl.Size = new System.Drawing.Size(119, 30);
-            this.AttackOnSetAreaControl.TabIndex = 0;
-            this.AttackOnSetAreaControl.Text = "Saldırı başladığında \r\nmerkez al";
-            this.AttackOnSetAreaControl.UseVisualStyleBackColor = true;
-            this.AttackOnSetAreaControl.CheckedChanged += new System.EventHandler(this.AttackOnSetAreaControl_CheckedChanged);
-            // 
-            // TargetWaitDown
-            // 
-            this.TargetWaitDown.AutoSize = true;
-            this.TargetWaitDown.Enabled = false;
-            this.TargetWaitDown.Location = new System.Drawing.Point(8, 52);
-            this.TargetWaitDown.Name = "TargetWaitDown";
-            this.TargetWaitDown.Size = new System.Drawing.Size(101, 17);
-            this.TargetWaitDown.TabIndex = 2;
-            this.TargetWaitDown.Text = "Düşmesini bekle";
-            this.TargetWaitDown.UseVisualStyleBackColor = true;
-            this.TargetWaitDown.CheckedChanged += new System.EventHandler(this.TargetWaitDown_CheckedChanged);
-            // 
-            // ActionRoute
-            // 
-            this.ActionRoute.AutoSize = true;
-            this.ActionRoute.Enabled = false;
-            this.ActionRoute.Location = new System.Drawing.Point(9, 66);
-            this.ActionRoute.Name = "ActionRoute";
-            this.ActionRoute.Size = new System.Drawing.Size(49, 17);
-            this.ActionRoute.TabIndex = 8;
-            this.ActionRoute.Text = "Rota";
-            this.ActionRoute.UseVisualStyleBackColor = true;
-            this.ActionRoute.CheckedChanged += new System.EventHandler(this.ActionRoute_CheckedChanged);
-            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -868,6 +868,8 @@ namespace KOF.UI
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.groupBox4.ResumeLayout(false);
+            this.groupBox13.ResumeLayout(false);
+            this.groupBox13.PerformLayout();
             this.groupBox12.ResumeLayout(false);
             this.groupBox12.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.AreaControlY)).EndInit();
@@ -887,8 +889,6 @@ namespace KOF.UI
             this.groupBox6.PerformLayout();
             this.MenuStrip1.ResumeLayout(false);
             this.MenuStrip1.PerformLayout();
-            this.groupBox13.ResumeLayout(false);
-            this.groupBox13.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

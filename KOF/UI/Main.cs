@@ -78,8 +78,7 @@ namespace KOF.UI
             while (Control != null);
 
             LoadAccountList(_App.GetControl("Platform"));
-
-            _App.HandleProcess();
+            
         }
 
         private void Main_Closing(object sender, System.ComponentModel.CancelEventArgs e)

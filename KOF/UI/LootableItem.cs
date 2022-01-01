@@ -204,5 +204,10 @@ namespace KOF.UI
                 ListBox2.DataSource = null;
             }
         }
+
+        private void LootPrice_ValueChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(LootPrice.Name, LootPrice.Value.ToString());
+        }
     }
 }

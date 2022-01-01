@@ -16,12 +16,11 @@ namespace KOF.Core
         private int _MonsterStoneEventTime { get; set; } = Environment.TickCount;
         private int _RepairEventTime { get; set; } = Environment.TickCount;
         private int _SupplyEventTime { get; set; } = Environment.TickCount;
-        private int _CheatEventTime { get; set; } = Environment.TickCount;
+        private int _SellEventTime { get; set; } = Environment.TickCount;
+        private int _CharacterEventTime { get; set; } = Environment.TickCount;
         private int _ProtectionEventTime { get; set; } = Environment.TickCount;
         private int _AttackEventTime { get; set; } = Environment.TickCount;
         private int _TimedSkillEventTime { get; set; } = Environment.TickCount;
-        private int _TargetEventTime { get; set; } = Environment.TickCount;
-        private int _ActionEventTime { get; set; } = Environment.TickCount;
         private bool _Started { get; set; } = false;
         private int _BlackMarketerEventTime { get; set; } = Environment.TickCount;
         private List<Thread> _ThreadPool { get; set; } = new List<Thread>();
@@ -69,6 +68,8 @@ namespace KOF.Core
 
             Storage.SellCollection.Add(GetNameConst(), Database().GetSellList(GetNameConst(), GetPlatform().ToString()));
 
+            Storage.TargetCollection.Add(GetNameConst(), Database().GetTargetList(GetNameConst(), GetPlatform().ToString()));
+
             _DispatcherInterface.InitializeControl();
 
             StartThread(CharacterEvent);
@@ -80,6 +81,7 @@ namespace KOF.Core
             StartThread(PartyHealEvent);
             StartThread(RepairEvent);
             StartThread(SupplyEvent);
+            StartThread(SellEvent);
             StartThread(TargetAndActionEvent);
             StartThread(MobClearEvent);
             StartThread(MiningEvent);
@@ -99,6 +101,7 @@ namespace KOF.Core
                 Database().SaveSkillBar(User);
                 Database().SaveSell(User);
                 Database().SaveLoot(User);
+                Database().SaveTarget(User);
             }
         }
 
@@ -112,6 +115,7 @@ namespace KOF.Core
             Storage.SkillBarCollection.Remove(GetNameConst());
             Storage.SellCollection.Remove(GetNameConst());
             Storage.LootCollection.Remove(GetNameConst());
+            Storage.TargetCollection.Remove(GetNameConst());
         }
 
         public bool IsStarted()
@@ -319,7 +323,7 @@ namespace KOF.Core
 
                     _BlackMarketerEventTime = Environment.TickCount;
 
-                    if (_CheatEventTime % 250 == 0)
+                    if (_CharacterEventTime % 250 == 0)
                     {
                         if (Convert.ToBoolean(GetControl("DeathOnBorn")) == true)
                         {
@@ -328,32 +332,7 @@ namespace KOF.Core
                         }
                     }
 
-                    if (_CheatEventTime % 1250 == 0)
-                    {
-                        if (Convert.ToBoolean(GetControl("Wallhack")) == true)
-                        {
-                            if (IsWallhackOn() == false)
-                                Wallhack(true);
-                        }
-                        else
-                        {
-                            if (IsWallhackOn() == true)
-                                Wallhack(false);
-                        }
-
-                        if (Convert.ToBoolean(GetControl("Oreads")) == true)
-                        {
-                            if (IsOreadsOn() == false)
-                                Oreads(true);
-                        }
-                        else
-                        {
-                            if (IsOreadsOn() == true)
-                                Oreads(false);
-                        }
-                    }
-
-                    _CheatEventTime = Environment.TickCount;
+                    _CharacterEventTime = Environment.TickCount;
 
                     Thread.Sleep(1);
                 };
@@ -498,7 +477,7 @@ namespace KOF.Core
                         }
                     }
 
-                    if (_ProtectionEventTime % 2500 == 0)
+                    if (_ProtectionEventTime % 2000 == 0)
                     {
                         double HpPotionPercent = Math.Round(((double)GetHp() * 100) / GetMaxHp());
 
@@ -534,6 +513,9 @@ namespace KOF.Core
                                 case "Premium Potion HP":
                                     HpPotionItem = FindPremiumHpPotion();
                                     break;
+                                case "Quest HP Potion":
+                                    HpPotionItem = FindQuestHpPotion();
+                                    break;
                             }
 
                             if (HpPotionItem != null)
@@ -544,6 +526,8 @@ namespace KOF.Core
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   "0000000000000000000000000000");
+
+                                Thread.Sleep(100);
                             }
                         }
 
@@ -581,6 +565,9 @@ namespace KOF.Core
                                 case "Premium Potion MP":
                                     MpPotionItem = FindPremiumMpPotion();
                                     break;
+                                case "Quest MP Potion":
+                                    MpPotionItem = FindQuestMpPotion();
+                                    break;
                             }
 
                             if (MpPotionItem != null)
@@ -591,6 +578,8 @@ namespace KOF.Core
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   AlignDWORD(GetId()).Substring(0, 4) +
                                   "0000000000000000000000000000");
+
+                                Thread.Sleep(100);
                             }
                         }
                     }
@@ -690,7 +679,7 @@ namespace KOF.Core
 
                             if (SkillBarData == null) continue;
 
-                            Skill SkillData = Database().GetSkillData(GetNameConst(), (int)SkillBarData.SkillId);
+                            Skill SkillData = Database().GetSkillData(GetNameConst(), SkillBarData.SkillId);
 
                             if (SkillData == null) continue;
 
@@ -730,7 +719,7 @@ namespace KOF.Core
                     if (HasExited())
                         return;
 
-                    if (IsCharacterAvailable() == false || IsInEnterGame())
+                    if (IsCharacterAvailable() == false/* || IsInEnterGame()*/)
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -761,8 +750,7 @@ namespace KOF.Core
                                 if (UseSkill(SkillData))
                                 {
                                     SkillBarData.UseTime = Environment.TickCount;
-
-                                    Thread.Sleep(1500);
+                                    Thread.Sleep(800);
                                 }
                             }
                         }
@@ -799,7 +787,7 @@ namespace KOF.Core
                         continue;
                     }
 
-                    if((_PriestSelfEventTime % 800) == 0)
+                    if ((_PriestSelfEventTime % 800) == 0)
                         PriestBuffAction();
 
                     if ((_PriestSelfEventTime % 150) == 0)
@@ -867,7 +855,7 @@ namespace KOF.Core
                 if (HealPercent <= Convert.ToInt32(GetControl("PartyGroupHealValue"))
                     && GetPartyCount() >= Convert.ToInt32(GetControl("PartyGroupHealMemberCount")))
                 {
-                    string[] Skills = {"Group Complete Healing", "Group Massive Healing" };
+                    string[] Skills = { "Group Complete Healing", "Group Massive Healing" };
 
                     for (int i = 0; i < Skills.Length; i++)
                     {
@@ -925,9 +913,9 @@ namespace KOF.Core
             }
         }
 
-       private void PriestBuffAction(bool Self = true, Party OldMemberData = null, Party CurrentMemberData = null)
+        private void PriestBuffAction(bool Self = true, Party OldMemberData = null, Party CurrentMemberData = null)
         {
-            if (HasExited() || GetJob(GetClass()) != "Priest" || IsCharacterAvailable() == false)
+            if (HasExited() || GetJob(GetClass()) != "Priest" || IsCharacterAvailable() == false || CanUseSkill() == false)
                 return;
 
             if (Self)
@@ -956,7 +944,7 @@ namespace KOF.Core
 
                 if (SkillData != null)
                 {
-                    if(Self == false || (Self && IsBuffAffected() == false))
+                    if (Self == false || (Self && IsBuffAffected() == false))
                     {
                         if (UsePriestSkill(SkillData, CurrentMemberData.MemberId))
                             Thread.Sleep(800);
@@ -1002,7 +990,7 @@ namespace KOF.Core
                 }
             }
 
-            if (Convert.ToBoolean(GetControl("PartyStr")) && (GetJob(CurrentMemberData.MemberClass) == "Warrior" || Self) 
+            if (Convert.ToBoolean(GetControl("PartyStr")) && (GetJob(CurrentMemberData.MemberClass) == "Warrior" || Self)
                 && OldMemberData.MemberBuffHp != CurrentMemberData.MemberMaxHp)
             {
                 Skill SkillData = Database().GetSkillData(GetNameConst(), "Strength");
@@ -1052,9 +1040,12 @@ namespace KOF.Core
                                         {
                                             if (GetPartyAllowedSize() == 0 || (GetPartyAllowedSize() > 0 && GetPartyAllowed(x.MemberName)))
                                             {
-                                                PriestBuffAction(false, OldMemberData, x);
+                                                if (CanUseSkill())
+                                                {
+                                                    PriestBuffAction(false, OldMemberData, x);
 
-                                                OldMemberData.MemberBuffHp = x.MemberMaxHp;
+                                                    OldMemberData.MemberBuffHp = x.MemberMaxHp;
+                                                }
                                             }
                                         }
                                         break;
@@ -1081,73 +1072,76 @@ namespace KOF.Core
                                                     }
                                                 }
 
-                                                if (Convert.ToBoolean(GetControl("LightningResist")) && Environment.TickCount > OldMemberData.MemberResistTime + (305 * 1000))
+                                                if (CanUseSkill())
                                                 {
-                                                    int MemberBase = GetPlayerBase(x.MemberId);
-
-                                                    if (MemberBase > 0 || x.MemberId == GetId())
+                                                    if (Convert.ToBoolean(GetControl("LightningResist")) && Environment.TickCount > OldMemberData.MemberResistTime + (305 * 1000))
                                                     {
-                                                        int MemberX = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_X")));
-                                                        int MemberY = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_Y")));
+                                                        int MemberBase = GetPlayerBase(x.MemberId);
 
-                                                        int MemberDistance = CoordinateDistance(GetX(), GetY(), MemberX, MemberY);
-
-                                                        if (MemberDistance < 30 || x.MemberId == GetId())
+                                                        if (MemberBase > 0 || x.MemberId == GetId())
                                                         {
-                                                            Skill SkillData = Database().GetSkillData(GetNameConst(), "Immunity Lightning");
+                                                            int MemberX = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_X")));
+                                                            int MemberY = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_Y")));
 
-                                                            if (SkillData != null)
+                                                            int MemberDistance = CoordinateDistance(GetX(), GetY(), MemberX, MemberY);
+
+                                                            if (MemberDistance < 30 || x.MemberId == GetId())
                                                             {
-                                                                if (UseMageSkill(SkillData, x.MemberId))
-                                                                    OldMemberData.MemberResistTime = Environment.TickCount;
+                                                                Skill SkillData = Database().GetSkillData(GetNameConst(), "Immunity Lightning");
+
+                                                                if (SkillData != null)
+                                                                {
+                                                                    if (UseMageSkill(SkillData, x.MemberId))
+                                                                        OldMemberData.MemberResistTime = Environment.TickCount;
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
 
-                                                if (Convert.ToBoolean(GetControl("FlameResist")) && Environment.TickCount > OldMemberData.MemberResistTime + (305 * 1000))
-                                                {
-                                                    int MemberBase = GetPlayerBase(x.MemberId);
-
-                                                    if (MemberBase > 0 || x.MemberId == GetId())
+                                                    if (Convert.ToBoolean(GetControl("FlameResist")) && Environment.TickCount > OldMemberData.MemberResistTime + (305 * 1000))
                                                     {
-                                                        int MemberX = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_X")));
-                                                        int MemberY = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_Y")));
+                                                        int MemberBase = GetPlayerBase(x.MemberId);
 
-                                                        int MemberDistance = CoordinateDistance(GetX(), GetY(), MemberX, MemberY);
-
-                                                        if (MemberDistance < 30 || x.MemberId == GetId())
+                                                        if (MemberBase > 0 || x.MemberId == GetId())
                                                         {
-                                                            Skill SkillData = Database().GetSkillData(GetNameConst(), "Immunity Fire");
+                                                            int MemberX = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_X")));
+                                                            int MemberY = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_Y")));
 
-                                                            if (SkillData != null)
+                                                            int MemberDistance = CoordinateDistance(GetX(), GetY(), MemberX, MemberY);
+
+                                                            if (MemberDistance < 30 || x.MemberId == GetId())
                                                             {
-                                                                if (UseMageSkill(SkillData, x.MemberId))
-                                                                    OldMemberData.MemberResistTime = Environment.TickCount;
+                                                                Skill SkillData = Database().GetSkillData(GetNameConst(), "Immunity Fire");
+
+                                                                if (SkillData != null)
+                                                                {
+                                                                    if (UseMageSkill(SkillData, x.MemberId))
+                                                                        OldMemberData.MemberResistTime = Environment.TickCount;
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
 
-                                                if (Convert.ToBoolean(GetControl("GlacierResist")) && Environment.TickCount > OldMemberData.MemberResistTime + (305 * 1000))
-                                                {
-                                                    int MemberBase = GetPlayerBase(x.MemberId);
-
-                                                    if (MemberBase > 0 || x.MemberId == GetId())
+                                                    if (Convert.ToBoolean(GetControl("GlacierResist")) && Environment.TickCount > OldMemberData.MemberResistTime + (305 * 1000))
                                                     {
-                                                        int MemberX = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_X")));
-                                                        int MemberY = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_Y")));
+                                                        int MemberBase = GetPlayerBase(x.MemberId);
 
-                                                        int MemberDistance = CoordinateDistance(GetX(), GetY(), MemberX, MemberY);
-
-                                                        if (MemberDistance < 30 || x.MemberId == GetId())
+                                                        if (MemberBase > 0 || x.MemberId == GetId())
                                                         {
-                                                            Skill SkillData = Database().GetSkillData(GetNameConst(), "Immunity Cold");
+                                                            int MemberX = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_X")));
+                                                            int MemberY = (int)Math.Round(ReadFloat(MemberBase + GetAddress("KO_OFF_Y")));
 
-                                                            if (SkillData != null)
+                                                            int MemberDistance = CoordinateDistance(GetX(), GetY(), MemberX, MemberY);
+
+                                                            if (MemberDistance < 30 || x.MemberId == GetId())
                                                             {
-                                                                if (UseMageSkill(SkillData, x.MemberId))
-                                                                    OldMemberData.MemberResistTime = Environment.TickCount;
+                                                                Skill SkillData = Database().GetSkillData(GetNameConst(), "Immunity Cold");
+
+                                                                if (SkillData != null)
+                                                                {
+                                                                    if (UseMageSkill(SkillData, x.MemberId))
+                                                                        OldMemberData.MemberResistTime = Environment.TickCount;
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -1256,6 +1250,80 @@ namespace KOF.Core
             return false;
         }
 
+        public void RepairEquipmentAction(bool Force = false)
+        {
+            if (GetAction() != EAction.None) return;
+
+            Npc Sunderies = Storage.NpcCollection
+                .FindAll(x => x.Platform == GetPlatform().ToString() && x.Type == "Sunderies" && x.Zone == GetZoneId() && (x.Nation == 0 || x.Nation == GetNation()))
+                .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
+                .OrderBy(x => x.Key)
+                ?.FirstOrDefault()
+                ?.FirstOrDefault();
+
+            if (Sunderies != null)
+            {
+                SendNotice("Repair etkinliği başladı.");
+
+                SetAction(EAction.Repairing);
+
+                Thread.Sleep(1250);
+
+                int iLastX = GetX(); int iLastY = GetY();
+
+                if (Sunderies.Town == 1)
+                    SendPacket("4800", 1250);
+
+                while (GetAction() == EAction.Repairing)
+                {
+                    if (CoordinateDistance(GetX(), GetY(), Sunderies.X, Sunderies.Y) > 5)
+                    {
+                        if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                        {
+                            if (IsMoving() == false)
+                                StartRouteEvent(Sunderies.X, Sunderies.Y);
+                        }
+                        else
+                            SetCoordinate(Sunderies.X, Sunderies.Y, 1250);
+                    }
+                    else
+                    {
+                        Thread.Sleep(1250);
+
+                        RepairAllEquipment(Sunderies.RealId, Force, 1250);
+
+                        while (GetAction() == EAction.Repairing)
+                        {
+                            if (CoordinateDistance(GetX(), GetY(), iLastX, iLastY) > 5)
+                            {
+                                if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                                {
+                                    if (IsMoving() == false)
+                                        StartRouteEvent(iLastX, iLastY);
+                                }
+                                else
+                                    SetCoordinate(iLastX, iLastY, 1250);
+                            }
+                            else
+                                SetAction(EAction.None);
+
+                            Thread.Sleep(1250);
+                        }
+                    }
+
+                    Thread.Sleep(1250);
+                }
+
+                _RepairEventAfterWaitTime = Environment.TickCount;
+
+                SendNotice("Repair etkinliği sona erdi.");
+            }
+            else
+            {
+                Debug.WriteLine("Sunderies does not exist (" + GetZoneId() + ")");
+            }
+        }
+
         private void RepairEvent()
         {
             try
@@ -1265,7 +1333,7 @@ namespace KOF.Core
                     if (HasExited())
                         return;
 
-                    if (IsCharacterAvailable() == false || HasAnyRepairing() || HasAnySupplying() || IsInEnterGame())
+                    if (IsCharacterAvailable() == false || Convert.ToBoolean(GetControl("Bot")) == false || HasAnyRepairing() || HasAnySupplying() || HasAnySelling() || IsInEnterGame())
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -1309,6 +1377,81 @@ namespace KOF.Core
             return false;
         }
 
+        public void SupplyItemAction(List<Supply> Supply)
+        {
+            if (GetAction() != EAction.None) return;
+
+            SendNotice("Tedarik etkinliği başladı.");
+
+            SetAction(EAction.Supplying);
+
+            Thread.Sleep(1250);
+
+            List<Supply> OrderedSupply = Supply.OrderBy(x => x.Npc.Id).ToList();
+
+            int iLastX = GetX(); int iLastY = GetY();
+
+            OrderedSupply.ForEach(x =>
+            {
+                if (x.Npc.Town == 1)
+                {
+                    if (CoordinateDistance(GetX(), GetY(), x.Npc.X, x.Npc.Y) > 50)
+                        SendPacket("4800", 1250);
+                }
+
+                while (CoordinateDistance(GetX(), GetY(), x.Npc.X, x.Npc.Y) > 5)
+                {
+                    if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                    {
+                        if (IsMoving() == false)
+                            StartRouteEvent(x.Npc.X, x.Npc.Y);
+                    }
+                    else
+                        SetCoordinate(x.Npc.X, x.Npc.Y, 1250);
+
+                    Thread.Sleep(1250);
+                }
+
+                Thread.Sleep(1250);
+
+                if (x.Npc.Type == "Inn")
+                    WarehouseItemCheckOut(x.Item, x.Npc, Math.Abs(GetInventoryItemCount(x.Item.Id) - x.Count), 1250);
+                else
+                {
+                    BuyItem(x.Item, x.Npc, Math.Abs(GetInventoryItemCount(x.Item.Id) - x.Count), 1250);
+
+                    for (int i = 14; i < 42; i++)
+                    {
+                        int ItemId = GetInventoryItemId(i);
+
+                        if (Database().GetSell(GetNameConst(), ItemId, GetPlatform().ToString()) != null)
+                            SellItem(ItemId, x.Npc, GetInventoryItemCount(ItemId), 1250);
+                    }
+                }
+            });
+
+            while (CoordinateDistance(GetX(), GetY(), iLastX, iLastY) > 5)
+            {
+                if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                {
+                    if (IsMoving() == false)
+                        StartRouteEvent(iLastX, iLastY);
+                }
+                else
+                    SetCoordinate(iLastX, iLastY, 1250);
+
+                Thread.Sleep(1250);
+            }
+
+            SetAction(EAction.None);
+
+            SendNotice("Tedarik etkinliği sona erdi.");
+
+            _SupplyEventAfterWaitTime = Environment.TickCount;
+
+            Supply.Clear();
+        }
+
         private void SupplyEvent()
         {
             try
@@ -1318,7 +1461,7 @@ namespace KOF.Core
                     if (HasExited())
                         return;
 
-                    if (IsCharacterAvailable() == false || HasAnyRepairing() || HasAnySupplying() || IsInEnterGame())
+                    if (IsCharacterAvailable() == false || Convert.ToBoolean(GetControl("Bot")) == false || HasAnyRepairing() || HasAnySupplying() || HasAnySelling() || IsInEnterGame())
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -1347,9 +1490,131 @@ namespace KOF.Core
             }
         }
 
-        public bool IsFollowOwner()
+        private bool HasAnySelling()
         {
-            return Storage.FollowedClient != null && Storage.FollowedClient.GetProcessId() == GetProcessId();
+            if (Storage.FollowedClient == null) return GetAction() == EAction.Selling;
+
+            foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
+            {
+                if (ClientData == null) continue;
+                if (ClientData.GetAction() == EAction.Selling) return true;
+            }
+
+            return false;
+        }
+
+        public void SellItemAction()
+        {
+            if (GetAction() != EAction.None) return;
+            if (Database().GetSellList(GetNameConst(), GetPlatform().ToString()).Count == 0) return;
+
+            Npc Npc = Storage.NpcCollection
+                                        .FindAll(x => x.Platform == GetPlatform().ToString() && (x.Type == "Potion" || x.Type == "Sunderies") && x.Zone == GetZoneId() && (x.Nation == 0 || x.Nation == GetNation()))
+                                        .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
+                                        .OrderBy(x => x.Key)
+                                        ?.FirstOrDefault()
+                                        ?.FirstOrDefault();
+
+            if (Npc != null)
+            {
+                SendNotice("Dolunca sat etkinliği başladı.");
+
+                SetAction(EAction.Selling);
+
+                Thread.Sleep(1250);
+
+                int iLastX = GetX(); int iLastY = GetY();
+
+                if (Npc.Town == 1)
+                    SendPacket("4800", 1250);
+
+                while (CoordinateDistance(GetX(), GetY(), Npc.X, Npc.Y) > 5)
+                {
+                    if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                    {
+                        if (IsMoving() == false)
+                            StartRouteEvent(Npc.X, Npc.Y);
+                    }
+                    else
+                        SetCoordinate(Npc.X, Npc.Y, 1250);
+
+                    Thread.Sleep(1250);
+                }
+
+                Thread.Sleep(1250);
+
+                for (int i = 14; i < 42; i++)
+                {
+                    int ItemId = GetInventoryItemId(i);
+
+                    if (Database().GetSell(GetNameConst(), ItemId, GetPlatform().ToString()) != null)
+                        SellItem(ItemId, Npc, GetInventoryItemCount(ItemId), 1250);
+                }
+
+                Thread.Sleep(1250);
+
+                while (CoordinateDistance(GetX(), GetY(), iLastX, iLastY) > 5)
+                {
+                    if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+                    {
+                        if (IsMoving() == false)
+                            StartRouteEvent(iLastX, iLastY);
+                    }
+                    else
+                        SetCoordinate(iLastX, iLastY, 1250);
+
+                    Thread.Sleep(1250);
+                }
+
+                SetAction(EAction.None);
+
+                SendNotice("Dolunca sat etkinliği sona erdi.");
+
+                _SellEventAfterWaitTime = Environment.TickCount;
+            }
+        }
+
+        private void SellEvent()
+        {
+            try
+            {
+                while (true)
+                {
+                    if (HasExited())
+                        return;
+
+                    if (IsCharacterAvailable() == false || Convert.ToBoolean(GetControl("Bot")) == false || HasAnyRepairing() || HasAnySupplying() || HasAnySelling() || IsInEnterGame())
+                    {
+                        Thread.Sleep(1250);
+                        continue;
+                    }
+
+                    if (Convert.ToBoolean(GetControl("SellInventoryFull")) == false)
+                    {
+                        Thread.Sleep(1250);
+                        continue;
+                    }
+
+                    if (_SellEventTime % 1250 == 0 && Environment.TickCount - _SellEventAfterWaitTime > 60000)
+                    {
+                        if (GetInventoryAvailableSlotCount() == 0)
+                            SellItemAction();
+                    }
+
+                    _SellEventTime = Environment.TickCount;
+
+                    Thread.Sleep(1);
+                };
+            }
+            catch (ThreadAbortException ex)
+            {
+                Debug.WriteLine("Thread is aborted and the code is "
+                                                 + ex.ExceptionState);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+            }
         }
 
         private void TargetAndActionEvent()
@@ -1361,7 +1626,7 @@ namespace KOF.Core
                     if (HasExited())
                         return;
 
-                    if (IsCharacterAvailable() == false || GetAction() != EAction.None || IsInEnterGame())
+                    if (IsCharacterAvailable() == false || GetAction() != EAction.None || IsInEnterGame() || IsMovingLoot())
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -1373,115 +1638,117 @@ namespace KOF.Core
                         continue;
                     }
 
-                    if (_TargetEventTime % 250 == 0)
+                    if (Convert.ToBoolean(GetControl("TargetAutoSelect")) == true || GetAttackableTargetSize() > 0)
                     {
-                        if (Convert.ToBoolean(GetControl("TargetAutoSelect")) == true || GetTargetAllowedSize() > 0)
+                        if ((Storage.FollowedClient != null && Storage.FollowedClient.GetProcessId() == GetProcessId())
+                            || (Convert.ToBoolean(GetControl("FollowDisable")) == true))
                         {
-                            if ((Storage.FollowedClient != null && Storage.FollowedClient.GetProcessId() == GetProcessId())
-                                || (Convert.ToBoolean(GetControl("FollowDisable")) == true))
-                            {
-                                int TargetId = GetTargetId();
+                            int TargetId = GetTargetId();
 
-                                if (TargetId > 0)
+                            if (TargetId > 0)
+                            {
+                                int Base = GetTargetBase(TargetId);
+
+                                if (Base == 0 ||
+                                    (Convert.ToBoolean(GetControl("TargetWaitDown")) == false &&
+                                    (ReadByte(Base + GetStateOffset()) == 10 || ReadByte(Base + GetStateOffset()) == 11 ||
+                                    (Read4Byte(Base + GetAddress("KO_OFF_MAX_HP")) != 0 && Read4Byte(Base + GetAddress("KO_OFF_HP")) == 0))))
+                                    SelectTarget(0);
+                            }
+                            else
+                            {
+                                List<TargetInfo> TargetList = new List<TargetInfo>();
+                                SearchMob(ref TargetList);
+
+                                if (TargetList.Count == 0)
+                                    SelectTarget(0);
+                                else
                                 {
-                                    if (Convert.ToBoolean(GetControl("TargetWaitDown")) == true)
+                                    if (GetAttackableTargetSize() > 0)
                                     {
-                                        if (IsAttackableTarget(TargetId) == false)
+                                        if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true)
+                                            SearchPlayer(ref TargetList);
+
+                                        if (TargetList.Count == 0)
+                                            SelectTarget(0);
+                                        else
                                         {
-                                            Thread.Sleep(500);
-                                            SelectTarget(0, 500);
+                                            TargetInfo Target = TargetList
+                                            .FindAll(x => IsSelectableTarget(x.Id)
+                                                        && IsInAttackableTargetList(x.Name)
+                                                        && CoordinateDistance(x.X, x.Y, GetX(), GetY()) < Convert.ToInt32(GetControl("AttackDistance")))
+                                            .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
+                                            .OrderBy(x => x.Key)
+                                            ?.FirstOrDefault()
+                                            ?.FirstOrDefault();
+
+                                            if (Target != null)
+                                                SelectTarget(Read4Byte(Target.Base + GetAddress("KO_OFF_ID")));
+                                            else
+                                                SelectTarget(0);
+                                        }
+                                    }
+                                    else if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true)
+                                    {
+                                        SearchPlayer(ref TargetList);
+
+                                        if (TargetList.Count == 0)
+                                            SelectTarget(0);
+                                        else
+                                        {
+                                            TargetInfo Target = TargetList
+                                            .FindAll(x => IsSelectableTarget(x.Id)
+                                                        && (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true && x.Nation != 3 && x.Nation != GetNation())
+                                                        && CoordinateDistance(x.X, x.Y, GetX(), GetY()) < Convert.ToInt32(GetControl("AttackDistance")))
+                                            .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
+                                            .OrderBy(x => x.Key)
+                                            ?.FirstOrDefault()
+                                            ?.FirstOrDefault();
+
+                                            if (Target != null)
+                                                SelectTarget(Read4Byte(Target.Base + GetAddress("KO_OFF_ID")));
+                                            else
+                                                SelectTarget(0);
                                         }
                                     }
                                     else
                                     {
-                                        if (IsAttackableTarget(TargetId) == false)
-                                            SelectTarget(0);
-                                    }
-                                }
-                                else
-                                {
-                                    List<Target> TargetList = new List<Target>();
-                                    SearchMob(ref TargetList);
+                                        TargetInfo Target = TargetList
+                                            .FindAll(x => IsSelectableTarget(x.Id)
+                                                        && x.Nation == 0
+                                                        && CoordinateDistance(x.X, x.Y, GetX(), GetY()) < Convert.ToInt32(GetControl("AttackDistance")))
+                                            .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
+                                            .OrderBy(x => x.Key)
+                                            ?.FirstOrDefault()
+                                            ?.FirstOrDefault();
 
-                                    if (TargetList.Count > 0)
-                                    {
-                                        if (GetTargetAllowedSize() > 0)
-                                        {
-                                            if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true)
-                                                SearchPlayer(ref TargetList);
-
-                                            Target Target = TargetList
-                                                .FindAll(x => IsAttackableTarget(x.Id)
-                                                            && GetTargetAllowed(x.Name)
-                                                            && CoordinateDistance(x.X, x.Y, GetX(), GetY()) < Convert.ToInt32(GetControl("AttackDistance")))
-                                                .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
-                                                .OrderBy(x => x.Key)
-                                                ?.FirstOrDefault()
-                                                ?.FirstOrDefault();
-
-                                            if (Target != null)
-                                                SelectTarget(Read4Byte(Target.Base + GetAddress("KO_OFF_ID")));
-                                        }
-                                        else if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true)
-                                        {
-                                            SearchPlayer(ref TargetList);
-
-                                            Target Target = TargetList
-                                                .FindAll(x => IsAttackableTarget(x.Id)
-                                                            && (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true && x.Nation != 3 && x.Nation != GetNation())
-                                                            && CoordinateDistance(x.X, x.Y, GetX(), GetY()) < Convert.ToInt32(GetControl("AttackDistance")))
-                                                .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
-                                                .OrderBy(x => x.Key)
-                                                ?.FirstOrDefault()
-                                                ?.FirstOrDefault();
-
-                                            if (Target != null)
-                                                SelectTarget(Read4Byte(Target.Base + GetAddress("KO_OFF_ID")));
-                                        }
+                                        if (Target != null)
+                                            SelectTarget(Read4Byte(Target.Base + GetAddress("KO_OFF_ID")));
                                         else
-                                        {
-                                            Target Target = TargetList
-                                                .FindAll(x => IsAttackableTarget(x.Id)
-                                                            && x.Nation == 0
-                                                            && CoordinateDistance(x.X, x.Y, GetX(), GetY()) < Convert.ToInt32(GetControl("AttackDistance")))
-                                                .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
-                                                .OrderBy(x => x.Key)
-                                                ?.FirstOrDefault()
-                                                ?.FirstOrDefault();
-
-                                            if (Target != null)
-                                                SelectTarget(Read4Byte(Target.Base + GetAddress("KO_OFF_ID")));
-                                        }
+                                            SelectTarget(0);
                                     }
                                 }
                             }
                         }
                     }
 
-                    _TargetEventTime = Environment.TickCount;
-
-                    if (_ActionEventTime % 250 == 0)
-                    {
-                        if ((Storage.FollowedClient != null && Storage.FollowedClient.GetProcessId() == GetProcessId())
+                    if ((Storage.FollowedClient != null && Storage.FollowedClient.GetProcessId() == GetProcessId())
                             || (Convert.ToBoolean(GetControl("FollowDisable")) == true))
+                    {
+                        if (Convert.ToBoolean(GetControl("Attack")) && IsAttackableTarget(GetTargetId()))
                         {
-                            if(Convert.ToBoolean(GetControl("Attack")))
+                            int TargetX = GetTargetX(); int TargetY = GetTargetY();
+                            if ((GetTargetId() > 0) && (TargetX != GetX() || TargetY != GetY()))
                             {
-                                int TargetX = GetTargetX(); int TargetY = GetTargetY();
-                                if (GetTargetId() > 0 && (TargetX != GetX() || TargetY != GetY()))
-                                {
-                                    if (Convert.ToBoolean(GetControl("ActionMove")) == true)
-                                        MoveCoordinate(TargetX, TargetY);
-                                    else if (Convert.ToBoolean(GetControl("ActionSetCoordinate")) == true)
-                                        SetCoordinate(TargetX, TargetY);
-                                    else if (Convert.ToBoolean(GetControl("ActionRoute")) == true)
-                                        StartRouteEvent(TargetX, TargetY);
-                                }
-                            } 
+                                if (Convert.ToBoolean(GetControl("ActionMove")) == true)
+                                    MoveCoordinate(TargetX, TargetY);
+                                else if (Convert.ToBoolean(GetControl("ActionSetCoordinate")) == true)
+                                    SetCoordinate(TargetX, TargetY);
+                                else if (Convert.ToBoolean(GetControl("ActionRoute")) == true)
+                                    StartRouteEvent(TargetX, TargetY);
+                            }
                         }
                     }
-
-                    _ActionEventTime = Environment.TickCount;
 
                     Thread.Sleep(1);
                 };
@@ -1560,7 +1827,7 @@ namespace KOF.Core
                         if (Convert.ToBoolean(GetControl("MiningFullExchange")) == true)
                         {
                             Npc Miner = Storage.NpcCollection
-                                            .FindAll(x => x.Type == "Miner" && x.Zone == GetZoneId() && (x.Nation == 0 || x.Nation == GetNation()))
+                                            .FindAll(x => x.Platform == GetPlatform().ToString() && x.Type == "Miner" && x.Zone == GetZoneId() && (x.Nation == 0 || x.Nation == GetNation()))
                                             .GroupBy(x => Math.Pow((GetX() - x.X), 2) + Math.Pow((GetY() - x.Y), 2))
                                             .OrderBy(x => x.Key)
                                             ?.FirstOrDefault()
@@ -1581,12 +1848,12 @@ namespace KOF.Core
 
                                 int iLastX = GetX(); int iLastY = GetY();
 
-                                SetCoordinate((int)Miner.X, (int)Miner.Y, 2500);
+                                SetCoordinate(Miner.X, Miner.Y, 2500);
 
                                 while (GetAction() == EAction.MineExchanging)
                                 {
-                                    if (CoordinateDistance(GetX(), GetY(), (int)Miner.X, (int)Miner.Y) > 5)
-                                        SetCoordinate((int)Miner.X, (int)Miner.Y, 2500);
+                                    if (CoordinateDistance(GetX(), GetY(), Miner.X, Miner.Y) > 5)
+                                        SetCoordinate(Miner.X, Miner.Y, 2500);
                                     else
                                     {
                                         if (Convert.ToBoolean(GetControl("MiningRemoveTrashItem")) == true)
@@ -1610,12 +1877,12 @@ namespace KOF.Core
 
                                         Thread.Sleep(2500);
 
-                                        SetCoordinate((int)iLastX, (int)iLastY, 2500);
+                                        SetCoordinate(iLastX, iLastY, 2500);
 
                                         while (GetAction() == EAction.MineExchanging)
                                         {
-                                            if (CoordinateDistance(GetX(), GetY(), (int)iLastX, (int)iLastY) > 5)
-                                                SetCoordinate((int)iLastX, (int)iLastY, 2500);
+                                            if (CoordinateDistance(GetX(), GetY(), iLastX, iLastY) > 5)
+                                                SetCoordinate(iLastX, iLastY, 2500);
                                             else
                                                 SetAction(EAction.None);
                                         }
@@ -1727,7 +1994,7 @@ namespace KOF.Core
                     if (HasExited())
                         return;
 
-                    if (IsCharacterAvailable() == false || GetAction() != EAction.None || IsInEnterGame())
+                    if (IsCharacterAvailable() == false)
                     {
                         Thread.Sleep(1250);
                         continue;
@@ -1740,11 +2007,43 @@ namespace KOF.Core
                         foreach (var LootData in AutoLootPool)
                         {
                             if (LootData == null) continue;
-                            if ((Environment.TickCount - LootData.DropTime) > 20000)
+                            if (Environment.TickCount - LootData.DropTime > 20000)
+                            {
                                 _AutoLootCollection.RemoveAll(x => x.Id == LootData.Id);
+                                SetMovingLoot(false);
+                            }
                             else
                             {
-                                if ((Environment.TickCount - LootData.DropTime) > 700)
+                                if (Convert.ToBoolean(GetControl("MoveToLoot"))  
+                                    && (Convert.ToBoolean(GetControl("FollowDisable")) == true || (Convert.ToBoolean(GetControl("FollowDisable")) == false && IsFollowOwner() == true)))
+                                {
+                                    while (CoordinateDistance(GetX(), GetY(), LootData.X, LootData.Y) > 4)
+                                    {
+                                        SetMovingLoot(true);
+
+                                        if (Convert.ToBoolean(GetControl("ActionMove")) == true)
+                                            MoveCoordinate(LootData.X, LootData.Y);
+                                        else if (Convert.ToBoolean(GetControl("ActionSetCoordinate")) == true)
+                                            SetCoordinate(LootData.X, LootData.Y);
+                                        else if (Convert.ToBoolean(GetControl("ActionRoute")) == true)
+                                            StartRouteEvent(LootData.X, LootData.Y);
+                                        else
+                                            MoveCoordinate(LootData.X, LootData.Y);
+
+                                        Thread.Sleep(1);
+                                    }
+                                }
+
+                                Debug.WriteLine(Environment.TickCount - LootData.DropTime);
+
+                                int TargetBase = GetTargetBase(LootData.MobId);
+
+                                while (Environment.TickCount - LootData.DropTime < 2500 || GetState() == 2)
+                                {
+                                    Thread.Sleep(1);
+                                }
+
+                                if ((TargetBase == 0 || ReadByte(TargetBase + GetStateOffset()) == 0) )
                                     SendPacket("24" + LootData.Id);
                             }
                         }

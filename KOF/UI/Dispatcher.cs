@@ -7,8 +7,9 @@ using System.ComponentModel;
 using KOF.Core;
 using KOF.Common;
 using KOF.Models;
-using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
+using System.Diagnostics;
 
 namespace KOF.UI
 {
@@ -56,63 +57,6 @@ namespace KOF.UI
 
         public void InitializeControl()
         {
-            if (Storage.SkillCollection.ContainsKey(Text))
-            {
-                List<Skill> SkillCollection = Storage.SkillCollection[Text].OrderBy(x => x.RealId).ToList();
-
-                var AttackSkillCollection = new Dictionary<int, string>();
-                var TimedSkillCollection = new Dictionary<int, string>();
-
-                foreach (Skill SkillData in SkillCollection)
-                {
-                    if (SkillData.Type == 1)
-                    {
-                        if (((SkillData.Tab == -1 && GetClient().GetLevel() >= SkillData.Point) ||
-                            GetClient().GetSkillPoint(SkillData.Tab) >= SkillData.Point) && SkillData.Listed == 1)
-                            AttackSkillCollection.Add(SkillData.Id, SkillData.Name);
-                    }
-
-                    if (SkillData.Type == 2)
-                        if (((SkillData.Tab == -1 && GetClient().GetLevel() >= SkillData.Point) ||
-                            GetClient().GetSkillPoint(SkillData.Tab) >= SkillData.Point) && SkillData.Listed == 1)
-                            TimedSkillCollection.Add(SkillData.Id, SkillData.Name);
-                }
-
-                if (AttackSkillCollection.Count > 0)
-                {
-                    AttackSkillList.DataSource = new BindingSource(AttackSkillCollection, null);
-                    AttackSkillList.ValueMember = "Key";
-                    AttackSkillList.DisplayMember = "Value";
-
-                    for (int i = 0; i < AttackSkillList.Items.Count; i++)
-                    {
-                        var SelectedAttackSkill = (KeyValuePair<int, string>)AttackSkillList.Items[i];
-
-                        if (_Client.GetSkillBar(SelectedAttackSkill.Key) != null)
-                            AttackSkillList.SetItemChecked(i, true);
-                        else
-                            AttackSkillList.SetItemChecked(i, false);
-                    }
-                }
-
-                if (TimedSkillCollection.Count > 0)
-                {
-                    TimedSkillList.DataSource = new BindingSource(TimedSkillCollection, null);
-                    TimedSkillList.ValueMember = "Key";
-                    TimedSkillList.DisplayMember = "Value";
-
-                    for (int i = 0; i < TimedSkillList.Items.Count; i++)
-                    {
-                        var SelectedTimedSkill = (KeyValuePair<int, string>)TimedSkillList.Items[i];
-
-                        if (_Client.GetSkillBar(SelectedTimedSkill.Key) != null)
-                            TimedSkillList.SetItemChecked(i, true);
-                        else
-                            TimedSkillList.SetItemChecked(i, false);
-                    }
-                }
-            }
-
             System.Windows.Forms.Control Control = GetNextControl(this, true);
 
             do
@@ -153,6 +97,87 @@ namespace KOF.UI
             }
             while (Control != null);
 
+            if (Storage.SkillCollection.ContainsKey(Text))
+            {
+                List<Skill> SkillCollection = Storage.SkillCollection[Text].OrderBy(x => x.RealId).ToList();
+
+                var AttackSkillCollection = new Dictionary<int, string>();
+                var TimedSkillCollection = new Dictionary<int, string>();
+
+                foreach (Skill SkillData in SkillCollection)
+                {
+                    if (SkillData.Type == 1)
+                    {
+                        if (((SkillData.Tab == -1 && GetClient().GetLevel() >= SkillData.Point) ||
+                            GetClient().GetLevel() >= 10 && GetClient().GetSkillPoint(SkillData.Tab) >= SkillData.Point) && SkillData.Listed == 1)
+                            AttackSkillCollection.Add(SkillData.Id, SkillData.Name);
+                    }
+
+                    if (SkillData.Type == 2)
+                        if (((SkillData.Tab == -1 && GetClient().GetLevel() >= SkillData.Point) ||
+                            GetClient().GetLevel() >= 10 && GetClient().GetSkillPoint(SkillData.Tab) >= SkillData.Point) && SkillData.Listed == 1)
+                            TimedSkillCollection.Add(SkillData.Id, SkillData.Name);
+                }
+
+                if (AttackSkillCollection.Count > 0)
+                {
+                    AttackSkillList.DataSource = new BindingSource(AttackSkillCollection, null);
+                    AttackSkillList.ValueMember = "Key";
+                    AttackSkillList.DisplayMember = "Value";
+
+                    for (int i = 0; i < AttackSkillList.Items.Count; i++)
+                    {
+                        var SelectedAttackSkill = (KeyValuePair<int, string>)AttackSkillList.Items[i];
+
+                        if (_Client.GetSkillBar(SelectedAttackSkill.Key) != null)
+                            AttackSkillList.SetItemChecked(i, true);
+                        else
+                            AttackSkillList.SetItemChecked(i, false);
+                    }
+                }
+
+                if (TimedSkillCollection.Count > 0)
+                {
+                    TimedSkillList.DataSource = new BindingSource(TimedSkillCollection, null);
+                    TimedSkillList.ValueMember = "Key";
+                    TimedSkillList.DisplayMember = "Value";
+
+                    for (int i = 0; i < TimedSkillList.Items.Count; i++)
+                    {
+                        var SelectedTimedSkill = (KeyValuePair<int, string>)TimedSkillList.Items[i];
+
+                        if (_Client.GetSkillBar(SelectedTimedSkill.Key) != null)
+                            TimedSkillList.SetItemChecked(i, true);
+                        else
+                            TimedSkillList.SetItemChecked(i, false);
+                    }
+                }
+            }
+
+            if (Storage.TargetCollection.ContainsKey(Text))
+            {
+                List<Target> TargetListCollection = Storage.TargetCollection[Text].ToList();
+
+                if (TargetListCollection.Count != 0)
+                {
+                    TargetListCollection.ForEach(x =>
+                    {
+                        if (TargetList.Items.Contains(x.Name) == false)
+                        {
+                            TargetList.Items.Add(x.Name, x.Checked == 1 ? true : false);
+                        }
+                            
+                    });
+                }
+            }
+
+            _Client.SetControl("Bot", _Client.GetControl("Bot", "false"));
+
+            if (Convert.ToBoolean(_Client.GetControl("Bot")))
+                BotStatusButton.ForeColor = Color.LimeGreen;
+            else
+                BotStatusButton.ForeColor = Color.Red;
+
             _Client.SetControl("Attack", _Client.GetControl("Attack", "false"));
 
             if (Convert.ToBoolean(_Client.GetControl("Attack")))
@@ -185,13 +210,35 @@ namespace KOF.UI
                 Transformation.Enabled = true;
                 TransformationName.Enabled = true;
                 SupplyInnHostesGroupBox.Enabled = true;
+                SupplyTsGem.Enabled = true;
+                SupplyTsGemCount.Enabled = true;
+                SupplyInnTsGem.Enabled = true;
+                SupplyInnTsGemCount.Enabled = true;
+            }
+
+            if(GetClient().GetJob(GetClient().GetClass()) == "Rogue")
+            {
+                PartyRogueGroupBox.Enabled = true;
+            }
+
+            if (GetClient().GetJob(GetClient().GetClass()) == "Mage")
+            {
+                PartyMageGroupBox.Enabled = true;
+            }
+
+            if (GetClient().GetJob(GetClient().GetClass()) == "Priest")
+            {
+                PartyPriestGroupBox.Enabled = true;
             }
 
             if (GetClient().GetPlatform() == AddressEnum.Platform.USKO || GetClient().GetPlatform() == AddressEnum.Platform.CNKO)
             {
                 CoordinateRouteButton.Enabled = true;
                 ActionRoute.Enabled = true;
+                Oreads.Enabled = true;
             }
+
+            TopMost = AlwaysOnTop.Checked;
         }
 
         private void Dispatcher_KeyUp(object sender, KeyEventArgs e)
@@ -208,7 +255,12 @@ namespace KOF.UI
         private void Dispatcher_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible)
+            {
+                Timer1.Enabled = true;
                 InitializeControl();
+            }
+            else
+                Timer1.Enabled = false;
         }
 
         private void Dispatcher_Closing(object sender, CancelEventArgs e)
@@ -262,6 +314,11 @@ namespace KOF.UI
         private void Wallhack_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(Wallhack.Name, Wallhack.Checked.ToString());
+
+            if (Wallhack.Checked)
+                _Client.Wallhack(true);
+            else
+                _Client.Wallhack(false);
         }
 
         private void FollowDisable_CheckedChanged(object sender, EventArgs e)
@@ -272,6 +329,11 @@ namespace KOF.UI
         private void Oreads_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(Oreads.Name, Oreads.Checked.ToString());
+
+            if (Oreads.Checked)
+                _Client.Oreads(true);
+            else
+                _Client.Oreads(false);
         }
 
         private void SpeedHack_CheckedChanged(object sender, EventArgs e)
@@ -438,20 +500,17 @@ namespace KOF.UI
 
         private void SearchMob_Click(object sender, EventArgs e)
         {
-            List<Target> SearchTargetList = new List<Target>();
+            List<TargetInfo> SearchTargetList = new List<TargetInfo>();
             if (_Client.SearchMob(ref SearchTargetList) > 0)
             {
-                Storage.TargetCollection = Storage.TargetCollection
-                    .Union(SearchTargetList
-                            .GroupBy(x => x.Name)
-                            .Select(x => x.First())
-                            .ToList())
-                    .GroupBy(x => x.Name)
-                    .Select(m => m.First())
-                    .ToList();
-
-                Storage.TargetCollection.ForEach(x =>
+                SearchTargetList.ForEach(x =>
                 {
+                    Target Target = _Client.Database().GetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), x.Name);
+
+                    if(Target != null)
+                        _Client.Database().SetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), x.Name, Target.Checked);
+                    else
+                        _Client.Database().SetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), x.Name, 0);
 
                     if (TargetList.Items.Contains(x.Name) == false)
                         TargetList.Items.Add(x.Name);
@@ -461,20 +520,18 @@ namespace KOF.UI
 
         private void SearchPlayer_Click(object sender, EventArgs e)
         {
-            List<Target> SearchTargetList = new List<Target>();
+            List<TargetInfo> SearchTargetList = new List<TargetInfo>();
             if (_Client.SearchPlayer(ref SearchTargetList) > 0)
             {
-                Storage.TargetCollection = Storage.TargetCollection
-                    .Union(SearchTargetList
-                            .GroupBy(x => x.Name)
-                            .Select(x => x.First())
-                            .ToList())
-                    .GroupBy(x => x.Name)
-                    .Select(m => m.First())
-                    .ToList();
-
-                Storage.TargetCollection.ForEach(x =>
+                SearchTargetList.ForEach(x =>
                 {
+                    Target Target = _Client.Database().GetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), x.Name);
+
+                    if (Target != null)
+                        _Client.Database().SetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), x.Name, Target.Checked);
+                    else
+                        _Client.Database().SetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), x.Name, 0);
+
                     if (TargetList.Items.Contains(x.Name) == false)
                         TargetList.Items.Add(x.Name);
                 });
@@ -484,7 +541,7 @@ namespace KOF.UI
         private void ClearTargetList_Click(object sender, EventArgs e)
         {
             TargetList.Items.Clear();
-            _Client.ClearTargetAllowed();
+            _Client.ClearAttackableTargetList();
         }
 
         private void TargetOpponentNation_CheckedChanged(object sender, EventArgs e)
@@ -494,12 +551,12 @@ namespace KOF.UI
 
         private void TargetList_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-            string SelectedTargetList = TargetList.Items[e.Index].ToString();
+            string TargetName = TargetList.Items[e.Index].ToString();
 
             if (e.NewValue == CheckState.Checked)
-                _Client.AddTargetAllowed(SelectedTargetList);
+                _Client.SetAttackableTargetList(TargetName);
             else
-                _Client.RemoveTargetAllowed(SelectedTargetList);
+                _Client.RemoveAttackableTargetList(TargetName);
         }
 
         private void SupplyHpPotion_CheckedChanged(object sender, EventArgs e)
@@ -679,12 +736,12 @@ namespace KOF.UI
 
         private void LootableItem_Click(object sender, EventArgs e)
         {
-            _LootableItem.ShowDialog();
+            _LootableItem.Show();
         }
 
         private void SellableItem_Click(object sender, EventArgs e)
         {
-            _SellableItem.ShowDialog();
+            _SellableItem.Show();
         }
 
         private void PartyBuff_CheckedChanged(object sender, EventArgs e)
@@ -903,7 +960,7 @@ namespace KOF.UI
 
         private void PacketLoggerButton_Click(object sender, EventArgs e)
         {
-            _PacketLogger.ShowDialog();
+            _PacketLogger.Show();
         }
 
         private void TestButton_Click(object sender, EventArgs e)
@@ -923,6 +980,8 @@ namespace KOF.UI
 
         private void AddSunderies_Click(object sender, EventArgs e)
         {
+            if (_Client.GetTargetId() < 9999) return;
+
             _Client.Database().SetNpc(_Client.GetZoneId(),
                 "Sunderies",
                 _Client.GetTargetId(),
@@ -935,6 +994,8 @@ namespace KOF.UI
 
         private void AddInnHostes_Click(object sender, EventArgs e)
         {
+            if (_Client.GetTargetId() < 9999) return;
+
             _Client.Database().SetNpc(_Client.GetZoneId(),
                 "Inn",
                 _Client.GetTargetId(),
@@ -947,6 +1008,8 @@ namespace KOF.UI
 
         private void AddPotion_Click(object sender, EventArgs e)
         {
+            if (_Client.GetTargetId() < 9999) return;
+
             _Client.Database().SetNpc(_Client.GetZoneId(),
                 "Potion",
                 _Client.GetTargetId(),
@@ -959,6 +1022,8 @@ namespace KOF.UI
 
         private void AddMiner_Click(object sender, EventArgs e)
         {
+            if (_Client.GetTargetId() < 9999) return;
+
             _Client.Database().SetNpc(_Client.GetZoneId(),
                 "Miner",
                 _Client.GetTargetId(),
@@ -987,25 +1052,24 @@ namespace KOF.UI
         private void AlwaysOnTop_CheckedChanged(object sender, EventArgs e)
         {
             _Client.SetControl(AlwaysOnTop.Name, AlwaysOnTop.Checked.ToString());
-
-            if (AlwaysOnTop.Checked)
-                TopMost = true;
-            else
-                TopMost = false;
+            TopMost = AlwaysOnTop.Checked;
         }
 
         private void AddSelected_Click(object sender, EventArgs e)
         {
-            Target Target = new Target();
+            string TargetName = _Client.GetTargetName();
 
-            Target.Name = _Client.GetTargetName();
+            if (TargetName == "") return;
 
-            if (Target.Name == "") return;
+            Target Target = _Client.Database().GetTarget(_Client.GetNameConst(), _Client.GetPlatform().ToString(), TargetName);
 
-            Storage.TargetCollection.Add(Target);
+            if (Target != null)
+                _Client.SetAttackableTargetList(TargetName, 0);
+            else
+                _Client.RemoveAttackableTargetList(TargetName);
 
-            if (TargetList.Items.Contains(Target.Name) == false)
-                TargetList.Items.Add(Target.Name);
+            if (TargetList.Items.Contains(TargetName) == false)
+                TargetList.Items.Add(TargetName);
         }
 
         private void ActionRoute_CheckedChanged(object sender, EventArgs e)
@@ -1022,7 +1086,9 @@ namespace KOF.UI
         {
             if (Visible == false) return;
             if (GetClient() == null) return;
+
             Zone Zone = GetClient().GetZone();
+
             if (Zone == null || GetClient().GetMiniMapImage() == null) return;
 
             if (this.InvokeRequired)
@@ -1045,7 +1111,8 @@ namespace KOF.UI
             Brush TargetColor = Brushes.Red;
             Brush NeutralColor = Brushes.DarkBlue;
 
-            List<Target> TargetList = new List<Target>();
+            List<TargetInfo> TargetList = new List<TargetInfo>();
+
             GetClient().SearchMob(ref TargetList);
 
             if (TargetList.Count > 0)
@@ -1056,8 +1123,10 @@ namespace KOF.UI
                 {
                     Position TargetMapPosition = GetClient().GetWorldPositionToMinimap(MiniMap, GetClient().GetZone(), x.X, x.Y);
 
-                    if (GetClient().GetNation() == x.Nation || x.Nation == 0 || x.Nation > 2)
+                    if (GetClient().GetNation() == x.Nation || x.Nation > 2)
                         Graphic.FillRectangle(NeutralColor, TargetMapPosition.X, TargetMapPosition.Y, 4, 4);
+                    else if (GetClient().GetNation() == 0)
+                        Graphic.FillRectangle(TargetColor, TargetMapPosition.X, TargetMapPosition.Y, 4, 4);
                     else if (GetClient().GetNation() != x.Nation)
                         Graphic.FillRectangle(TargetColor, TargetMapPosition.X, TargetMapPosition.Y, 4, 4);
                 });
@@ -1074,6 +1143,16 @@ namespace KOF.UI
                 Graphic.DrawLine(new Pen(CharacterColor), CharacterMapPosition.X, CharacterMapPosition.Y, CharacterMovePosition.X, CharacterMovePosition.Y);
 
                 Graphic.FillEllipse(new SolidBrush(Color.FromArgb(75, 0, 255, 0)), CharacterMovePosition.X - (Radius - 1), CharacterMovePosition.Y - (Radius - 1),
+                    Radius * 2, Radius * 2);
+            }
+
+            if(GetClient().GetTargetId() > 0)
+            {
+                Position TargetPosition = GetClient().GetWorldPositionToMinimap(MiniMap, GetClient().GetZone(), GetClient().GetTargetX(), GetClient().GetTargetY());
+
+                Graphic.DrawLine(new Pen(TargetColor), CharacterMapPosition.X, CharacterMapPosition.Y, TargetPosition.X, TargetPosition.Y);
+
+                Graphic.FillEllipse(new SolidBrush(Color.FromArgb(75, 255, 0, 0)), TargetPosition.X - (Radius - 1), TargetPosition.Y - (Radius - 1),
                     Radius * 2, Radius * 2);
             }
 
@@ -1145,6 +1224,101 @@ namespace KOF.UI
                 _Client.SetControl("TimedSkill", "true");
                 BotStatusTimedSkillButton.ForeColor = Color.LimeGreen;
             }
+        }
+
+        private void RefreshBotData_Click(object sender, EventArgs e)
+        {
+            InitializeControl();
+        }
+
+        private void StartSupplyEvent_Click(object sender, EventArgs e)
+        {
+            Thread ForceRepairThread = new Thread(() =>
+            {
+                List<Supply> Supply = new List<Supply>();
+                if (_Client.IsNeedSupply(ref Supply, true))
+                    _Client.SupplyItemAction(Supply);
+            });
+
+            ForceRepairThread.IsBackground = true;
+            ForceRepairThread.Start();
+        }
+
+        private void RepairAllEquipment_Click(object sender, EventArgs e)
+        {
+            Thread ForceRepairThread = new Thread(() =>
+            {
+                _Client.RepairEquipmentAction(true);
+            });
+
+            ForceRepairThread.IsBackground = true;
+            ForceRepairThread.Start();
+        }
+
+        private void TownButton_Click(object sender, EventArgs e)
+        {
+            _Client.SendPacket("4800");
+        }
+
+        private void SellInventoryItemButton_Click(object sender, EventArgs e)
+        {
+            Thread ForceSellItemThread = new Thread(() =>
+            {
+                _Client.SellItemAction();
+            });
+
+            ForceSellItemThread.IsBackground = true;
+            ForceSellItemThread.Start();
+        }
+
+        private void Timer1_Tick(object sender, EventArgs e)
+        {
+            if (_Client.HasExited() && Visible)
+            {
+                Close();
+            }
+            else
+            {
+                if (_Client.GetAction() == Processor.EAction.Repairing)
+                    RepairAllEquipment.ForeColor = Color.LimeGreen;
+                else
+                    RepairAllEquipment.ForeColor = Color.Black;
+
+                if (_Client.GetAction() == Processor.EAction.Supplying)
+                    StartSupplyEvent.ForeColor = Color.LimeGreen;
+                else
+                    StartSupplyEvent.ForeColor = Color.Black;
+
+                if (_Client.GetAction() == Processor.EAction.Selling)
+                    SellInventoryItemButton.ForeColor = Color.LimeGreen;
+                else
+                    SellInventoryItemButton.ForeColor = Color.Black;
+            }
+        }
+
+        private void MoveToLoot_CheckedChanged(object sender, EventArgs e)
+        {
+            _Client.SetControl(MoveToLoot.Name, MoveToLoot.Checked.ToString());
+        }
+
+        private void BotStatusButton_Click(object sender, EventArgs e)
+        {
+            if (Convert.ToBoolean(_Client.GetControl("Bot")))
+            {
+                _Client.SetControl("Bot", "false");
+                BotStatusButton.ForeColor = Color.Red;
+            }
+            else
+            {
+                _Client.SetControl("Bot", "true");
+                BotStatusButton.ForeColor = Color.LimeGreen;
+            }
+        }
+
+        private void PressOkButton_Click(object sender, EventArgs e)
+        {
+            if (_Client.GetHp() == 0)
+                _Client.SendPacket("1200");
         }
     }
 }

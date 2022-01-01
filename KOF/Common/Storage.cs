@@ -15,7 +15,6 @@ namespace KOF.Common
         public static Dictionary<string, List<SkillBar>> SkillBarCollection { get; set; } = new Dictionary<string, List<SkillBar>>();
         public static List<Item> ItemCollection { get; set; } = new List<Item>();
         public static List<Npc> NpcCollection { get; set; } = new List<Npc>();
-        public static List<Target> TargetCollection { get; set; } = new List<Target>();
         public static List<(string Type, string Control, string ControlCount, string ControlItem, string ItemConst)> SupplyCollection { get; set; } =
             new List<(string, string, string, string, string)>()
             {
@@ -39,6 +38,7 @@ namespace KOF.Common
 
         public static Dictionary<string, List<Sell>> SellCollection { get; set; } = new Dictionary<string, List<Sell>>();
         public static Dictionary<string, List<Loot>> LootCollection { get; set; } = new Dictionary<string, List<Loot>>();
+        public static Dictionary<string, List<Target>> TargetCollection { get; set; } = new Dictionary<string, List<Target>>();
 
         public static List<int> MiningTrashItemCollection { get; set; } =
                     new List<int>()

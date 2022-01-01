@@ -23,5 +23,14 @@ namespace KOF.Models
 
         [Column("castskill")]
         public int CastSkill { get; set; }
+
+        [Column("buyprice")]
+        public int BuyPrice { get; set; }
+
+        [Column("unique")]
+        public int Unique { get; set; }
+
+        [Column("extension")]
+        public int Extension { get; set; }
     }
 }

@@ -18,9 +18,10 @@ namespace KOF.Core
         private Main _MainInterface { get; set; }
         private Thread LauncherThread { get; set; }
         private Thread HandleProcessThread { get; set; }
-
         private LogWriter _LogWriter { get; set; } = null;
+#if DEBUG
         private LogWriter _DebugWriter { get; set; } = null;
+#endif
         public App(Main MainInterface)
         {
             _MainInterface = MainInterface;
@@ -28,8 +29,8 @@ namespace KOF.Core
             InitializeLogger();
 
             //for CNKO login page {tab} problem
-            AutoIt.AutoItX.AutoItSetOption("SendKeyDelay", 15);
-            AutoIt.AutoItX.AutoItSetOption("SendKeyDownDelay", 15);
+            AutoIt.AutoItX.AutoItSetOption("SendKeyDelay", 20);
+            AutoIt.AutoItX.AutoItSetOption("SendKeyDownDelay", 20);
 
 #if DEBUG
             CreateConsole();

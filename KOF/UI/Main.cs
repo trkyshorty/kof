@@ -8,16 +8,12 @@ using KOF.Common;
 using KOF.Common.Win32;
 using KOF.Core;
 
-
 namespace KOF.UI
 {
     public partial class Main : Form
     {
         private App _App;
         private AddAccount _AddAccount;
-
-        private int _FollowableProcessListSize = 0;
-        private int _HandledProcessListSize = 0;
 
         public Main()
         {
@@ -78,7 +74,8 @@ namespace KOF.UI
             while (Control != null);
 
             LoadAccountList(_App.GetControl("Platform"));
-            
+
+            TopMost = AlwaysOnTop.Checked;
         }
 
         private void Main_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -114,9 +111,12 @@ namespace KOF.UI
 
             if (AccountCollectionList.Count > 0)
             {
-                AccountList.DataSource = new BindingSource(AccountCollectionList, null);
-                AccountList.ValueMember = "Id";
-                AccountList.DisplayMember = "Name";
+                if (AccountList.Items.Count != AccountCollectionList.Count)
+                {
+                    AccountList.DataSource = new BindingSource(AccountCollectionList, null);
+                    AccountList.ValueMember = "Id";
+                    AccountList.DisplayMember = "Name";
+                }
             }
             else
                 AccountList.DataSource = null;
@@ -139,15 +139,12 @@ namespace KOF.UI
 
         private void AccountAdd_Click(object sender, EventArgs e)
         {
-            _AddAccount.ShowDialog();
+            _AddAccount.Show();
         }
 
         private void ClientHandle_Click(object sender, EventArgs e)
         {
             _App.HandleProcess();
-
-            _HandledProcessListSize = 0;
-            _FollowableProcessListSize = 0;
         }
 
         private void Timer1_Tick(object sender, EventArgs e)
@@ -167,7 +164,7 @@ namespace KOF.UI
 
             if (HandledProcessList.Count > 0)
             {
-                if (HandledProcessList.Count != _HandledProcessListSize)
+                if (HandledProcessList.Count != ClientList.Items.Count)
                 {
                     Follow.Enabled = true;
                     FollowComboBox.Enabled = true;
@@ -175,8 +172,6 @@ namespace KOF.UI
                     ClientList.DataSource = new BindingSource(HandledProcessList, null);
                     ClientList.ValueMember = "Key";
                     ClientList.DisplayMember = "Value";
-
-                    _HandledProcessListSize = HandledProcessList.Count;
                 }
             }
             else
@@ -185,7 +180,6 @@ namespace KOF.UI
                 FollowComboBox.Enabled = false;
 
                 ClientList.DataSource = null;
-                _HandledProcessListSize = 0;
             }
 
             var FollowableProcessList = new Dictionary<int, string>();
@@ -203,7 +197,7 @@ namespace KOF.UI
 
             if (FollowableProcessList.Count > 0)
             {
-                if (FollowableProcessList.Count != _FollowableProcessListSize || HandledProcessList.Count != _HandledProcessListSize)
+                if (FollowableProcessList.Count != FollowComboBox.Items.Count || HandledProcessList.Count != ClientList.Items.Count)
                 {
                     string FollowedClient = "";
 
@@ -234,9 +228,9 @@ namespace KOF.UI
                                     for (int i = 0; i < TargetList.Items.Count; i++)
                                     {
                                         if (TargetList.GetItemChecked(i))
-                                            ClientData.AddTargetAllowed(TargetList.Items[i].ToString());
+                                            ClientData.SetAttackableTargetList(TargetList.Items[i].ToString());
                                         else
-                                            ClientData.RemoveTargetAllowed(TargetList.Items[i].ToString());
+                                            ClientData.RemoveAttackableTargetList(TargetList.Items[i].ToString());
                                     }
                                 }
                             }
@@ -247,8 +241,6 @@ namespace KOF.UI
                     FollowComboBox.ValueMember = "Key";
                     FollowComboBox.DisplayMember = "Value";
 
-                    _FollowableProcessListSize = FollowableProcessList.Count;
-
                     if (Storage.FollowedClient != null && FollowedClient != "" && FollowComboBox.FindString(FollowedClient) != -1)
                         FollowComboBox.SelectedIndex = FollowComboBox.FindString(FollowedClient);
                 }
@@ -256,8 +248,9 @@ namespace KOF.UI
             else
             {
                 FollowComboBox.DataSource = null;
-                _FollowableProcessListSize = 0;
             }
+
+            LoadAccountList(_App.GetControl("Platform"));
         }
 
         private void ClientClose_Click(object sender, EventArgs e)
@@ -288,6 +281,7 @@ namespace KOF.UI
         private void Follow_CheckedChanged(object sender, EventArgs e)
         {
             if (FollowComboBox.SelectedItem == null) return;
+
             var SelectedClient = (KeyValuePair<int, string>)FollowComboBox.SelectedItem;
 
             if (Follow.Checked)
@@ -324,6 +318,25 @@ namespace KOF.UI
                 ActionRoute.Enabled = true;
                 AttackOnSetAreaControl.Enabled = true;
                 TargetWaitDown.Enabled = true;
+
+                TargetList.Items.Clear();
+
+                if (Storage.FollowedClient != null && Storage.TargetCollection.ContainsKey(Storage.FollowedClient.GetNameConst()))
+                {
+                    List<KOF.Models.Target> TargetListCollection = Storage.TargetCollection[Storage.FollowedClient.GetNameConst()].ToList();
+
+                    if (TargetListCollection.Count != 0)
+                    {
+                        TargetListCollection.ForEach(x =>
+                        {
+                            if (TargetList.Items.Contains(x.Name) == false)
+                            {
+                                TargetList.Items.Add(x.Name, x.Checked == 1 ? true : false);
+                            }
+
+                        });
+                    }
+                }
             }
             else
             {
@@ -359,6 +372,8 @@ namespace KOF.UI
                 ActionRoute.Enabled = false;
                 AttackOnSetAreaControl.Enabled = false;
                 TargetWaitDown.Enabled = false;
+
+                TargetList.Items.Clear();
             }
         }
 
@@ -380,9 +395,26 @@ namespace KOF.UI
         private void ClientList_DoubleClick(object sender, EventArgs e)
         {
             if (ClientList.SelectedItem == null) return;
+
             var SelectedClient = (KeyValuePair<int, string>)ClientList.SelectedItem;
             Client Client = _App.GetProcess(SelectedClient.Key);
-            if (Client != null) Client.GetDispatcherInterface().Show();
+
+            if (Client != null)
+            {
+                Client.GetDispatcherInterface().Show();
+
+                foreach (Form f in Application.OpenForms)
+                {
+                    if (f.Text == Client.GetNameConst())
+                    {
+                        if (f.WindowState == FormWindowState.Minimized)
+                            f.WindowState = FormWindowState.Normal;
+
+                        f.Focus();
+                        break;
+                    }
+                }
+            }
         }
 
         private void FollowComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -390,26 +422,42 @@ namespace KOF.UI
             if (FollowComboBox.SelectedItem == null || Follow.Checked == false) return;
             var SelectedClient = (KeyValuePair<int, string>)FollowComboBox.SelectedItem;
             Storage.FollowedClient = _App.GetProcess(SelectedClient.Key);
+
+            TargetList.Items.Clear();
+
+            if (Storage.FollowedClient != null && Storage.TargetCollection.ContainsKey(Storage.FollowedClient.GetNameConst()))
+            {
+                List<KOF.Models.Target> TargetListCollection = Storage.TargetCollection[Storage.FollowedClient.GetNameConst()].ToList();
+
+                if (TargetListCollection.Count != 0)
+                {
+                    TargetListCollection.ForEach(x =>
+                    {
+                        if (TargetList.Items.Contains(x.Name) == false)
+                        {
+                            TargetList.Items.Add(x.Name, x.Checked == 1 ? true : false);
+                        }
+
+                    });
+                }
+            }
         }
 
         private void SearchMob_Click(object sender, EventArgs e)
         {
             if (Storage.FollowedClient == null) return;
 
-            List<Target> SearchTargetList = new List<Target>();
+            List<TargetInfo> SearchTargetList = new List<TargetInfo>();
             if (Storage.FollowedClient.SearchMob(ref SearchTargetList) > 0)
             {
-                Storage.TargetCollection = Storage.TargetCollection
-                    .Union(SearchTargetList
-                            .GroupBy(x => x.Name)
-                            .Select(x => x.First())
-                            .ToList())
-                    .GroupBy(x => x.Name)
-                    .Select(m => m.First())
-                    .ToList();
-
-                Storage.TargetCollection.ForEach(x =>
+                SearchTargetList.ForEach(x =>
                 {
+                    KOF.Models.Target Target = Storage.FollowedClient.Database().GetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), x.Name);
+
+                    if (Target != null)
+                        Storage.FollowedClient.Database().SetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), x.Name, Target.Checked);
+                    else
+                        Storage.FollowedClient.Database().SetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), x.Name, 0);
 
                     if (TargetList.Items.Contains(x.Name) == false)
                         TargetList.Items.Add(x.Name);
@@ -421,20 +469,17 @@ namespace KOF.UI
         {
             if (Storage.FollowedClient == null) return;
 
-            List<Target> SearchTargetList = new List<Target>();
+            List<TargetInfo> SearchTargetList = new List<TargetInfo>();
             if (Storage.FollowedClient.SearchPlayer(ref SearchTargetList) > 0)
             {
-                Storage.TargetCollection = Storage.TargetCollection
-                    .Union(SearchTargetList
-                            .GroupBy(x => x.Name)
-                            .Select(x => x.First())
-                            .ToList())
-                    .GroupBy(x => x.Name)
-                    .Select(m => m.First())
-                    .ToList();
-
-                Storage.TargetCollection.ForEach(x =>
+                SearchTargetList.ForEach(x =>
                 {
+                    KOF.Models.Target Target = Storage.FollowedClient.Database().GetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), x.Name);
+
+                    if (Target != null)
+                        Storage.FollowedClient.Database().SetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), x.Name, Target.Checked);
+                    else
+                        Storage.FollowedClient.Database().SetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), x.Name, 0);
 
                     if (TargetList.Items.Contains(x.Name) == false)
                         TargetList.Items.Add(x.Name);
@@ -454,7 +499,7 @@ namespace KOF.UI
                 if (ClientData.IsDisconnected() == false && ClientData.IsStarted()
                     && ClientData.IsCharacterAvailable())
                 {
-                    ClientData.ClearTargetAllowed();
+                    ClientData.ClearAttackableTargetList();
                 }
             }
         }
@@ -463,7 +508,7 @@ namespace KOF.UI
         {
             if (Storage.FollowedClient == null) return;
 
-            string SelectedTargetList = TargetList.Items[e.Index].ToString();
+            string TargetName = TargetList.Items[e.Index].ToString();
 
             foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
             {
@@ -474,9 +519,9 @@ namespace KOF.UI
                     if (Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false)
                     {
                         if (e.NewValue == CheckState.Checked)
-                            ClientData.AddTargetAllowed(SelectedTargetList);
+                            ClientData.SetAttackableTargetList(TargetName);
                         else
-                            ClientData.RemoveTargetAllowed(SelectedTargetList);
+                            ClientData.RemoveAttackableTargetList(TargetName);
                     }
                 }
             }
@@ -825,27 +870,26 @@ namespace KOF.UI
         private void AlwaysOnTop_CheckedChanged(object sender, EventArgs e)
         {
             _App.SetControl(AlwaysOnTop.Name, AlwaysOnTop.Checked.ToString());
-
-            if (AlwaysOnTop.Checked)
-                TopMost = true;
-            else
-                TopMost = false;
+            TopMost = AlwaysOnTop.Checked;
         }
 
         private void AddSelected_Click(object sender, EventArgs e)
         {
             if (Storage.FollowedClient == null) return;
 
-            Target Target = new Target();
+            string TargetName = Storage.FollowedClient.GetTargetName();
 
-            Target.Name = Storage.FollowedClient.GetTargetName();
+            if (TargetName == "") return;
 
-            if (Target.Name == "") return;
+            KOF.Models.Target Target = Storage.FollowedClient.Database().GetTarget(Storage.FollowedClient.GetNameConst(), Storage.FollowedClient.GetPlatform().ToString(), TargetName);
 
-            Storage.TargetCollection.Add(Target);
+            if (Target != null)
+                Storage.FollowedClient.SetAttackableTargetList(TargetName, 0);
+            else
+                Storage.FollowedClient.RemoveAttackableTargetList(TargetName);
 
-            if (TargetList.Items.Contains(Target.Name) == false)
-                TargetList.Items.Add(Target.Name);
+            if (TargetList.Items.Contains(TargetName) == false)
+                TargetList.Items.Add(TargetName);
         }
 
         private void ActionRoute_CheckedChanged(object sender, EventArgs e)

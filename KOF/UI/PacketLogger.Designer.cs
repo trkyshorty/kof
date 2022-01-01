@@ -520,7 +520,7 @@ namespace KOF.UI
             this.Controls.Add(this.TabControl1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F);
             this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PacketLogger";
             this.Text = "Packet Logger";

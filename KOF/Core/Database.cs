@@ -33,6 +33,7 @@ namespace KOF.Core
             _Connection.CreateTable<Skill>();
             _Connection.CreateTable<SkillBar>();
             _Connection.CreateTable<Zone>();
+            _Connection.CreateTable<Target>();
 
             string MigrationFolder = @".\Migration\";
 
@@ -113,6 +114,7 @@ namespace KOF.Core
                     SellData.User = User;
                     SellData.ItemId = ItemId;
                     SellData.ItemName = ItemName;
+                    SellData.Platform = Platform;
 
                     SellList.Add(SellData);
                 }
@@ -143,20 +145,23 @@ namespace KOF.Core
 
             if (Storage.SellCollection.TryGetValue(User, out SellList))
             {
-                _Connection.RunInTransaction(() =>
+                if(SellList.Count > 0)
                 {
-                    SellList.ForEach(Sell =>
+                    _Connection.RunInTransaction(() =>
                     {
-                        if (Sell.Id == 0)
+                        SellList.ForEach(Sell =>
                         {
-                            _Connection.Insert(Sell);
+                            if (Sell.Id == 0)
+                            {
+                                _Connection.Insert(Sell);
 
-                            Sell.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
-                        }
-                        else
-                            _Connection.Update(Sell);
+                                Sell.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
+                            }
+                            else
+                                _Connection.Update(Sell);
+                        });
                     });
-                });
+                }
             }
         }
         public List<Loot> GetLootList(string User, string Platform)
@@ -194,6 +199,7 @@ namespace KOF.Core
                     LootData.User = User;
                     LootData.ItemId = ItemId;
                     LootData.ItemName = ItemName;
+                    LootData.Platform = Platform;
 
                     LootList.Add(LootData);
                 }
@@ -224,20 +230,23 @@ namespace KOF.Core
 
             if (Storage.LootCollection.TryGetValue(User, out LootList))
             {
-                _Connection.RunInTransaction(() =>
+                if (LootList.Count > 0)
                 {
-                    LootList.ForEach(Loot =>
+                    _Connection.RunInTransaction(() =>
                     {
-                        if (Loot.Id == 0)
+                        LootList.ForEach(Loot =>
                         {
-                            _Connection.Insert(Loot);
+                            if (Loot.Id == 0)
+                            {
+                                _Connection.Insert(Loot);
 
-                            Loot.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
-                        }
-                        else
-                            _Connection.Update(Loot);
+                                Loot.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
+                            }
+                            else
+                                _Connection.Update(Loot);
+                        });
                     });
-                });
+                }
             }
         }
 
@@ -253,11 +262,12 @@ namespace KOF.Core
 
         public void SetNpc(int Zone, string Type, int RealId, int X, int Y, int Nation, string Platform, int Town)
         {
-            Npc NpcData  = _Connection.Table<Npc>().Where(t => t.RealId == RealId && t.Zone == Zone && t.Platform == Platform).FirstOrDefault();
+            Npc NpcData = _Connection.Table<Npc>().Where(t => t.RealId == RealId && t.Zone == Zone && t.Platform == Platform).FirstOrDefault();
 
-            if(NpcData != null)
+            if (NpcData != null)
             {
                 NpcData.Town = Town;
+                NpcData.Type = Type;
                 NpcData.X = X;
                 NpcData.Y = Y;
                 NpcData.Nation = Nation;
@@ -283,6 +293,8 @@ namespace KOF.Core
 
                 Debug.WriteLine(string.Format("{0} inserted.", NpcData.Id));
             }
+
+            Storage.NpcCollection = GetNpcList();
         }
 
         public Skill GetSkillData(string User, int SkillId)
@@ -382,20 +394,23 @@ namespace KOF.Core
 
             if (Storage.SkillBarCollection.TryGetValue(User, out SkillBarList))
             {
-                _Connection.RunInTransaction(() =>
+                if (SkillBarList.Count > 0)
                 {
-                    SkillBarList.ForEach(SkillBar =>
+                    _Connection.RunInTransaction(() =>
                     {
-                        if (SkillBar.Id == 0)
+                        SkillBarList.ForEach(SkillBar =>
                         {
-                            _Connection.Insert(SkillBar);
+                            if (SkillBar.Id == 0)
+                            {
+                                _Connection.Insert(SkillBar);
 
-                            SkillBar.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
-                        }
-                        else
-                            _Connection.Update(SkillBar);
+                                SkillBar.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
+                            }
+                            else
+                                _Connection.Update(SkillBar);
+                        });
                     });
-                });
+                }
             }
         }
 
@@ -459,20 +474,23 @@ namespace KOF.Core
 
             if (Storage.ControlCollection.TryGetValue(Form, out ControlList))
             {
-                _Connection.RunInTransaction(() =>
+                if (ControlList.Count > 0)
                 {
-                    ControlList.ForEach(Control =>
+                    _Connection.RunInTransaction(() =>
                     {
-                        if (Control.Id == 0)
+                        ControlList.ForEach(Control =>
                         {
-                            _Connection.Insert(Control);
+                            if (Control.Id == 0)
+                            {
+                                _Connection.Insert(Control);
 
-                            Control.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
-                        }
-                        else
-                            _Connection.Update(Control);
+                                Control.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
+                            }
+                            else
+                                _Connection.Update(Control);
+                        });
                     });
-                });
+                }
             }
         }
 
@@ -522,10 +540,104 @@ namespace KOF.Core
             return AccountList;
         }
 
-
         public Zone GetZoneById(int Id)
         {
             return _Connection.Table<Zone>().Where(t => t.Id == Id).FirstOrDefault();
+        }
+
+        public void SetTarget(string User, string Platform, string Name, int Checked)
+        {
+            List<Target> TargetList;
+
+            if (Storage.TargetCollection.TryGetValue(User, out TargetList))
+            {
+                Target TargetData = TargetList.FirstOrDefault(x => x.Name == Name);
+
+                if (TargetData != null)
+                {
+                    TargetData.Name = Name;
+                    TargetData.Checked = Checked;
+                }
+                else
+                {
+                    TargetData = new Target();
+
+                    TargetData.User = User;
+                    TargetData.Platform = Platform;
+                    TargetData.Name = Name;
+                    TargetData.Checked = Checked;
+
+                    TargetList.Add(TargetData);
+                }
+            }
+        }
+
+        public List<Target> GetTargetList(string User, string Platform)
+        {
+            List<Target> TargetList;
+
+            if (Storage.TargetCollection.TryGetValue(User, out TargetList))
+                return TargetList;
+            else
+                return _Connection.Table<Target>().Where(t => t.User == User && t.Platform == Platform).ToList();
+        }
+
+        public Target GetTarget(string User, string Platform, string Name)
+        {
+            List<Target> TargetList;
+
+            if (Storage.TargetCollection.TryGetValue(User, out TargetList))
+                return TargetList.FirstOrDefault(x => x.Platform == Platform && x.Name == Name);
+
+            return null;
+        }
+
+        public void SaveTarget(string User)
+        {
+            List<Target> TargetList;
+
+            if (Storage.TargetCollection.TryGetValue(User, out TargetList))
+            {
+                if (TargetList.Count > 0)
+                {
+                    _Connection.RunInTransaction(() =>
+                    {
+                        TargetList.ForEach(Target =>
+                        {
+                            if (Target.Id == 0)
+                            {
+                                _Connection.Insert(Target);
+
+                                Target.Id = (int)SQLite3.LastInsertRowid(_Connection.Handle);
+                            }
+                            else
+                                _Connection.Update(Target);
+                        });
+                    });
+                }
+
+            }
+        }
+
+        public void ClearTarget(string User)
+        {
+            List<Target> TargetList;
+
+            if (Storage.TargetCollection.TryGetValue(User, out TargetList))
+            {
+                if (TargetList.Count > 0)
+                {
+                    _Connection.RunInTransaction(() =>
+                    {
+                        TargetList.ForEach(Target =>
+                        {
+                            _Connection.Delete(Target);
+                        });
+                    });
+                }
+
+                Storage.TargetCollection[User].Clear();
+            }
         }
 
     }

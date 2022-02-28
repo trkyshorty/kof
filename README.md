@@ -8,6 +8,10 @@ I previously developed this project in Visual Basic .NET, but due to some techni
 
 If you want to look at the old project [KOF-VB.Net](https://github.com/trkyshorty/KOF-VB.Net)
 
+## Notes
+
+Please use Dev branch for contribution
+
 ## Special Thanks
 
 [Can Sayan](https://github.com/dcansyn)

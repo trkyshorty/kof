@@ -8,6 +8,10 @@ I previously developed this project in Visual Basic .NET, but due to some techni
 
 If you want to look at the old project [KOF-VB.Net](https://github.com/trkyshorty/KOF-VB.Net)
 
+## Installation
+
+Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Release)
+
 ## Special Thanks
 
 [Can Sayan](https://github.com/dcansyn)

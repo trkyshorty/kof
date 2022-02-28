@@ -12,11 +12,13 @@ If you want to look at the old project [trkyshorty/KOF-VB.Net](https://github.co
 
 Please use Dev branch for contribution
 
-## Special Thanks
+## Installation
 
-[Can Sayan](https://github.com/dcansyn)
+Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Release)
 
-[onlinehile.com](https://www.onlinehile.com/)
+## Live Test
+
+[Download KOF](https://download.kofbot.com/updates/KOF.exe)
 
 ## Discord
 
@@ -31,3 +33,9 @@ Please use Dev branch for contribution
 ## Screenshots
 
 ![KOF Main](https://www.imagevisit.com/images/2021/12/30/18cc36fea12c64553.md.png)
+
+## Special Thanks
+
+[Can Sayan](https://github.com/dcansyn)
+
+[onlinehile.com](https://www.onlinehile.com/)

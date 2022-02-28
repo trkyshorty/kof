@@ -6,7 +6,7 @@ The reason I created this project was to understand how to cheat in online games
 
 I previously developed this project in Visual Basic .NET, but due to some technical limitations I modernized it with C#
 
-If you want to look at the old project [KOF-VB.Net](https://github.com/trkyshorty/KOF-VB.Net)
+If you want to look at the old project [trkyshorty/KOF-VB.Net](https://github.com/trkyshorty/KOF-VB.Net)
 
 ## Notes
 

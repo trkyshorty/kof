@@ -29,7 +29,6 @@
     <UpdateUrl>https://download.kofbot.com/updates/</UpdateUrl>
     <SupportUrl>https://kofbot.com</SupportUrl>
     <ErrorReportUrl>https://kofbot.com</ErrorReportUrl>
-    <TargetCulture>tr-TR</TargetCulture>
     <ProductName>KOF</ProductName>
     <PublisherName>Shorty</PublisherName>
     <SuiteName>KOF</SuiteName>
@@ -193,6 +192,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Localization\Strings.tr-TR.resx" />
     <EmbeddedResource Include="UI\About.resx">
       <DependentUpon>About.cs</DependentUpon>
     </EmbeddedResource>

@@ -9,6 +9,9 @@ using KOF.Common;
 using KOF.Models;
 using KOF.UI;
 using Microsoft.Win32.SafeHandles;
+using System.Resources;
+using System.Globalization;
+using System.Reflection;
 
 namespace KOF.Core
 {
@@ -22,6 +25,8 @@ namespace KOF.Core
 #if DEBUG
         private LogWriter _DebugWriter { get; set; } = null;
 #endif
+        private ResourceManager _ResourceManager { get; set; } = null;
+
         public App(Main MainInterface)
         {
             _MainInterface = MainInterface;
@@ -97,6 +102,8 @@ namespace KOF.Core
         public void Load()
         {
             _Database = new Database();
+
+            _ResourceManager = new ResourceManager("KOF.Localization.Strings", Assembly.GetExecutingAssembly());
 
             Storage.NpcCollection = _Database.GetNpcList();
 
@@ -419,6 +426,11 @@ namespace KOF.Core
                 return Storage.ClientCollection[ProcessId];
 
             return null;
+        }
+
+        public String GetString(string Key)
+        {
+            return _ResourceManager.GetString(Key, new CultureInfo("tr-TR"));
         }
     }
 }

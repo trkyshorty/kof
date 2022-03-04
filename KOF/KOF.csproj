@@ -136,6 +136,7 @@
     <Compile Include="Core\Client.cs" />
     <Compile Include="Core\Database.cs" />
     <Compile Include="Core\Helper.cs" />
+    <Compile Include="Core\PasswordHash.cs" />
     <Compile Include="Core\Processor.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="Models\Control.cs" />

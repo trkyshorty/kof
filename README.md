@@ -35,6 +35,7 @@ Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Re
 ![KOF Main](https://www.imagevisit.com/images/2021/12/30/18cc36fea12c64553.md.png)
 
 ## Special Thanks
+[Mustafa Kemal GILOR](https://github.com/mustafakemalgilor)
 
 [Can Sayan](https://github.com/dcansyn)
 

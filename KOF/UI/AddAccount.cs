@@ -20,26 +20,36 @@ namespace KOF.UI
         private void Save_Click(object sender, EventArgs e)
         {
             if (AccountId.Text == "" || AccountPassword.Text == "" || Path.Text == "") return;
-            _App.Database().SetAccount(AccountId.Text, AccountPassword.Text, Path.Text, Platform.SelectedItem.ToString());
+
+            string Password = AccountPassword.Text;
+
+            if (Platform.SelectedItem.ToString() == "JPKO") 
+            {
+                Password = PasswordHasher.HashPasswordString(AccountPassword.Text);
+            }
+
+            _App.Database().SetAccount(AccountId.Text, Password, Path.Text, Platform.SelectedItem.ToString());
+
+            ClearInput();
             Hide();
         }
 
-        private void Clear_Click(object sender, EventArgs e)
+        private void ClearInput()
         {
             AccountId.Text = "";
             AccountPassword.Text = "";
             Path.Text = "";
             Platform.SelectedIndex = 0;
+        }
+
+        private void Clear_Click(object sender, EventArgs e)
+        {
+            ClearInput();
         }
 
         private void AddAccount_Load(object sender, EventArgs e)
         {
             TopMost = true;
-
-            AccountId.Text = "";
-            AccountPassword.Text = "";
-            Path.Text = "";
-            Platform.SelectedIndex = 0;
         }
 
         private void Path_Click(object sender, EventArgs e)

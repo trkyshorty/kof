@@ -466,7 +466,7 @@ namespace KOF.Core
                     {
                         if (Convert.ToBoolean(GetControl("AreaHeal")) == true)
                         {
-                            if (GetHp() != GetMaxHp() || (GetPartyCount() > 0 && IsPartyMemberNeedHeal()))
+                            //if (GetHp() != GetMaxHp() || (GetPartyCount() > 0 && IsPartyMemberNeedHeal())) //too slow
                             {
                                 SendPacket("3103" +
                                   AlignDWORD(492060) +

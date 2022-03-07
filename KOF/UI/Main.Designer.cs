@@ -752,13 +752,12 @@ namespace KOF.UI
             // AutoAccountSave
             // 
             this.AutoAccountSave.AutoSize = true;
-            this.AutoAccountSave.Checked = true;
-            this.AutoAccountSave.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.AutoAccountSave.Enabled = false;
             this.AutoAccountSave.Location = new System.Drawing.Point(109, 23);
             this.AutoAccountSave.Name = "AutoAccountSave";
-            this.AutoAccountSave.Size = new System.Drawing.Size(71, 17);
+            this.AutoAccountSave.Size = new System.Drawing.Size(107, 17);
             this.AutoAccountSave.TabIndex = 0;
-            this.AutoAccountSave.Text = "Oto Kayıt";
+            this.AutoAccountSave.Text = "Oto Kayıt (JPKO)";
             this.AutoAccountSave.UseVisualStyleBackColor = true;
             this.AutoAccountSave.CheckedChanged += new System.EventHandler(this.AutoAccountSave_CheckedChanged);
             // 

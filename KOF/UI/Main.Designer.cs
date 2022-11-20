@@ -766,14 +766,14 @@ namespace KOF.UI
             this.MainNotify.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Warning;
             this.MainNotify.BalloonTipText = "Uyarı";
             this.MainNotify.BalloonTipTitle = "1";
-            this.MainNotify.Icon = ((System.Drawing.Icon)(resources.GetObject("MainNotify.Icon")));
+            //this.MainNotify.Icon = ((System.Drawing.Icon)(resources.GetObject("MainNotify.Icon")));
             this.MainNotify.Text = "KOF";
             this.MainNotify.Visible = true;
             // 
             // MenuStrip1
             // 
             this.MenuStrip1.BackColor = System.Drawing.Color.Transparent;
-            this.MenuStrip1.Font = new System.Drawing.Font("Tahoma", 8.25F);
+            //this.MenuStrip1.Font = new System.Drawing.Font("Tahoma", 8.25F);
             this.MenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.DiscordToolStripMenuItem,
             this.GeliştiriciToolStripMenuItem,
@@ -854,9 +854,9 @@ namespace KOF.UI
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
-            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            //this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            //this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "Main";
             this.Text = "KOF";

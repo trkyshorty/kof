@@ -8,9 +8,13 @@ namespace KOF.Common
     {
         public static Client FollowedClient { get; set; }
         public static bool AutoPartyAccept { get; set; }
-        public static List<Client> ClientCollection { get; set; } = new List<Client>();
+        public static Dictionary<int, Client> ClientCollection { get; set; } = new Dictionary<int, Client>();
         public static Dictionary<AddressEnum.Platform, List<AddressStorage>> AddressCollection { get; set; } = new Dictionary<AddressEnum.Platform, List<AddressStorage>>();
+        public static Dictionary<string, List<Control>> ControlCollection { get; set; } = new Dictionary<string, List<Control>>();
+        public static Dictionary<string, List<Skill>> SkillCollection { get; set; } = new Dictionary<string, List<Skill>>();
+        public static Dictionary<string, List<SkillBar>> SkillBarCollection { get; set; } = new Dictionary<string, List<SkillBar>>();
         public static List<Item> ItemCollection { get; set; } = new List<Item>();
+        public static List<Npc> NpcCollection { get; set; } = new List<Npc>();
         public static List<(string Type, string Control, string ControlCount, string ControlItem, string ItemConst)> SupplyCollection { get; set; } =
             new List<(string, string, string, string, string)>()
             {
@@ -32,8 +36,9 @@ namespace KOF.Common
                 ("Inn", "SupplyInnMasterStone", "SupplyInnMasterStoneCount", "SupplyInnMasterStoneItem", null),
             };
 
-        
-        public static Dictionary<string, List<Store>> StoreCollection { get; set; } = new Dictionary<string, List<Store>>();
+        public static Dictionary<string, List<Sell>> SellCollection { get; set; } = new Dictionary<string, List<Sell>>();
+        public static Dictionary<string, List<Loot>> LootCollection { get; set; } = new Dictionary<string, List<Loot>>();
+        public static Dictionary<string, List<Target>> TargetCollection { get; set; } = new Dictionary<string, List<Target>>();
 
         public static List<int> MiningTrashItemCollection { get; set; } =
                     new List<int>()

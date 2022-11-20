@@ -33,9 +33,11 @@ namespace KOF.UI
                 ListBox1.DisplayMember = "Name";
             }
 
-            if (_Client.GetLootSize() > 0)
+            if (Storage.LootCollection.ContainsKey(_Client.GetNameConst()))
             {
-                ListBox2.DataSource = new BindingSource(_Client.GetLootList(), null);
+                List<Loot> LootCollection = Storage.LootCollection[_Client.GetNameConst()];
+
+                ListBox2.DataSource = new BindingSource(LootCollection, null);
                 ListBox2.ValueMember = "ItemId";
                 ListBox2.DisplayMember = "ItemName";
             }
@@ -45,6 +47,8 @@ namespace KOF.UI
         {
             Visible = false;
             e.Cancel = true;
+
+            _Client.Save();
         }
 
         public void InitializeControl()
@@ -149,17 +153,21 @@ namespace KOF.UI
             if (ListBox1.SelectedItem.GetType() == typeof(Inventory))
             {
                 Inventory SelectedItem = ((Inventory)ListBox1.SelectedItem);
-                _Client.SetLoot(SelectedItem.Id, SelectedItem.Name);
+
+                _Client.Database().SetLoot(_Client.GetNameConst(), SelectedItem.Id, SelectedItem.Name, _Client.GetPlatform().ToString());
             }
             else if (ListBox1.SelectedItem.GetType() == typeof(Item))
             {
                 Item SelectedItem = ((Item)ListBox1.SelectedItem);
-                _Client.SetLoot(SelectedItem.Id, SelectedItem.Name);
+
+                _Client.Database().SetLoot(_Client.GetNameConst(), SelectedItem.Id, SelectedItem.Name, _Client.GetPlatform().ToString());
             }
 
-            if (_Client.GetLootSize() > 0)
+            if (Storage.LootCollection.ContainsKey(_Client.GetNameConst()))
             {
-                ListBox2.DataSource = new BindingSource(_Client.GetLootList(), null);
+                List<Loot> LootCollection = Storage.LootCollection[_Client.GetNameConst()];
+
+                ListBox2.DataSource = new BindingSource(LootCollection, null);
                 ListBox2.ValueMember = "ItemId";
                 ListBox2.DisplayMember = "ItemName";
             }
@@ -169,13 +177,15 @@ namespace KOF.UI
         {
             if (ListBox2.SelectedItem == null) return;
 
-            Loot SelectedLoot = ((Loot)ListBox2.SelectedItem);
+            Loot SelectedItem = ((Loot)ListBox2.SelectedItem);
 
-            _Client.DeleteLoot(SelectedLoot.ItemId);
+            _Client.Database().DeleteLoot(_Client.GetNameConst(), SelectedItem.ItemId, _Client.GetPlatform().ToString());
 
-            if (_Client.GetLootSize() > 0)
+            if (Storage.LootCollection.ContainsKey(_Client.GetNameConst()))
             {
-                ListBox2.DataSource = new BindingSource(_Client.GetLootList(), null);
+                List<Loot> LootCollection = Storage.LootCollection[_Client.GetNameConst()];
+
+                ListBox2.DataSource = new BindingSource(LootCollection, null);
                 ListBox2.ValueMember = "ItemId";
                 ListBox2.DisplayMember = "ItemName";
             }
@@ -183,8 +193,16 @@ namespace KOF.UI
 
         private void Reset_Click(object sender, EventArgs e)
         {
-            _Client.ClearLoot();
-            ListBox2.DataSource = new BindingSource(null, null);
+            if (Storage.LootCollection.ContainsKey(_Client.GetNameConst()))
+            {
+                foreach (Loot LootData in Storage.LootCollection[_Client.GetNameConst()].ToList())
+                {
+                    if (LootData == null) continue;
+                    _Client.Database().DeleteLoot(_Client.GetNameConst(), LootData.ItemId, _Client.GetPlatform().ToString());
+                }
+
+                ListBox2.DataSource = null;
+            }
         }
 
         private void LootPrice_ValueChanged(object sender, EventArgs e)

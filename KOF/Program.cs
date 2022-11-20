@@ -23,7 +23,7 @@ namespace KOF.UI
             {
                 // It is not possible to launch a ClickOnce app as administrator directly,
                 // so instead we launch the app as administrator in a new process.
-                var processInfo = new ProcessStartInfo(Assembly.GetExecutingAssembly().Location);
+                var processInfo = new ProcessStartInfo(Assembly.GetExecutingAssembly().CodeBase);
 
                 // The following properties run the new process as administrator
                 processInfo.UseShellExecute = true;
@@ -48,7 +48,6 @@ namespace KOF.UI
             {
                 // We are running as administrator
                 Application.EnableVisualStyles();
-                Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new Main());
             }

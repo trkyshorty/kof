@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using KOF.Core;
-using KOF.Models;
 
 namespace KOF.UI
 {
@@ -16,12 +15,11 @@ namespace KOF.UI
             InitializeComponent();
 
             Platform.SelectedIndex = 0;
-            CharacterId.SelectedIndex = 0;
         }
 
         private void Save_Click(object sender, EventArgs e)
         {
-            if (AccountId.Text == "" || AccountPassword.Text == "" || Path.Text == "" || CharacterName.Text == "") return;
+            if (AccountId.Text == "" || AccountPassword.Text == "" || Path.Text == "") return;
 
             string Password = AccountPassword.Text;
 

@@ -13,167 +13,135 @@ using System.Resources;
 using System.Globalization;
 using System.Reflection;
 
-namespace KOF.Core;
-
-public class App : Helper
+namespace KOF.Core
 {
-    private Database _Database { get; set; }
-    private Main _MainInterface { get; set; }
-    private Thread LauncherThread { get; set; }
-    private Thread HandleProcessThread { get; set; }
-    private LogWriter _LogWriter { get; set; } = null;
+    public class App : Helper
+    {
+        private Database _Database { get; set; }
+        private Main _MainInterface { get; set; }
+        private Thread LauncherThread { get; set; }
+        private Thread HandleProcessThread { get; set; }
+        private LogWriter _LogWriter { get; set; } = null;
 #if DEBUG
-    private LogWriter _DebugWriter { get; set; } = null;
+        private LogWriter _DebugWriter { get; set; } = null;
 #endif
-    private ResourceManager _ResourceManager { get; set; } = null;
+        private ResourceManager _ResourceManager { get; set; } = null;
 
-    private static List<Control> ControlCollection { get; set; } = new List<Control>();
-
-    public App(Main MainInterface)
-    {
-        _MainInterface = MainInterface;
-
-        InitializeLogger();
-
-#if DEBUG
-        CreateConsole();
-#endif
-    }
-
-    public void CreateConsole()
-    {
-        AllocConsole();
-
-        IntPtr StdHandle = CreateFile(
-            "CONOUT$",
-            GENERIC_WRITE,
-            FILE_SHARE_WRITE,
-            0, OPEN_EXISTING, 0, 0
-        );
-
-        SafeFileHandle SafeFileHandle = new SafeFileHandle(StdHandle, true);
-        FileStream FileStream = new FileStream(SafeFileHandle, FileAccess.Write);
-
-        LogWriter LogWriter = new LogWriter(FileStream);
-
-        Console.SetOut(LogWriter);
-        Console.SetError(LogWriter);
-
-#if DEBUG
-        //Debug.Listeners.Add(new TextWriterTraceListener(LogWriter));
-#endif
-    }
-
-    public void InitializeLogger()
-    {
-        string MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string ApplicationFolder = MyDocuments + "\\" + "KOF";
-
-        Directory.CreateDirectory(ApplicationFolder + "\\log");
-
-        string LogFile = ApplicationFolder + "\\log\\log.txt";
-        string DebugFile = ApplicationFolder + "\\log\\debug.txt";
-
-        if (GetFileSize(LogFile) > (1024 * 1024 * 100)) // 100MB
-            File.Delete(LogFile);
-
-        if (GetFileSize(DebugFile) > (1024 * 1024 * 100)) // 100MB
-            File.Delete(DebugFile);
-
-        FileStream LogStream = new FileStream(LogFile, FileMode.Append);
-
-        if(_LogWriter == null)
-            _LogWriter = new LogWriter(LogStream);
-
-        Console.SetOut(_LogWriter);
-        Console.SetError(_LogWriter);
-#if DEBUG
-        FileStream DebugStream = new FileStream(DebugFile, FileMode.Append);
-
-        if (_DebugWriter == null)
-            _DebugWriter = new LogWriter(DebugStream);
-
-        //Debug.Listeners.Add(new TextWriterTraceListener(_DebugWriter));
-#endif
-    }
-
-    public void Load()
-    {
-        _Database = new Database();
-
-        _ResourceManager = new ResourceManager("KOF.Localization.Strings", Assembly.GetExecutingAssembly());
-
-        Storage.ItemCollection = _Database.GetItemList();
-
-        ControlCollection = _Database.GetControlList("App");
-
-        InitializeMainThread();
-    }
-
-    public Database Database()
-    {
-        return _Database;
-    }
-
-    public string GetControl(string name, string defaultValue = "")
-    {
-        Control control = ControlCollection.Where(x => x.Name == name)?.SingleOrDefault();
-
-        if (control == null)
+        public App(Main MainInterface)
         {
-            if (defaultValue != "")
-                SetControl(name, defaultValue);
+            _MainInterface = MainInterface;
 
-            return defaultValue;
+            InitializeLogger();
+
+            //for CNKO login page {tab} problem
+            AutoIt.AutoItX.AutoItSetOption("SendKeyDelay", 20);
+            AutoIt.AutoItX.AutoItSetOption("SendKeyDownDelay", 20);
+
+#if DEBUG
+            CreateConsole();
+#endif
         }
 
-        return control.Value;
-    }
-
-    public void SetControl(string name, string value)
-    {
-        Control control = ControlCollection.SingleOrDefault(x => x.Name == name);
-
-        if (control == null)
+        public void CreateConsole()
         {
-            control = new Control();
+            AllocConsole();
 
-            control.Form = "App";
-            control.Name = name;
-            control.Value = value;
-            control.Platform = "Base";
+            IntPtr StdHandle = CreateFile(
+                "CONOUT$",
+                GENERIC_WRITE,
+                FILE_SHARE_WRITE,
+                0, OPEN_EXISTING, 0, 0
+            );
 
-            control.Id = Database().SetControl(control);
+            SafeFileHandle SafeFileHandle = new SafeFileHandle(StdHandle, true);
+            FileStream FileStream = new FileStream(SafeFileHandle, FileAccess.Write);
 
-            ControlCollection.Add(control);
+            LogWriter LogWriter = new LogWriter(FileStream);
+
+            Console.SetOut(LogWriter);
+            Console.SetError(LogWriter);
+
+#if DEBUG
+            Debug.Listeners.Add(new TextWriterTraceListener(LogWriter));
+#endif
         }
-        else
-        {
-            control.Value = value;
-            Database().SetControl(control);
-        }
-    }
 
-    private void InitializeMainThread()
-    {
-        Thread MainThread = new Thread(() =>
+        public void InitializeLogger()
         {
-            while (true)
+            string MyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string ApplicationFolder = MyDocuments + "\\" + "KOF";
+
+            Directory.CreateDirectory(ApplicationFolder + "\\log");
+
+            string LogFile = ApplicationFolder + "\\log\\log.txt";
+            string DebugFile = ApplicationFolder + "\\log\\debug.txt";
+
+            if (GetFileSize(LogFile) > (1024 * 1024 * 100)) // 100MB
+                File.Delete(LogFile);
+
+            if (GetFileSize(DebugFile) > (1024 * 1024 * 100)) // 100MB
+                File.Delete(DebugFile);
+
+            FileStream LogStream = new FileStream(LogFile, FileMode.Append);
+
+            if(_LogWriter == null)
+                _LogWriter = new LogWriter(LogStream);
+
+            Console.SetOut(_LogWriter);
+            Console.SetError(_LogWriter);
+#if DEBUG
+            FileStream DebugStream = new FileStream(DebugFile, FileMode.Append);
+
+            if (_DebugWriter == null)
+                _DebugWriter = new LogWriter(DebugStream);
+
+            Debug.Listeners.Add(new TextWriterTraceListener(_DebugWriter));
+#endif
+        }
+
+        public void Load()
+        {
+            _Database = new Database();
+
+            _ResourceManager = new ResourceManager("KOF.Localization.Strings", Assembly.GetExecutingAssembly());
+
+            Storage.NpcCollection = _Database.GetNpcList();
+
+            Storage.ItemCollection = _Database.GetItemList();
+
+            Storage.ControlCollection.Add("App", _Database.GetControlList("App"));
+
+            InitializeMainThread();
+        }
+
+        public Database Database()
+        {
+            return _Database;
+        }
+
+        public string GetControl(string Name, string DefaultValue = "")
+        {
+            return Database().GetControl("App", "Base", Name, DefaultValue);
+        }
+
+        public void SetControl(string Name, string Value)
+        {
+            Database().SetControl("App", "Base", Name, Value);
+        }
+
+        private void InitializeMainThread()
+        {
+            Thread MainThread = new Thread(() =>
             {
-                if(Storage.ClientCollection.Count == 0)
+                while (true)
                 {
-                    Thread.Sleep(1250);
-                    return;
-                }
-
-                foreach (Client ClientData in Storage.ClientCollection)
-                {
-                    if (ClientData == null) continue;
-
-                    if (ClientData.IsDisconnected())
+                    foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
                     {
-                        if (Convert.ToBoolean(GetControl("AutoLogin")))
+                        if (ClientData == null) continue;
+
+                        if (ClientData.IsDisconnected())
                         {
+                            
                             if (ClientData.HasExited() == false)
                             {
                                 ClientData.GetProcess().Kill();
@@ -184,232 +152,285 @@ public class App : Helper
 
                             Debug.WriteLine("App > PID " + ClientData.GetProcessId() + " Lost");
 
-                            if (ClientData._AccountData != null)
+                            if (Convert.ToBoolean(GetControl("AutoLogin")))
                             {
                                 List<int> LoginList = new List<int>();
 
-                                Account Account = Database().GetAccountById(ClientData._AccountData.Id);
+                                Account Account = Database().GetAccountByName(ClientData.GetAccountName(), ClientData.GetPlatform().ToString());
 
                                 if (Account != null)
                                 {
                                     LoginList.Add(Account.Id);
 
+                                    while (LauncherThread != null && LauncherThread.IsAlive)
+                                        Thread.Sleep(1250);
+
                                     Launcher(LoginList);
+
+                                    _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, "Bağlantı koptu", ClientData.GetAccountName() + " yeniden oyuna giriş yapıyor.");
+                                }
+                                else
+                                    _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, "Bağlantı koptu", "Yeniden bağlanılamıyor, hesap veritabanında bulunamadı.");
+                            }
+                        }
+                        else
+                        {
+                            if (Storage.FollowedClient != null && ClientData.GetProcessId() != Storage.FollowedClient.GetProcessId()
+                                && ClientData.GetZoneId() == Storage.FollowedClient.GetZoneId()
+                                && ClientData.IsInFallback() == false && ClientData.IsInEnterGame() == false
+                                && ClientData.GetAction() == 0
+                                && Storage.FollowedClient.GetAction() == 0)
+                            {
+                                if (ClientData.IsCharacterAvailable() && Convert.ToBoolean(ClientData.GetControl("FollowDisable")) == false)
+                                {
+                                    if (Storage.FollowedClient.GetTargetId() != ClientData.GetTargetId())
+                                        ClientData.SelectTarget(Storage.FollowedClient.GetTargetId());
+
+                                    if ((ClientData.GetX() != Storage.FollowedClient.GetX() || ClientData.GetY() != Storage.FollowedClient.GetY()))
+                                    {
+                                        if (Convert.ToBoolean(ClientData.GetControl("ActionSetCoordinate")) == true)
+                                            ClientData.SetCoordinate(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
+                                        else if (Convert.ToBoolean(ClientData.GetControl("ActionRoute")) == true)
+                                            ClientData.StartRouteEvent(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
+                                        else
+                                            ClientData.MoveCoordinate(Storage.FollowedClient.GetX(), Storage.FollowedClient.GetY());
+                                    }
+
+                                    if (Convert.ToBoolean(GetControl("AutoParty")) == true)
+                                    {
+                                        if (Storage.FollowedClient.GetPartyCount() < 8 && Storage.FollowedClient.IsPartyMember(ClientData.GetNameConst()) == false)
+                                            Storage.FollowedClient.SendParty(ClientData.GetNameConst());
+                                    }
                                 }
                             }
                         }
                     }
+
+                    Thread.Sleep(125);
                 }
+            });
 
-                Thread.Sleep(100);
-            }
-        });
+            MainThread.IsBackground = true;
+            MainThread.Start();
+        }
 
-        MainThread.IsBackground = true;
-        MainThread.Start();
-    }
-
-    public void Launcher(List<int> AccountList)
-    {
-        if (AccountList.Count == 0)
-            return;
-
-        if (LauncherThread != null && LauncherThread.IsAlive)
-            return;
-
-        LauncherThread = new Thread(() => LauncherThreadEvent(AccountList));
-        LauncherThread.IsBackground = true;
-        LauncherThread.Start();
-    }
-
-    private void LauncherThreadEvent(List<int> AccountList)
-    {
-        AccountList.ForEach(AccountId =>
+        public void Launcher(List<int> AccountList)
         {
-            Account Account = Database().GetAccountById(AccountId);
+            if (AccountList.Count == 0)
+                return;
 
-            if (Account != null)
+            if (LauncherThread != null && LauncherThread.IsAlive)
+                return;
+
+            LauncherThread = new Thread(() => LauncherThreadEvent(AccountList));
+            LauncherThread.IsBackground = true;
+            LauncherThread.Start();
+        }
+
+        private void LauncherThreadEvent(List<int> AccountList)
+        {
+            AccountList.ForEach(AccountId =>
             {
-                Thread MainThread = new Thread(() =>
-                {
+                Account Account = Database().GetAccountById(AccountId);
 
+                if (Account != null)
+                {
                     try
                     {
-                        FileInfo fileInfo = new FileInfo(Account.Path);
+                        Process Process = new Process();
 
-                        ProcessStartInfo startInfo = new ProcessStartInfo(fileInfo.Name);
+                        FileInfo FileInfo = new FileInfo(Account.Path);
 
-                        startInfo.WorkingDirectory = fileInfo.DirectoryName;
-                        startInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
-                        startInfo.UseShellExecute = true;
+                        Process.StartInfo = new ProcessStartInfo(FileInfo.Name);
+                        Process.StartInfo.WorkingDirectory = FileInfo.Directory.FullName;
 
                         if (Account.Platform == "JPKO")
-                            startInfo.Arguments = "MGAMEJP " + Account.AccountId + " " + Account.Password;
+                            Process.StartInfo.Arguments = "MGAMEJP " + Account.Name + " " + Account.Hash;
                         else if (Account.Platform == "CNKO")
-                            startInfo.Arguments = Process.GetCurrentProcess().Id.ToString() + " CNKO " + Account.CharacterName;
+                            Process.StartInfo.Arguments = Process.GetCurrentProcess().Id.ToString() + " CNKO " + Account.Name;
 
-                        Debug.WriteLine(Account.CharacterName + " starting.");
+                        Debug.WriteLine(Account.Name + " starting.");
 
-                        Process? process = Process.Start(startInfo);
+                        Process.Start();
 
-                        while (!process.WaitForInputIdle())
-                            Thread.Sleep(100);
+                        if (Account.Platform == "JPKO")
+                            Thread.Sleep(15000);
+                        else if (Account.Platform == "CNKO")
+                            Thread.Sleep(20000);
 
                         Dispatcher Dispatcher = new Dispatcher(this);
 
-                        Dispatcher.GetClient().HandleProcess(process, null, Account);
+                        Dispatcher.GetClient().HandleProcess(Process, null);
 
-                        Thread.Sleep(3000);
+                        int Tick = Environment.TickCount;
 
-                        if (Convert.ToBoolean(GetControl("AutoLogin")))
+                        while (Storage.ClientCollection.ContainsKey(Process.Id) == false)
                         {
-                            Dispatcher.GetClient().IntroSkip();
-
-                            if (Account.Platform == "CNKO")
+                            if (Dispatcher.GetClient().IsDisconnected() || Environment.TickCount - Tick > 60000)
                             {
-                                while (Dispatcher.GetClient().Read4Byte(Dispatcher.GetClient().GetAddress("KO_PTR_LOGIN_BTN")) == 0)
+                                if (Dispatcher.GetClient().HasExited() == false)
                                 {
-                                    if (process.HasExited)
-                                        return;
-
-                                    Thread.Sleep(250);
+                                    Dispatcher.GetClient().GetProcess().Kill();
+                                    Dispatcher.GetClient().GetProcess().WaitForExit();
                                 }
+
+                                Dispatcher.GetClient().Destroy();
+
+
+                                if(Convert.ToBoolean(GetControl("AutoLogin")))
+                                {
+                                    _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, "Giriş yapılamadı", Account.Name + " yeniden başlatılıyor.");
+
+                                    var StartAccountList = new List<int>();
+                                    StartAccountList.Add(AccountId);
+                                    LauncherThreadEvent(StartAccountList);
+                                }
+                                
+                                return;
                             }
 
-                            Thread.Sleep(1000);
+                            switch (Dispatcher.GetClient().GetPhase())
+                            {
+                                case Processor.EPhase.None:
+                                case Processor.EPhase.Authentication:
+                                case Processor.EPhase.Loggining:
+                                case Processor.EPhase.Selecting:
+                                    {
+                                        if (Convert.ToBoolean(GetControl("AutoLogin")) && Dispatcher.GetClient().HasExited() == false)
+                                        {
+                                            if ((Dispatcher.GetClient().GetPhase() == Processor.EPhase.None) && Account.Platform == "CNKO")
+                                            {
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) == 0)
+                                                    AutoIt.AutoItX.WinActivate(Process.MainWindowHandle);
 
-                            Dispatcher.GetClient().SetPhase(Processor.EPhase.Loggining);
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) != 0)
+                                                {
+                                                    AutoIt.AutoItX.Send(Account.Name);
+                                                    AutoIt.AutoItX.Send("{tab}");
+                                                    AutoIt.AutoItX.Send(Account.Hash);
+                                                    AutoIt.AutoItX.Send("{enter}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) == 0)
+                                                    AutoIt.AutoItX.WinActivate(Process.MainWindowHandle);
 
-                            if (!process.HasExited)
-                                Dispatcher.GetClient().Login(Account);
-                        }
+                                                if (AutoIt.AutoItX.WinActive(Process.MainWindowHandle) != 0)
+                                                    AutoIt.AutoItX.Send("{enter}");
+                                            }
+                                        }
+                                    }
+                                    break;
+                            }
 
-                        while (Dispatcher.GetClient().GetName() == "")
-                        {
-                            if (process.HasExited)
-                                return;
+                            if (Dispatcher.GetClient().GetName() != "")
+                            {
+                                Dispatcher.GetClient().Start();
 
-                            Thread.Sleep(250);
-                        }
+                                Storage.ClientCollection.Add(Process.Id, Dispatcher.GetClient());
 
-                        if (!process.HasExited)
-                        {
-                            Dispatcher.GetClient().Start();
+                                HandleProcess();
+                            }
 
-                            Storage.ClientCollection.Add(Dispatcher.GetClient());
-                        }
+                            Thread.Sleep(1250);
+                        };
                     }
                     catch (InvalidOperationException ex)
                     {
-                        Debug.WriteLine(ex);
+                        _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, Account.Name, ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine(ex);
+                        _MainInterface.Notify(System.Windows.Forms.ToolTipIcon.Error, Account.Name, ex.Message);
                     }
-                });
+                }
+            });
+        }
 
-                MainThread.IsBackground = true;
-                MainThread.Start();
-            }
-
-            Thread.Sleep(500);
-        });
-    }
-
-    public void HandleProcess()
-    {
-        if (HandleProcessThread != null && HandleProcessThread.IsAlive)
-            return;
-
-        HandleProcessThread = new Thread(new ThreadStart(HandleProcessThreadEvent));
-        HandleProcessThread.IsBackground = true;
-        HandleProcessThread.Start();
-    }
-
-    private void HandleProcessThreadEvent()
-    {
-        ManagementObjectSearcher ManagementObject = new ManagementObjectSearcher("SELECT * FROM Win32_Process WHERE Name='KnightOnLine.exe'");
-
-        foreach (ManagementObject Management in ManagementObject.Get())
+        public void HandleProcess()
         {
-            Int32 ProcessId = Int32.Parse(Management["ProcessId"].ToString());
+            if (HandleProcessThread != null && HandleProcessThread.IsAlive)
+                return;
 
-            try
+            HandleProcessThread = new Thread(new ThreadStart(HandleProcessThreadEvent));
+            HandleProcessThread.IsBackground = true;
+            HandleProcessThread.Start();
+        }
+
+        private void HandleProcessThreadEvent()
+        {
+            ManagementObjectSearcher ManagementObject = new ManagementObjectSearcher("SELECT * FROM Win32_Process WHERE Name='KnightOnLine.exe'");
+
+            foreach (ManagementObject Management in ManagementObject.Get())
             {
-                Process Process = Process.GetProcessById(ProcessId);
+                Int32 ProcessId = Int32.Parse(Management["ProcessId"].ToString());
 
-                if (Storage.ClientCollection.Where(x => x.GetProcessId() == ProcessId)?.SingleOrDefault() == null)
+                try
                 {
-                    Dispatcher Dispatcher = new Dispatcher(this);
+                    Process Process = Process.GetProcessById(ProcessId);
 
-                    String CommandLine = Management["CommandLine"].ToString();
-
-                    if (CommandLine != "")
+                    if (Storage.ClientCollection.ContainsKey(ProcessId) == false)
                     {
-                        /*var Command = CommandLine.Split(' ');
-                        if (Command.Length == 4 && Database().GetAccountByName(Command[2], "JPKO") == null)
-                            Database().SetAccount(Command[2], Command[3], Command[0].Replace(@"""", @""), "JPKO");*/
+                        Dispatcher Dispatcher = new Dispatcher(this);
+
+                        String CommandLine = Management["CommandLine"].ToString();
+
+                        if (CommandLine != "")
+                        {
+                            var Command = CommandLine.Split(' ');
+                            if (Command.Length == 4 && Database().GetAccountByName(Command[2], "JPKO") == null)
+                                Database().SetAccount(Command[2], Command[3], Command[0].Replace(@"""", @""), "JPKO");
+                        }
+
+                        Dispatcher.GetClient().HandleProcess(Process, Management);
+
+                        while (Storage.ClientCollection.ContainsKey(ProcessId) == false)
+                        {
+                            if (Dispatcher.GetClient().GetName() != "")
+                            {
+                                Dispatcher.GetClient().Start();
+
+                                Storage.ClientCollection.Add(ProcessId, Dispatcher.GetClient());
+                            }
+                        }
                     }
 
-                    Dispatcher.GetClient().HandleProcess(Process, Management, null);
-
-                    Thread.Sleep(3000);
-
-                    while (Dispatcher.GetClient().GetName() == "")
-                    {
-                        if (Process.HasExited)
-                            return;
-
-                        Thread.Sleep(100);
-                    }
-
-                    Dispatcher.GetClient().Start();
-
-                    Storage.ClientCollection.Add(Dispatcher.GetClient());
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.StackTrace);
                 }
             }
-            catch (Exception ex)
+        }
+
+        public void CloseAllProcess()
+        {
+            foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
             {
-                Debug.WriteLine(ex.StackTrace);
+                if (ClientData == null) continue;
+
+                if (ClientData.HasExited() == false)
+                {
+                    ClientData.GetProcess().Kill();
+                    ClientData.GetProcess().WaitForExit();
+                }
+
+                ClientData.Destroy();
             }
         }
-    }
 
-    public void CloseAllProcess()
-    {
-        foreach (Client ClientData in Storage.ClientCollection.ToList())
+        public Client GetProcess(int ProcessId)
         {
-            if (ClientData == null) continue;
+            if (Storage.ClientCollection.ContainsKey(ProcessId))
+                return Storage.ClientCollection[ProcessId];
 
-            if (ClientData.HasExited() == false)
-            {
-                ClientData.GetProcess().Kill();
-                ClientData.GetProcess().WaitForExit();
-            }
-
-            ClientData.Destroy();
+            return null;
         }
-    }
 
-    public Client GetProcess(int ProcessId)
-    {
-        return Storage.ClientCollection.Where(x => x.GetProcessId() == ProcessId)?.SingleOrDefault();
-    }
-
-    public String GetString(string Key)
-    {
-        try
+        public String GetString(string Key)
         {
-            if(GetControl("Language") == "")
-                return _ResourceManager.GetString(Key, new CultureInfo("en-US"));
-
-            return _ResourceManager.GetString(Key, new CultureInfo(GetControl("Language")));
+            return _ResourceManager.GetString(Key, new CultureInfo("tr-TR"));
         }
-        catch (Exception ex)
-        {
-            //Debug.WriteLine(ex.StackTrace);
-            return Key;
-        }  
     }
 }

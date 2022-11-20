@@ -10,7 +10,6 @@ using KOF.Common;
 using KOF.Models;
 using System.Drawing;
 using System.IO;
-using System.Text.Json;
 
 namespace KOF.Core
 {
@@ -30,29 +29,27 @@ namespace KOF.Core
         private EAction _Action { get; set; }
         private int _LoginTime { get; set; }
         private int _DisconnectTime { get; set; }
+        private int _FallbackTime { get; set; }
         private int _EnterGameTime { get; set; }
         private AddressEnum.Platform _Platform { get; set; }
-        private List<int> _PartyAllowedCollection { get; set; } = new List<int>();
+        public int _SupplyEventAfterWaitTime { get; set; } = 0;
+        public int _RepairEventAfterWaitTime { get; set; } = 0;
+        public int _SellEventAfterWaitTime { get; set; } = 0;
+        public List<Party> _PartyCollection { get; set; } = new List<Party>();
+        private string _CharacterName { get; set; } = "";
+        private string _AccountName { get; set; }
+        private List<string> _PartyAllowedCollection { get; set; } = new List<string>();
         public List<LootInfo> _AutoLootCollection { get; set; } = new List<LootInfo>();
         public int _PartyRequestTime { get; set; }
         private Zone _Zone { get; set; }
         private Image _MiniMapImage { get; set; }
         public Dictionary<int, int> _GroupHealCooldown { get; set; } = new Dictionary<int, int>();
         private bool _MovingLoot { get; set; }
-        public Account _AccountData { get; set; }
-        private bool _RouteSaving { get; set; }
-        private List<RouteData> _RouteSaveData { get; set; } = new List<RouteData>();
-        private List<Control> ControlCollection { get; set; } = new List<Control>();
-        private  List<Skill> SkillCollection { get; set; } = new List<Skill>();
-        private List<SkillBar> SkillBarCollection { get; set; } = new List<SkillBar>();
-        private List<Loot> LootCollection { get; set; } = new List<Loot>();
-        private List<Sell> SellCollection { get; set; } = new List<Sell>();
-        private  List<Target> TargetCollection { get; set; } = new List<Target>();
 
         public enum EPhase : short
         {
             None = 0,
-            Disconnected = 1, //Deprecated
+            Disconnected = 1,
             Authentication = 2,
             Loggining = 3,
             Selecting = 4,
@@ -63,13 +60,16 @@ namespace KOF.Core
         public enum EAction : short
         {
             None = 0,
-            Routing = 1,
+            Repairing = 1,
+            Supplying = 2,
+            MineExchanging = 3,
+            Selling = 4,
         }
         #endregion
 
         #region "Processor"
 
-        public void HandleProcess(Process Process, ManagementObject Management, Account Account)
+        public void HandleProcess(Process Process, ManagementObject Management)
         {
             _Process = Process;
 
@@ -83,50 +83,42 @@ namespace KOF.Core
 
             var Args = ParseArguments(CommandLine);
 
-            if (Process.MainWindowTitle == "ÆïÊ¿3.0" || Process.MainWindowTitle == "骑士3.0" || Process.MainWindowTitle == "ﾆ・ｿ3.0")
+            if (Process.MainWindowTitle == "ÆïÊ¿3.0" || (Management != null && Args.Length >= 3 && Args[2] == "CNKO"))
+            {
                 _Platform = AddressEnum.Platform.CNKO;
+
+                if (Args.Length >= 3)
+                {
+                    int Index = Management != null ? 3 : 2;
+                    SetAccountName(Args[Index]);
+                }
+            }
             else
             {
                 if (Args.Length >= 1 && (Args[0] == "MGAMEJP" || Args[1] == "MGAMEJP"))
                 {
                     _Platform = AddressEnum.Platform.JPKO;
 
+                    int Index = Management != null ? 2 : 1;
+                    SetAccountName(Args[Index]);
+
                     if (Process.MainWindowTitle == "Knight OnLine Client")
                         PatchMutant();
                 }
                 else
-                    _Platform = AddressEnum.Platform.PVP;
+                    _Platform = AddressEnum.Platform.USKO;
             }
 
             if (Storage.AddressCollection.ContainsKey(_Platform) == false)
                 Storage.AddressCollection.Add(_Platform, LoadAddressList(_Handle, _Platform));
 
             foreach (AddressStorage Address in GetAddressList())
+            {
                 Debug.WriteLine(Address.Name + " : " + Address.Address);
+            }
 
-
-            PatchSendMailslot();
-        }
-
-        public void LoadCollection(string name, string job)
-        {
-            ControlCollection = Database().GetControlList(name);
-            SkillCollection = Database().GetSkillList(job);
-            SkillBarCollection = Database().GetSkillBarList(name, GetPlatform().ToString());
-            LootCollection = Database().GetLootList(name, GetPlatform().ToString());
-            SellCollection = Database().GetSellList(name, GetPlatform().ToString());
-            TargetCollection = Database().GetTargetList(name, GetPlatform().ToString());
-        }
-
-        public void ClearCollection()
-        {
-
-            ControlCollection.Clear();
-            SkillCollection.Clear();
-            SkillBarCollection.Clear();
-            LootCollection.Clear();
-            SellCollection.Clear();
-            TargetCollection.Clear();
+            if (GetAccountName() != "")
+                SetWindowText(_Process.MainWindowHandle, GetAccountName());
         }
 
         public AddressEnum.Platform GetPlatform()
@@ -174,261 +166,69 @@ namespace KOF.Core
         public int GetControlSize()
         {
             if (_Process == null) return 0;
-            return ControlCollection.Count();
+            List<Control> ControlList;
+            if (Storage.ControlCollection.TryGetValue(GetNameConst(), out ControlList))
+                return ControlList.Count;
+
+            return 0;
+        }
+        public void SetNameConst(string Name)
+        {
+            _CharacterName = Name;
         }
 
+        public string GetNameConst()
+        {
+            return _CharacterName;
+        }
+
+        public void SetAccountName(string Name)
+        {
+            _AccountName = Name;
+        }
+
+        public string GetAccountName()
+        {
+            return _AccountName;
+        }
         public Database Database()
         {
             return _App.Database();
         }
 
-        public string GetControl(string name, string defaultValue = "")
+        public string GetControl(string Name, string DefaultValue = "")
         {
-            Control control = ControlCollection.SingleOrDefault(x => x.Name == name);
-
-            if (control == null)
-            {
-                if (defaultValue != "")
-                    SetControl(name, defaultValue);
-
-                return defaultValue;
-            }
-
-            return control.Value;
+            return Database().GetControl(GetNameConst(), GetPlatform().ToString(), Name, DefaultValue);
         }
 
-        public void SetControl(string name, string value)
+        public void SetControl(string Name, string Value)
         {
-            Control control = ControlCollection.SingleOrDefault(x => x.Name == name);
-
-            if (control == null)
-            {
-                control = new Control();
-
-                control.Form = GetName();
-                control.Name = name;
-                control.Value = value;
-                control.Platform = GetPlatform().ToString();
-
-                control.Id = Database().SetControl(control);
-                ControlCollection.Add(control);
-            }
-            else
-            {
-                control.Value = value;
-                Database().SetControl(control);
-            }   
+            Database().SetControl(GetNameConst(), GetPlatform().ToString(), Name, Value);
         }
 
-        public List<Skill> GetSkillList()
+        public SkillBar GetSkillBar(int SkillId)
         {
-            return SkillCollection;
+            return Database().GetSkillBar(GetNameConst(), SkillId, GetPlatform().ToString());
         }
 
-        public Skill GetSkillData(int skillId)
+        public void DeleteSkillBar(int SkillId)
         {
-            return SkillCollection.SingleOrDefault(x => x.Id == skillId);
+            Database().DeleteSkillBar(GetNameConst(), SkillId, GetPlatform().ToString());
         }
 
-        public Skill GetSkillData(string skillName)
+        public void SetSkillBar(int SkillId, int SkillType)
         {
-            return SkillCollection.SingleOrDefault(x => x.Name == skillName);
-        }
-
-        public List<SkillBar> GetSkillBarList()
-        {
-            return SkillBarCollection;
-        }
-
-        public SkillBar GetSkillBar(int skillId)
-        {
-            return SkillBarCollection.SingleOrDefault(x => x.SkillId == skillId);
-        }
-
-        public void SetSkillBar(int skillId, int skillType)
-        {
-            SkillBar skillBarData = SkillBarCollection.SingleOrDefault(x => x.SkillId == skillId);
-
-            if (skillBarData == null)
-            {
-                skillBarData = new SkillBar();
-
-                skillBarData.User = GetName();
-                skillBarData.SkillId = skillId;
-                skillBarData.SkillType = skillType;
-                skillBarData.Platform = GetPlatform().ToString();
-                skillBarData.UseTime = 0;
-
-                skillBarData.Id = Database().SetSkillBar(skillBarData);
-
-                SkillBarCollection.Add(skillBarData);
-            }         
-        }
-
-        public void DeleteSkillBar(int skillId)
-        {
-            SkillBar skillBarData = SkillBarCollection.SingleOrDefault(x => x.SkillId == skillId);
-
-            if(skillBarData != null)
-            {
-                Database().DeleteSkillBar(skillBarData);
-                SkillBarCollection.RemoveAll(x => x.SkillId == skillId);
-            }
-        }
-
-        public List<Loot> GetLootList()
-        {
-            return LootCollection;
-        }
-
-        public int GetLootSize()
-        {
-            if (_Process == null) return 0;
-            return LootCollection.Count();
-        }
-
-        public Loot GetLoot(int itemId)
-        {
-            return LootCollection.SingleOrDefault(x => x.ItemId == itemId);
-        }
-
-        public void SetLoot(int itemId, string itemName)
-        {
-            Loot loot = LootCollection.SingleOrDefault(x => x.ItemId == itemId);
-
-            if (loot == null)
-            {
-                loot = new Loot();
-
-                loot.User = GetName();
-                loot.ItemId = itemId;
-                loot.ItemName = itemName;
-                loot.Platform = GetPlatform().ToString();
-
-                loot.Id = Database().SetLoot(loot);
-
-                LootCollection.Add(loot);
-            }
-        }
-
-        public void DeleteLoot(int itemId)
-        {
-            Loot loot = LootCollection.SingleOrDefault(x => x.ItemId == itemId);
-
-            if (loot != null)
-            {
-                Database().DeleteLoot(loot);
-                LootCollection.RemoveAll(x => x.ItemId == itemId);
-            }
-        }
-
-        public void ClearLoot()
-        {
-            Database().ClearLoot(LootCollection);
-            LootCollection.Clear();
-        }
-
-        public List<Sell> GetSellList()
-        {
-            return SellCollection;
-        }
-
-        public int GetSellListSize()
-        {
-            if (_Process == null) return 0;
-            return SellCollection.Count();
-        }
-
-        public Sell GetSell(int itemId)
-        {
-            return SellCollection.SingleOrDefault(x => x.ItemId == itemId);
-        }
-
-        public void SetSell(int itemId, string itemName)
-        {
-            Sell sell = SellCollection.SingleOrDefault(x => x.ItemId == itemId);
-
-            if (sell == null)
-            {
-                sell = new Sell();
-
-                sell.User = GetName();
-                sell.ItemId = itemId;
-                sell.ItemName = itemName;
-                sell.Platform = GetPlatform().ToString();
-
-                sell.Id = Database().SetSell(sell);
-
-                SellCollection.Add(sell);
-            }
-        }
-
-        public void DeleteSell(int itemId)
-        {
-            Sell sell = SellCollection.SingleOrDefault(x => x.ItemId == itemId);
-
-            if (sell != null)
-            {
-                Database().DeleteSell(sell);
-                LootCollection.RemoveAll(x => x.ItemId == itemId);
-            }
-        }
-
-        public void ClearSell()
-        {
-            Database().ClearSell(SellCollection);
-            SellCollection.Clear();
-        }
-
-        public List<Target> GetTargetList()
-        {
-            return TargetCollection;
-        }
-
-        public int GetTargetSize()
-        {
-            if (_Process == null) return 0;
-            return TargetCollection.Count();
-        }
-
-        public Target GetTargetList(string name)
-        {
-            return TargetCollection.SingleOrDefault(x => x.Name == name);
-        }
-
-        public void SetTargetList(string name, int targetChecked)
-        {
-            Target targetData = TargetCollection.SingleOrDefault(x => x.Name == name);
-
-            if (targetData == null)
-            {
-                targetData = new Target();
-
-                targetData.User = GetName();
-                targetData.Name = name;
-                targetData.Checked = targetChecked;
-                targetData.Platform = GetPlatform().ToString();
-
-                targetData.Id = Database().SetTarget(targetData);
-
-                TargetCollection.Add(targetData);
-            }
-            else
-            {
-                targetData.Checked = targetChecked;
-                Database().SetTarget(targetData);
-            }
-        }
-
-        public void ClearTargetList()
-        {
-            Database().ClearTargetList(TargetCollection);
-            TargetCollection.Clear();
+            Database().SetSkillBar(GetNameConst(), SkillId, SkillType, GetPlatform().ToString());
         }
 
         public bool IsDisconnected()
         {
-            return (GetDisconnectTime() > 0 && Environment.TickCount - GetDisconnectTime() >= 15000) || HasExited();
+            return (GetPhase() == EPhase.Disconnected && Environment.TickCount - GetDisconnectTime() >= 5000) || HasExited();
+        }
+
+        public IntPtr GetHandle()
+        {
+            return _Handle;
         }
 
         public Process GetProcess()
@@ -470,6 +270,21 @@ namespace KOF.Core
             return _LoginTime;
         }
 
+        public bool IsInFallback()
+        {
+            return _FallbackTime > 0 && Environment.TickCount - GetFallbackTime() <= 5000;
+        }
+
+        public void SetFallbackTime(int Time)
+        {
+            _FallbackTime = Time;
+        }
+
+        public int GetFallbackTime()
+        {
+            return _FallbackTime;
+        }
+
         public bool IsInEnterGame()
         {
             return _EnterGameTime > 0 && Environment.TickCount - GetEnterGameTime() <= 16000;
@@ -497,9 +312,7 @@ namespace KOF.Core
 
         public bool IsCharacterAvailable()
         {
-            if (GetPhase() == EPhase.Playing 
-                && GetControlSize() > 0 
-                && Storage.ClientCollection.Where(x => x.GetProcessId() == GetProcessId())?.SingleOrDefault() != null)
+            if (GetPhase() == EPhase.Playing && GetControlSize() > 0 && Storage.ClientCollection.ContainsKey(GetProcessId()))
                 return true;
 
             return false;
@@ -512,7 +325,7 @@ namespace KOF.Core
 
         public int GetAttackableTargetSize()
         {
-            var TargetList = Database().GetTargetList(GetName(), GetPlatform().ToString()).ToList();
+            var TargetList = Database().GetTargetList(GetNameConst(), GetPlatform().ToString()).ToList();
 
             int AllowedCount = 0;
 
@@ -527,9 +340,24 @@ namespace KOF.Core
 
         public bool IsInAttackableTargetList(string Name)
         {
-            Target Target = GetTargetList(Name);
+            Target Target = Database().GetTarget(GetNameConst(), GetPlatform().ToString(), Name);
             if (Target == null) return false;
             return Target.Checked == 1;
+        }
+
+        public void SetAttackableTargetList(string Name, int Checked = 1)
+        {
+            Database().SetTarget(GetNameConst(), GetPlatform().ToString(), Name, Checked);
+        }
+
+        public void RemoveAttackableTargetList(string Name, int Checked = 0)
+        {
+            Database().SetTarget(GetNameConst(), GetPlatform().ToString(), Name, Checked);
+        }
+
+        public void ClearAttackableTargetList()
+        {
+            Database().ClearTarget(GetNameConst());
         }
 
         public int GetPartyAllowedSize()
@@ -537,21 +365,26 @@ namespace KOF.Core
             return _PartyAllowedCollection.Count;
         }
 
-        public bool GetPartyAllowed(int Id)
+        public bool GetPartyAllowed(string Name)
         {
-            return _PartyAllowedCollection.Find(x => x == Id) == Id;
+            return _PartyAllowedCollection.Find(x => x == Name) == Name;
         }
 
-        public void AddPartyAllowed(int Id)
+        public void AddPartyAllowed(string Name)
         {
-            if (_PartyAllowedCollection.Contains(Id) == false)
-                _PartyAllowedCollection.Add(Id);
+            if (_PartyAllowedCollection.Contains(Name) == false)
+                _PartyAllowedCollection.Add(Name);
         }
 
-        public void RemovePartyAllowed(int Id)
+        public void RemovePartyAllowed(string Name)
         {
-            if (_PartyAllowedCollection.Contains(Id))
-                _PartyAllowedCollection.Remove(Id);
+            if (_PartyAllowedCollection.Contains(Name))
+                _PartyAllowedCollection.Remove(Name);
+        }
+
+        public void ClearPartyAllowed()
+        {
+            _PartyAllowedCollection.Clear();
         }
 
         public bool IsMovingLoot()
@@ -571,8 +404,6 @@ namespace KOF.Core
              */
             string Message = ByteToHex(Packet);
 
-            Console.WriteLine("RECV -> " + Message);
-
             switch (Message.Substring(0, 2))
             {
                 case "01": //WIZ_LOGIN
@@ -591,15 +422,19 @@ namespace KOF.Core
                         switch (Ret)
                         {
                             case "01":
+                                SetPhase(EPhase.Loggining);
                                 Debug.WriteLine("Auth Response " + Ret + " - Success");
                                 break;
                             case "02":
+                                SetPhase(EPhase.Disconnected);
                                 Debug.WriteLine("Auth Response " + Ret + " - User not found");
                                 break;
                             case "03":
+                                SetPhase(EPhase.Disconnected);
                                 Debug.WriteLine("Auth Response " + Ret + " - Password does not match");
                                 break;
                             case "05":
+                                SetPhase(EPhase.Loggining);
                                 Debug.WriteLine("Auth Response " + Ret + " - Already");
                                 break;
                             default:
@@ -610,152 +445,14 @@ namespace KOF.Core
                     }
                     break;
 
-                case "10": //WIZ_CHAT
-                    {
-                        if (GetControlSize() == 0)
-                            return;
-
-                        string chatMode = Message.Substring(2, 2);
-                        string nation = Message.Substring(4, 2);
-                        string playerId = Message.Substring(6, 4);
-                        string nameLen = Message.Substring(10, 2);
-                        string name = Message.Substring(12, int.Parse(nameLen, System.Globalization.NumberStyles.HexNumber) * 2);
-                        string messageLen = Message.Substring(12 + (int.Parse(nameLen, System.Globalization.NumberStyles.HexNumber) * 2), 2);
-                        string message = Message.Substring(12 + (int.Parse(nameLen, System.Globalization.NumberStyles.HexNumber) * 2) + 4, int.Parse(messageLen, System.Globalization.NumberStyles.HexNumber) * 2);
-
-                        switch (chatMode)
-                        {
-                            case "01": //Normal Chat
-                                {
-                                    if (Convert.ToBoolean(GetControl("CommandSwift")) && GetJob() == "Rogue")
-                                    {
-                                        string nameString = Encoding.Default.GetString(StringToByte(name));
-                                        string messageString = Encoding.Default.GetString(StringToByte(message));
-
-                                        if (messageString == GetControl("CommandSwiftValue"))
-                                        {
-                                            Skill skillData = GetSkillData("Swift");
-
-                                            if (skillData != null)
-                                            {
-                                                if (UseSkill(skillData, BitConverter.ToInt16(StringToByte(playerId), 0)))
-                                                    Thread.Sleep(1250);
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-                            case "02": //Whisper Chat
-                                {
-                                    if (Convert.ToBoolean(GetControl("CommandPartyRequest")))
-                                    {
-                                        string nameString = Encoding.Default.GetString(StringToByte(name));
-                                        string messageString = Encoding.Default.GetString(StringToByte(message));
-
-                                        if (messageString == GetControl("CommandPartyRequestValue"))
-                                            SendParty(nameString);
-                                    }
-
-                                    if (Convert.ToBoolean(GetControl("CommandSwift")) && GetJob() == "Rogue")
-                                    {
-                                        string nameString = Encoding.Default.GetString(StringToByte(name));
-                                        string messageString = Encoding.Default.GetString(StringToByte(message));
-
-                                        if (messageString == GetControl("CommandSwiftValue"))
-                                        {
-                                            Skill skillData = GetSkillData("Swift");
-
-                                            if (skillData != null)
-                                            {
-                                                if (UseSkill(skillData, BitConverter.ToInt16(StringToByte(playerId), 0)))
-                                                    Thread.Sleep(1250);
-                                            }
-                                        }
-                                    }
-
-                                }
-                                break;
-                            case "03": //Party Chat
-                                {
-                                    if (Convert.ToBoolean(GetControl("CommandSwift")) && GetJob() == "Rogue")
-                                    {
-                                        string nameString = Encoding.Default.GetString(StringToByte(name));
-                                        string messageString = Encoding.Default.GetString(StringToByte(message));
-
-                                        if (messageString == GetControl("CommandSwiftValue"))
-                                        {
-                                            Skill skillData = GetSkillData("Swift");
-
-                                            if (skillData != null)
-                                            {
-                                                if (UseSkill(skillData, BitConverter.ToInt16(StringToByte(playerId), 0)))
-                                                    Thread.Sleep(1250);
-                                            }
-                                        }
-                                    }
-
-                                    if (Convert.ToBoolean(GetControl("CommandBuff")) && GetJob() == "Priest")
-                                    {
-                                        string nameString = Encoding.Default.GetString(StringToByte(name));
-                                        string messageString = Encoding.Default.GetString(StringToByte(message));
-
-                                        if (messageString == GetControl("CommandBuffValue"))
-                                        {
-                                            List<Player> partyList = new List<Player>();
-
-                                            if (GetPartyList(ref partyList) > 0)
-                                            {
-                                                partyList.ForEach(x =>
-                                                {
-                                                    if (x.Name != nameString) return;
-                                                    PartyPriestAction(x, true);
-                                                });
-                                            }
-                                        }
-                                    }
-
-                                    if (Convert.ToBoolean(GetControl("CommandTeleport")) && GetJob() == "Mage")
-                                    {
-                                        string nameString = Encoding.Default.GetString(StringToByte(name));
-                                        string messageString = Encoding.Default.GetString(StringToByte(message));
-
-                                        if (messageString == GetControl("CommandTeleportValue"))
-                                        {
-                                            Skill skillData = GetSkillData("Summon Friend");
-
-                                            if (skillData != null)
-                                            {
-                                                if (UseMageSkill(skillData, BitConverter.ToInt16(StringToByte(playerId), 0)))
-                                                    Thread.Sleep(1250);
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-                            case "05": //Shout
-                                break;
-
-                            case "06": //Clan
-                                break;
-
-                            case "0F": //Alliance
-                                break;
-                        }
-                    }
-                    break;
-
                 case "23": //WIZ_ITEM_DROP
                     {
-                        if (GetControlSize() == 0)
-                            return;
-
                         if (Convert.ToBoolean(GetControl("OnlyNoah")) || Convert.ToBoolean(GetControl("LootOnlyList")) || Convert.ToBoolean(GetControl("LootOnlySell")))
                         {
                             LootInfo AutoLootData = new LootInfo();
 
                             AutoLootData.Id = Message.Substring(6, 8);
                             AutoLootData.MobId = BitConverter.ToInt16(StringToByte(Message.Substring(2, 4)), 0);
-                            
                             AutoLootData.DropTime = Environment.TickCount;
 
                             int TargetBase = GetTargetBase(AutoLootData.MobId);
@@ -780,9 +477,6 @@ namespace KOF.Core
                     break;
 
                 case "24": //WIZ_BUNDLE_OPEN_REQ
-                    if (GetControlSize() == 0)
-                        return;
-
                     if (Message.Length != 156) break;
 
                     for (int i = 0; i < 4; i++)
@@ -801,10 +495,10 @@ namespace KOF.Core
                             if (Item == 900000000 || (Convert.ToBoolean(GetControl("OnlyNoah")) && Item == 900000000))
                                 Loot = true;
 
-                            if (Convert.ToBoolean(GetControl("LootOnlyList")) && GetLoot(Item) != null)
+                            if (Convert.ToBoolean(GetControl("LootOnlyList")) && Database().GetLoot(GetNameConst(), Item, GetPlatform().ToString()) != null)
                                 Loot = true;
 
-                            if (Convert.ToBoolean(GetControl("LootOnlySell")) && GetSell(Item) != null)
+                            if (Convert.ToBoolean(GetControl("LootOnlySell")) && Database().GetSell(GetNameConst(), Item, GetPlatform().ToString()) != null)
                                 Loot = true;
 
                             if (ItemData != null)
@@ -873,7 +567,7 @@ namespace KOF.Core
                     break;
 
                 case "1E": //WIZ_WARP
-                    //SetFallbackTime(Environment.TickCount);
+                    SetFallbackTime(Environment.TickCount);
                     Debug.WriteLine("Warp start (/town, fallback or gamemaster)");
                     break;
 
@@ -887,9 +581,6 @@ namespace KOF.Core
                     break;
 
                 case "2F": //WIZ_PARTY
-                    if (GetControlSize() == 0)
-                        return;
-
                     switch (Message.Substring(2, 2))
                     {
                         case "02": //PartyPermit
@@ -900,7 +591,7 @@ namespace KOF.Core
                             {
                                 string Name = Encoding.Default.GetString(StringToByte(Message.Substring(12)));
 
-                                if (Storage.ClientCollection.Any(x => x.GetName() == Storage.FollowedClient.GetName()))
+                                if (Storage.ClientCollection.Any(x => x.Value.GetNameConst() == Storage.FollowedClient.GetNameConst()))
                                     _PartyRequestTime = Environment.TickCount;
                             }
                             break;
@@ -915,8 +606,6 @@ namespace KOF.Core
              * @reference https://github.com/srmeier/KnightOnline/blob/master/Server/shared/packets.h
              */
             string Message = ByteToHex(Packet);
-
-            Debug.WriteLine("SEND -> " + Message);
 
             switch (Message.Substring(0, 2))
             {
@@ -939,6 +628,13 @@ namespace KOF.Core
                     SetPhase(EPhase.Playing);
                     SetEnterGameTime(Environment.TickCount);
                     LoadZone();
+
+                    if (Convert.ToBoolean(GetControl("Wallhack")))
+                        Wallhack(true);
+
+                    if (Convert.ToBoolean(GetControl("Oreads")))
+                        Oreads(true);
+
 
                     Debug.WriteLine("Game start " + Environment.TickCount);
                     break;
@@ -974,34 +670,13 @@ namespace KOF.Core
 
                 case "33": //WIZ_OBJECT_EVENT
                     {
-                        if (GetControlSize() == 0)
-                            return;
-
                         Debug.WriteLine("Object event");
-
-                        if (Convert.ToBoolean(GetControl("RouteSave")) && _RouteSaveData != null)
-                        {
-                            if (_RouteSaveData.Count() > 0)
-                            {
-                                RouteData routeData = _RouteSaveData.Last();
-
-                                routeData.Action = RouteData.Event.OBJECT;
-
-                                _RouteSaveData.Add(routeData);
-
-                                Debug.WriteLine("Route Save - Action : {0}", routeData.Action);
-                            }
-                        }
-
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
 
                 case "24": //WIZ_BUNDLE_OPEN_REQ
                     {
-                        if (GetControlSize() == 0)
-                            return;
-
                         if (Convert.ToBoolean(GetControl("OnlyNoah")) || Convert.ToBoolean(GetControl("LootOnlyList")) || Convert.ToBoolean(GetControl("LootOnlySell")))
                         {
                             LootInfo LootInfo = _AutoLootCollection.Find(x => x.Id == Message.Substring(2, 8));
@@ -1023,9 +698,6 @@ namespace KOF.Core
                     break;
 
                 case "79": //WIZ_SKILLDATA
-                    if (GetControlSize() == 0)
-                        return;
-
                     switch (Message.Substring(2, 2))
                     {
                         case "02":
@@ -1049,24 +721,7 @@ namespace KOF.Core
 
                 case "4B": //WIZ_WARP_LIST
                     {
-                        if (GetControlSize() == 0)
-                            return;
-
                         SetPhase(EPhase.Warping);
-
-                        if (Convert.ToBoolean(GetControl("RouteSave")) && _RouteSaveData != null)
-                        {
-                            if (_RouteSaveData.Count() > 0)
-                            {
-                                RouteData routeData = _RouteSaveData.Last();
-
-                                routeData.Action = RouteData.Event.GATE;
-                                routeData.Packet = Message;
-
-                                RouteSetAction(routeData);
-                            }
-                        }
-
                         ForwardPacketToAllFollower(Message);
                     }
                     break;
@@ -1074,24 +729,8 @@ namespace KOF.Core
                 case "48": //WIZ_WARP_HOME
                     {
                         Debug.WriteLine("/town");
-
-                        if (GetControlSize() == 0)
-                            return;
-
+                        SetFallbackTime(Environment.TickCount);
                         ForwardPacketToAllFollower(Message);
-                        _AutoLootCollection.Clear();
-
-                        if (Convert.ToBoolean(GetControl("RouteSave")) && _RouteSaveData != null)
-                        {
-                            if (_RouteSaveData.Count() > 0)
-                            {
-                                RouteData routeData = _RouteSaveData.Last();
-
-                                routeData.Action = RouteData.Event.TOWN;
-
-                                RouteSetAction(routeData);
-                            }
-                        }
                     }
                     break;
 
@@ -1198,31 +837,16 @@ namespace KOF.Core
             WriteByte(_Handle, new IntPtr(Address), Value);
         }
 
-        public void WriteString(IntPtr Address, string Value)
-        {
-            byte[] data = Encoding.Default.GetBytes(Value + "\0");
-            IntPtr Zero = IntPtr.Zero;
-            WriteProcessMemory(_Handle, Address, data, data.Length, (int)Zero);
-        }
-
         public void ExecuteRemoteCode(String Code)
         {
+            IntPtr CodePtr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
             byte[] CodeByte = StringToByte(Code);
-            IntPtr CodePtr = VirtualAllocEx(_Handle, IntPtr.Zero, CodeByte.Length, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-            if(CodePtr != IntPtr.Zero)
-            {
-                WriteProcessMemory(_Handle, CodePtr, CodeByte, CodeByte.Length, 0);
-                IntPtr Thread = CreateRemoteThread(_Handle, IntPtr.Zero, 0, CodePtr, IntPtr.Zero, 0, IntPtr.Zero);
-
-                if (Thread != IntPtr.Zero)
-                    WaitForSingleObject(Thread, uint.MaxValue);
-
-                CloseHandle(Thread);
-            }
-
+            WriteProcessMemory(_Handle, CodePtr, CodeByte, CodeByte.Length, 0);
+            IntPtr Thread = CreateRemoteThread(_Handle, IntPtr.Zero, 0, CodePtr, IntPtr.Zero, 0, IntPtr.Zero);
+            if (Thread != IntPtr.Zero)
+                WaitForSingleObject(Thread, uint.MaxValue);
+            CloseHandle(Thread);
             VirtualFreeEx(_Handle, CodePtr, 0, MEM_RELEASE);
-
         }
         #endregion
 
@@ -1484,30 +1108,19 @@ namespace KOF.Core
 
         public int GetRecvPointer()
         {
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                return GetAddress("KO_PTR_DLG");
-
-            return GetAddress("KO_PTR_DLG");
+            return Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG") - 0x14)) + 0x8;
         }
 
-        public int GetRecvHookPointer()
+        public void PatchMailslot()
         {
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                return Read4Byte(Read4Byte(GetRecvPointer())) + 0x8;
+            UnicodeEncoding UnicodeEncoding = new UnicodeEncoding();
 
-            return Read4Byte(Read4Byte(GetRecvPointer())) + 0x8;
-        }
+            IntPtr CreateFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "CreateFileW");
+            IntPtr WriteFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "WriteFile");
+            IntPtr CloseFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "CloseHandle");
 
-        public void PatchRecvMailslot()
-        {
             if (_MailslotRecvFuncPtr == IntPtr.Zero)
             {
-                UnicodeEncoding UnicodeEncoding = new UnicodeEncoding();
-
-                IntPtr CreateFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "CreateFileW");
-                IntPtr WriteFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "WriteFile");
-                IntPtr CloseFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "CloseHandle");
-
                 String MailslotRecvName = @"\\.\mailslot\KNIGHTONLINE_RECV\" + Environment.TickCount;
 
                 if (_MailslotRecvPtr == IntPtr.Zero)
@@ -1520,82 +1133,74 @@ namespace KOF.Core
                 WriteProcessMemory(_Handle, _MailslotRecvFuncPtr + 0x400, MailslotRecvNameByte, MailslotRecvNameByte.Length, 0);
 
                 Patch(_Handle, _MailslotRecvFuncPtr,
-                    "55" +
-                    "8BEC" +
-                    "83C4F4" +
-                    "33C0" +
-                    "8945FC" +
-                    "33D2" +
-                    "8955F8" +
-                    "6A00" +
-                    "6880000000" +
-                    "6A03" +
-                    "6A00" +
-                    "6A01" +
-                    "6800000040" +
-                    "68" + AlignDWORD(_MailslotRecvFuncPtr + 0x400) +
-                    "E8" + AlignDWORD(AddressDistance(_MailslotRecvFuncPtr + 0x27, CreateFilePtr)) +
-                    "8945F8" +
-                    "6A00" +
-                    "8D4DFC" +
-                    "51" +
-                    "FF750C" +
-                    "FF7508" +
-                    "FF75F8" +
-                    "E8" + AlignDWORD(AddressDistance(_MailslotRecvFuncPtr + 0x3E, WriteFilePtr)) +
-                    "8945F4" +
-                    "FF75F8" +
-                    "E8" + AlignDWORD(AddressDistance(_MailslotRecvFuncPtr + 0x49, CloseFilePtr)) +
-                    "8BE5" +
-                    "5D" +
-                    "C3");
+                    "55" + //push ebp
+                    "8BEC" + //mov ebp,esp
+                    "83C4F4" + //add esp,-0C
+                    "33C0" + //xor eax,eax
+                    "8945FC" + //mov [ebp-04],eax
+                    "33D2" + //xor edx,edx
+                    "8955F8" + //mov [ebp-08],edx
+                    "6A00" + //push 00
+                    "6880000000" + //push 00000080
+                    "6A03" + //push 03
+                    "6A00" + //push 00
+                    "6A01" + //push 01
+                    "6800000040" + //push 40000000
+                    "68" + AlignDWORD(_MailslotRecvFuncPtr + 0x400) + //push
+                    "E8" + AlignDWORD(AddressDistance(_MailslotRecvFuncPtr + 0x27, CreateFilePtr)) + //call
+                    "8945F8" + //mov [ebp-08],eax
+                    "6A00" + //push 00
+                    "8D4DFC" + //lea ecx,[ebp-04]
+                    "51" + //push ecx
+                    "FF750C" + //push [ebp+0C]
+                    "FF7508" + //push [ebp+08]
+                    "FF75F8" + //push [ebp-08]
+                    "E8" + AlignDWORD(AddressDistance(_MailslotRecvFuncPtr + 0x3E, WriteFilePtr)) + //call
+                    "8945F4" + //mov [ebp-0C],eax
+                    "FF75F8" + //push [ebp-08]
+                    "E8" + AlignDWORD(AddressDistance(_MailslotRecvFuncPtr + 0x49, CloseFilePtr)) + //call
+                    "8BE5" + //mov esp,ebp
+                    "5D" + //pop ebp
+                    "C3"); //ret 
             }
 
             _MailslotRecvHookPtr = VirtualAllocEx(_Handle, _MailslotRecvHookPtr, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
             Patch(_Handle, _MailslotRecvHookPtr,
-                "55" +
-                "8BEC" +
-                "83C4F8" +
-                "53" +
-                "8B4508" +
-                "83C004" +
-                "8B10" +
-                "8955FC" +
-                "8B4D08" +
-                "83C108" +
-                "8B01" +
-                "8945F8" +
-                "FF75FC" +
-                "FF75F8" +
-                "E8" + AlignDWORD(AddressDistance(_MailslotRecvHookPtr + 0x23, _MailslotRecvFuncPtr)) +
-                "83C408" +
-                "8B0D" + AlignDWORD(GetRecvPointer()) +
-                "FF750C" +
-                "FF7508" +
-                "B8" + AlignDWORD(Read4Byte(GetRecvHookPointer())) +
-                "FFD0" +
-                "5B" +
-                "59" +
-                "59" +
-                "5D" +
-                "C20800");
+                "55" + //push ebp
+                "8BEC" + //mov ebp,esp
+                "83C4F8" + //add esp,-08
+                "53" + //push ebx
+                "8B4508" + //mov eax,[ebp+08]
+                "83C004" + //add eax,04
+                "8B10" + //mov edx,[eax]
+                "8955FC" + //mov [ebp-04],edx
+                "8B4D08" + //mov ecx,[ebp+08]
+                "83C108" + //add ecx,08
+                "8B01" + //mov eax,[ecx]
+                "8945F8" + //mov [ebp-08],eax
+                "FF75FC" + //push [ebp-04]
+                "FF75F8" + //push [ebp-08]
+                "E8" + AlignDWORD(AddressDistance(_MailslotRecvHookPtr + 0x23, _MailslotRecvFuncPtr)) + //call
+                "83C408" + //add esp,08
+                "8B0D" + AlignDWORD(GetAddress("KO_PTR_DLG") - 0x14) + //mov ecx
+                "FF750C" + //push [ebp+0C]
+                "FF7508" + //push [ebp+08]
+                "B8" + AlignDWORD(Read4Byte(GetRecvPointer())) + //mov eax
+                "FFD0" + //call eax
+                "5B" + //pop ebx
+                "59" + //pop ecx
+                "59" + //pop ecx
+                "5D" + //pop ebp
+                "C20800"); //ret 0008
 
             uint MemoryProtection;
-            VirtualProtectEx(_Handle, new IntPtr(GetRecvHookPointer()), 4, PAGE_EXECUTE_READWRITE, out MemoryProtection);
-            Write4Byte(GetRecvHookPointer(), _MailslotRecvHookPtr.ToInt32());
-            VirtualProtectEx(_Handle, new IntPtr(GetRecvHookPointer()), 4, MemoryProtection, out MemoryProtection);
 
-            Debug.WriteLine("Recv packet hooked. Address: {0}", _MailslotRecvHookPtr);
-        }
+            VirtualProtectEx(_Handle, new IntPtr(GetRecvPointer()), 4, PAGE_EXECUTE_READWRITE, out MemoryProtection);
+            Write4Byte(GetRecvPointer(), _MailslotRecvHookPtr.ToInt32());
+            VirtualProtectEx(_Handle, new IntPtr(GetRecvPointer()), 4, MemoryProtection, out MemoryProtection);
 
-        public void PatchSendMailslot()
-        {
-            UnicodeEncoding UnicodeEncoding = new UnicodeEncoding();
-
-            IntPtr CreateFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "CreateFileW");
-            IntPtr WriteFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "WriteFile");
-            IntPtr CloseFilePtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "CloseHandle");
+            Debug.WriteLine("Recv packet hooked.");
 
             String MailslotSendName = @"\\.\mailslot\KNIGHTONLINE_SEND\" + Environment.TickCount;
 
@@ -1607,45 +1212,28 @@ namespace KOF.Core
 
             WriteProcessMemory(_Handle, _MailslotSendHookPtr + 0x400, MailslotSendNameByte, MailslotSendNameByte.Length, 0);
 
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-            {
-                Patch(_Handle, _MailslotSendHookPtr, "608B4424248905" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x100) + "8B4424288905" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x104) + "3D004000007D3D6A0068800000006A036A006A01680000004068" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x400) + "E8" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x33, CreateFilePtr)) + "83F8FF741C6A005490FF35" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x104) + "FF35" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x100) + "50E8" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x4E, WriteFilePtr)) + "50E8" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x54, CloseFilePtr)) + "61558BEC6AFF68" +
-                    AlignDWORD(Read4Byte(GetAddress("KO_PTR_SND") + 0x4)) + "E9" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x61, new IntPtr(GetAddress("KO_PTR_SND") + 0x7))));
-            }
-            else
-            {
-                Patch(_Handle, _MailslotSendHookPtr, "608B4424248905" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x100) + "8B4424288905" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x104) + "3D004000007D3D6A0068800000006A036A006A01680000004068" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x400) + "E8" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x33, CreateFilePtr)) + "83F8FF741C6A005490FF35" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x104) + "FF35" +
-                    AlignDWORD(_MailslotSendHookPtr + 0x100) + "50E8" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x4E, WriteFilePtr)) + "50E8" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x54, CloseFilePtr)) + "616AFF68" +
-                    AlignDWORD(Read4Byte(GetAddress("KO_PTR_SND") + 0x4)) + "E9" +
-                    AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x61, new IntPtr(GetAddress("KO_PTR_SND") + 0x7))));
-            }
+            Patch(_Handle, _MailslotSendHookPtr, "608B4424248905" +
+                AlignDWORD(_MailslotSendHookPtr + 0x100) + "8B4424288905" +
+                AlignDWORD(_MailslotSendHookPtr + 0x104) + "3D004000007D3D6A0068800000006A036A006A01680000004068" +
+                AlignDWORD(_MailslotSendHookPtr + 0x400) + "E8" +
+                AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x33, CreateFilePtr)) + "83F8FF741C6A005490FF35" +
+                AlignDWORD(_MailslotSendHookPtr + 0x104) + "FF35" +
+                AlignDWORD(_MailslotSendHookPtr + 0x100) + "50E8" +
+                AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x4E, WriteFilePtr)) + "50E8" +
+                AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x54, CloseFilePtr)) + "616AFF68" +
+                AlignDWORD(Read4Byte(GetAddress("KO_PTR_SND") + 0x4)) + "E9" +
+                AlignDWORD(AddressDistance(_MailslotSendHookPtr + 0x61, new IntPtr(GetAddress("KO_PTR_SND") + 0x7))));
 
             Patch(_Handle, new IntPtr(GetAddress("KO_PTR_SND")), "E9" + AlignDWORD(AddressDistance(new IntPtr(GetAddress("KO_PTR_SND")), _MailslotSendHookPtr)));
 
-            Debug.WriteLine("Send packet hooked. Address: {0}", _MailslotSendHookPtr);
+            Debug.WriteLine("Send packet hooked.");
         }
 
         #region "Game Functions"
 
         public string GetName()
         {
-            int NameLen = Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_NAME_LENGTH"));
+            int NameLen = Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_NAME_LEN"));
 
             if (NameLen > 15)
                 return ReadString(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_NAME")), NameLen);
@@ -1655,7 +1243,12 @@ namespace KOF.Core
 
         protected bool IsConnectionLost()
         {
-            return Read4Byte(Read4Byte(GetAddress("KO_PTR_PKT")) + 0xA0) == 0 ? true : false;
+            int StateAddress = 0x40064;
+
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                StateAddress = 0x400DC;
+
+            return Read4Byte(Read4Byte(GetAddress("KO_PTR_PKT")) + StateAddress) == 0 ? true : false;
         }
 
         public int GetId()
@@ -1760,7 +1353,7 @@ namespace KOF.Core
             if (GetTargetId() == 0) return "";
             int Base = GetTargetBase();
             if (Base == 0) return "";
-            int NameLen = Read4Byte(Base + GetAddress("KO_OFF_NAME_LENGTH"));
+            int NameLen = Read4Byte(Base + GetAddress("KO_OFF_NAME_LEN"));
             if (NameLen > 15)
                 return ReadString(Read4Byte(Base + GetAddress("KO_OFF_NAME")), NameLen);
 
@@ -1773,6 +1366,7 @@ namespace KOF.Core
             int Base = GetTargetBase();
             if (Base == 0) return 0;
             return (int)Math.Round(ReadFloat(Base + GetAddress("KO_OFF_X")));
+            //return (int)Math.Round(ReadFloat(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_MCOR")) + GetAddress("KO_OFF_MCORX")));
         }
 
         public int GetTargetY()
@@ -1781,6 +1375,7 @@ namespace KOF.Core
             int Base = GetTargetBase();
             if (Base == 0) return 0;
             return (int)Math.Round(ReadFloat(Base + GetAddress("KO_OFF_Y")));
+            //return (int)Math.Round(ReadFloat(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_MCOR")) + GetAddress("KO_OFF_MCORY")));
         }
 
         public int GetTargetZ()
@@ -1789,11 +1384,17 @@ namespace KOF.Core
             int Base = GetTargetBase();
             if (Base == 0) return 0;
             return (int)Math.Round(ReadFloat(Base + GetAddress("KO_OFF_Z")));
+            //return (int)Math.Round(ReadFloat(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_MCOR")) + GetAddress("KO_OFF_MCORZ")));
         }
 
         protected short GetState()
         {
-            return ReadByte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_STATE"));
+            int StateOffset = 0x2A0;
+
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                StateOffset = 0x2EC;
+
+            return ReadByte(Read4Byte(GetAddress("KO_PTR_CHR")) + StateOffset);
         }
 
         public int GetZoneId()
@@ -1813,27 +1414,27 @@ namespace KOF.Core
 
         public int GetGoX()
         {
-            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_X")));
+            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX")));
         }
 
         public int GetGoY()
         {
-            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_Y")));
+            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY")));
         }
 
         public int GetGoZ()
         {
-            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_Y")));
+            return (int)Math.Round(ReadFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY")));
         }
 
-        public int GetSkill(int Slot)
+        protected int GetSkill(int Slot)
         {
-            return Read4Byte(Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SKILL_TREE_BASE")) + 0x184 + (Slot * 4) + 0x68)));
+            return Read4Byte(Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SBARBase")) + 0x184 + (Slot * 4) + 0x68)));
         }
 
         public int GetSkillPoint(int Slot)
         {
-            return Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SKILL_TREE_BASE")) + GetAddress("KO_OFF_SKILL_TREE_POINT") + (Slot * 4));
+            return Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SBARBase")) + GetAddress("KO_OFF_BSkPoint") + (Slot * 4));
         }
 
         public void Oreads(bool Enable)
@@ -1858,18 +1459,17 @@ namespace KOF.Core
 
         public void Wallhack(bool Enable)
         {
-            WriteByte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_WH"), Enable ? 0 : 1);
+            Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_WH"), Enable ? 0 : 1);
         }
 
         public void MoveCoordinate(int GoX, int GoY)
         {
             if (GoX <= 0 || GoY <= 0) return;
             if (GoX == GetX() && GoY == GetY()) return;
-
-            WriteByte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVE_TYPE"), 2);
-            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_X"), GoX);
-            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_Y"), GoY);
-            WriteByte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVE"), 1);
+            Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVEType"), 2);
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX"), GoX);
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY"), GoY);
+            Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVE"), 1);
         }
 
         public void StartRouteEvent(int GoX, int GoY, int GoZ = 0)
@@ -1886,7 +1486,7 @@ namespace KOF.Core
                        "C74004" + FloatToHex(GoZ) +
                        "C74008" + FloatToHex(GoY) +
                        "50" +
-                       "B8" + AlignDWORD(GetAddress("KO_PTR_ROUTE_START")) +
+                       "B8" + AlignDWORD(GetAddress("KO_ROTA_START")) +
                        "FFD0" +
                        "61" +
                        "C3");
@@ -1895,12 +1495,13 @@ namespace KOF.Core
 
         public void StopRouteEvent()
         {
-            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_X"), GetX());
-            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_Y"), GetY());
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX"), GetX());
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoZ"), GetZ());
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY"), GetY());
 
             ExecuteRemoteCode("60" +
                    "8B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) +
-                   "B8" + AlignDWORD(GetAddress("KO_PTR_ROUTE_STOP")) +
+                   "B8" + AlignDWORD(GetAddress("KO_ROTA_STOP")) +
                    "FFD0" +
                    "61" +
                    "C3");
@@ -1908,7 +1509,7 @@ namespace KOF.Core
 
         public void SetCoordinate(int GoX, int GoY, int ExecutionAfterWait = 0)
         {
-            if (GoX <= 0 || GoY <= 0) return;
+            if (GoX <= 0 || GoY <= 0 || IsInFallback() || IsInEnterGame()) return;
             if (GoX == GetX() && GoY == GetY()) return;
 
             int StartX = GetX();
@@ -1935,6 +1536,9 @@ namespace KOF.Core
                 int NextX = StartX + DirectionX * AngleX;
                 int NextY = StartY + DirectionY * AngleY;
 
+                if (IsInFallback() || IsInEnterGame())
+                    return;
+
                 SendPacket("06" + AlignDWORD(NextX * 10).Substring(0, 4) + AlignDWORD(NextY * 10).Substring(0, 4) + AlignDWORD(GetZ() * 10).Substring(0, 4) + "2B0003");
             }
 
@@ -1943,21 +1547,23 @@ namespace KOF.Core
             WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_X"), GoX);
             WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_Y"), GoY);
 
-            Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVE_TYPE"), 2);
-            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_X"), GoX);
-            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GO_Y"), GoY);
+            Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVEType"), 2);
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoX"), GoX);
+            WriteFloat(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_GoY"), GoY);
             Write4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + GetAddress("KO_OFF_MOVE"), 1);
+
+            //MoveCoordinate(GetX(), GetY());
 
             if (ExecutionAfterWait > 0)
                 Thread.Sleep(ExecutionAfterWait);
         }
 
-        public int ReadAffectedSkill(int Skill)
+        private int ReadAffectedSkill(int Skill)
         {
-            int SkillBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SKILL_BASE"));
+            int SkillBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SKILLBASE"));
 
             SkillBase = Read4Byte(SkillBase + 0x4);
-            SkillBase = Read4Byte(SkillBase + GetAddress("KO_OFF_SKILL_SLOT"));
+            SkillBase = Read4Byte(SkillBase + GetAddress("KO_OFF_SKILLID"));
 
             for (int i = 1; i < Skill; i++)
                 SkillBase = Read4Byte(SkillBase + 0x0);
@@ -1967,10 +1573,10 @@ namespace KOF.Core
             if (SkillBase > 0)
                 return Read4Byte(SkillBase + 0x0);
 
-            SkillBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SKILL_BASE"));
+            SkillBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_SKILLBASE"));
 
             SkillBase = Read4Byte(SkillBase + 0x4);
-            SkillBase = Read4Byte(SkillBase + GetAddress("KO_OFF_SKILL_SLOT"));
+            SkillBase = Read4Byte(SkillBase + GetAddress("KO_OFF_SKILLID"));
 
             for (int i = 1; i < Skill; i++)
                 SkillBase = Read4Byte(SkillBase + 0x0);
@@ -2013,7 +1619,7 @@ namespace KOF.Core
             return false;
         }
 
-        public bool IsSkillAffected(int Skill)
+        protected bool IsSkillAffected(int Skill)
         {
             for (int i = 1; i < 20; i++)
             {
@@ -2042,84 +1648,130 @@ namespace KOF.Core
 
         protected int GetInventoryItemDurability(int SlotId)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * SlotId)));
-            return Read4Byte(Length + 0x74);
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
+            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * SlotId)));
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                return Read4Byte(Length + 0x7C);
+            else
+                return Read4Byte(Length + 0x74);
         }
 
         protected void SetInventoryItemDurability(int SlotId, int iDurability)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * SlotId)));
-            Write4Byte(Length + 0x74, iDurability);
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
+            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * SlotId)));
+
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                Write4Byte(Length + 0x7C, iDurability);
+            else
+                Write4Byte(Length + 0x74, iDurability);
         }
 
         protected bool IsInventoryFull()
         {
             bool Full = true;
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
             for (int i = 14; i < 42; i++)
             {
-                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * i)));
-
-                if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == 0)
-                    return false;
+                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
+                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == 0)
+                        return false;
+                }
+                else
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == 0)
+                        return false;
+                }
             }
-
             return Full;
         }
 
-        protected int GetInventoryAvailableSlotCount()
+        public int GetInventoryAvailableSlotCount()
         {
             int Count = 0;
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
             for (int i = 14; i < 42; i++)
             {
-                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * i)));
-
-                if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == 0)
-                    Count++;
+                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
+                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == 0)
+                        Count++;
+                }
+                else
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == 0)
+                        Count++;
+                }
             }
-
             return Count;
         }
 
         protected int GetInventoryItemCount(int ItemId)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
             for (int i = 0; i < 42; i++)
             {
-                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * i)));
-                if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
-                    return Read4Byte(Length + 0x70);
+                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
+                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == ItemId)
+                        return Read4Byte(Length + 0x78);
+                }
+                else
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
+                        return Read4Byte(Length + 0x70);
+                }
             }
-
             return 0;
         }
 
         protected int GetInventoryItemId(int SlotId)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * SlotId)));
-            return Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C));
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
+            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * SlotId)));
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+            {
+                return Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74));
+            }
+            else
+            {
+                return Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C));
+            }
         }
 
 
         protected string GetInventoryItemName(int SlotId)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * SlotId)));
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
+            int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * SlotId)));
 
-            int Name = Read4Byte(Length + 0x68);
-            int NameLength = Read4Byte(Name + 0x1C);
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+            {
+                int Name = Read4Byte(Length + 0x70);
+                int NameLength = Read4Byte(Name + 0x1C);
 
-            if (NameLength > 15)
-                return ReadString(Read4Byte(Name + 0xC), NameLength);
+                if (NameLength > 15)
+                    return ReadString(Read4Byte(Name + 0xC), NameLength);
+                else
+                    return ReadString(Name + 0xC, NameLength);
+            }
             else
-                return ReadString(Name + 0xC, NameLength);
+            {
+                int Name = Read4Byte(Length + 0x68);
+                int NameLength = Read4Byte(Name + 0x1C);
+
+                if (NameLength > 15)
+                    return ReadString(Read4Byte(Name + 0xC), NameLength);
+                else
+                    return ReadString(Name + 0xC, NameLength);
+            }
+
+
+
         }
 
         protected int GetInventoryEmptySlot()
@@ -2142,37 +1794,49 @@ namespace KOF.Core
 
         protected bool IsInventoryItemExist(int ItemId)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
-
-            for (int i = 14; i < 42; i++)
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
+            for (int i = 0; i < 42; i++)
             {
-                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * i)));
-
-                if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
-                    return true;
+                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
+                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == ItemId)
+                        return true;
+                }
+                else
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
+                        return true;
+                }
             }
-
             return false;
         }
 
         protected int GetInventoryItemSlot(int ItemId)
         {
-            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEM_BASE"));
+            int InventoryBase = Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_ITEMB"));
 
             for (int i = 14; i < 42; i++)
             {
-                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEM_SLOT") + (4 * i)));
+                int Length = Read4Byte(InventoryBase + (GetAddress("KO_OFF_ITEMS") + (4 * i)));
 
-                if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
-                    return i;
+                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x70)) + Read4Byte(Read4Byte(Length + 0x74)) == ItemId)
+                        return i;
+                }
+                else
+                {
+                    if (Read4Byte(Read4Byte(Length + 0x68)) + Read4Byte(Read4Byte(Length + 0x6C)) == ItemId)
+                        return i;
+                }
             }
-
             return -1;
         }
 
         public int GetAllInventoryItem(ref List<Inventory> refInventory)
         {
-            for (int i = 0; i < 42; i++)
+            for (int i = 14; i < 42; i++)
             {
                 int Item = GetInventoryItemId(i);
 
@@ -2181,6 +1845,8 @@ namespace KOF.Core
                     Inventory Inventory = new Inventory();
 
                     Inventory.Id = Item;
+
+                    Debug.WriteLine(Inventory.Id);
 
                     Item ItemData = Storage.ItemCollection.Find(x => x.Id == Item);
 
@@ -2198,7 +1864,7 @@ namespace KOF.Core
 
         public bool IsNeedRepair()
         {
-            for (int i = 0; i < 14; i++)
+            for (int i = 1; i < 14; i++)
             {
                 switch (i)
                 {
@@ -2220,9 +1886,9 @@ namespace KOF.Core
             return false;
         }
 
-        public void RepairAllEquipment(int NpcId, int ExecutionAfterWait = 1250)
+        public void RepairAllEquipment(int NpcId, bool Force, int ExecutionAfterWait = 1250)
         {
-            for (int i = 0; i < 14; i++)
+            for (int i = 1; i < 14; i++)
             {
                 switch (i)
                 {
@@ -2234,7 +1900,7 @@ namespace KOF.Core
                     case 12:
                     case 13:
                         {
-                            if (IsInventorySlotEmpty(i) == false)
+                            if (Force == true || (IsInventorySlotEmpty(i) == false && GetInventoryItemDurability(i) == 0))
                             {
                                 SendPacket("3B01" + AlignDWORD(i).Substring(0, 2) + AlignDWORD(NpcId).Substring(0, 4) + AlignDWORD(GetInventoryItemId(i)));
                                 Thread.Sleep(500);
@@ -2252,7 +1918,7 @@ namespace KOF.Core
                 Thread.Sleep(ExecutionAfterWait);
         }
 
-        public bool IsNeedSupply(ref List<Supply> refSupply, bool force)
+        public bool IsNeedSupply(ref List<Supply> refSupply, bool Force = false)
         {
             foreach (var x in Storage.SupplyCollection)
             {
@@ -2264,17 +1930,25 @@ namespace KOF.Core
                     if (Item == null)
                         continue;
 
-                    if((Item.Name == "Arrow" && GetInventoryItemCount(Item.Id) <= 30) 
-                        || (Item.Name != "Arrow" && GetInventoryItemCount(Item.Id) <= 1 && GetInventoryItemCount(Item.Id) < Convert.ToInt32(GetControl(x.ControlCount)))
-                        || (force))
+                    if (Force == true || (GetInventoryItemCount(Item.Id) < 8 && GetInventoryItemCount(Item.Id) < Convert.ToInt32(GetControl(x.ControlCount))))
                     {
-                        Supply Supply = new Supply();
+                        Npc Npc = Storage.NpcCollection
+                            .FindAll(y => y.Platform == GetPlatform().ToString() && y.Type == x.Type && y.Zone == GetZoneId() && (y.Nation == 0 || y.Nation == GetNation()))
+                            .GroupBy(y => Math.Pow((GetX() - y.X), 2) + Math.Pow((GetY() - y.Y), 2))
+                            .OrderBy(y => y.Key)
+                            ?.FirstOrDefault()
+                            ?.FirstOrDefault();
 
-                        Supply.Item = Item;
+                        if (Npc != null)
+                        {
+                            Supply Supply = new Supply();
 
-                        Supply.Count = Convert.ToInt32(GetControl(x.ControlCount));
+                            Supply.Item = Item;
+                            Supply.Npc = Npc;
+                            Supply.Count = Convert.ToInt32(GetControl(x.ControlCount));
 
-                        refSupply.Add(Supply);
+                            refSupply.Add(Supply);
+                        }
                     }
                 }
             }
@@ -2328,7 +2002,7 @@ namespace KOF.Core
 
         public void ForwardPacketToAll(String Packet)
         {
-            foreach (Client ClientData in Storage.ClientCollection)
+            foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
             {
                 if (ClientData == null) continue;
                 if (GetProcessId() == ClientData.GetProcessId()) continue;
@@ -2347,7 +2021,7 @@ namespace KOF.Core
             if (Storage.FollowedClient.GetProcessId() != GetProcessId()) return;
             if (GetAction() != EAction.None) return;
 
-            foreach (Client ClientData in Storage.ClientCollection)
+            foreach (Client ClientData in Storage.ClientCollection.Values.ToList())
             {
                 if (ClientData == null || Storage.FollowedClient == null) continue;
                 if (Storage.FollowedClient.GetProcessId() == ClientData.GetProcessId()) continue;
@@ -2365,23 +2039,6 @@ namespace KOF.Core
         public void SendPacket(String Packet, int ExecutionAfterWait = 0)
         {
             SendPacket(StringToByte(Packet), ExecutionAfterWait);
-        }
-
-        protected void SetCharacterState(UInt16 State)
-        {
-            /*
-             * 0 = Idle
-             * 1 = Walking
-             * 2 = Running
-             */
-
-            ExecuteRemoteCode("60" +
-                          "6A00" + 
-                          "6A" + AlignDWORD(State).Substring(0, 2) +
-                          "B9" + AlignDWORD(GetAddress("KO_PTR_DLG")) +
-                          "8B09B8" +
-                          AlignDWORD(GetAddress("KO_PTR_STATE")) +
-                          "FFD061C3");
         }
 
         protected void SendAttackPacket(int TargetId)
@@ -2404,25 +2061,21 @@ namespace KOF.Core
 
         private void UseAttackSkill(int SkillId, int TargetId = 0)
         {
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                SetCharacterState(0);
-
             SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
         }
 
         public void UseSelfSkill(int SkillId, int TargetId = 0)
         {
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                SetCharacterState(0);
-
             SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
+        }
+
+        public void ClearSkill(int SkillId)
+        {
+            SendPacket("3106" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "000000000000000000000000");
         }
 
         private void UseTargetSkill(int SkillId, int TargetId)
         {
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                SetCharacterState(0);
-
             SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000F00");
             Thread.Sleep(10);
             SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
@@ -2430,17 +2083,23 @@ namespace KOF.Core
 
         private void UseTargetAreaSkill(int SkillId, int TargetX, int TargetY, int TargetZ)
         {
-            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                SetCharacterState(0);
-
             SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "00000000000000000F00");
             Thread.Sleep(10);
             SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "000000000000");
         }
 
+        public int GetStateOffset()
+        {
+            int StateOffset = 0x2A0;
+
+            if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                StateOffset = 0x2EC;
+
+            return StateOffset;
+        }
+
         public bool IsSelectableTarget(int TargetId = 0)
         {
-            
             TargetId = TargetId > 0 ? TargetId : GetTargetId();
             if (TargetId == 0) return false;
             int TargetBase = GetTargetBase(TargetId);
@@ -2449,7 +2108,7 @@ namespace KOF.Core
             if (CoordinateDistance(GetX(), GetY(), (int)Math.Round(ReadFloat(TargetBase + GetAddress("KO_OFF_X"))), (int)Math.Round(ReadFloat(TargetBase + GetAddress("KO_OFF_Y")))) > Convert.ToInt32(GetControl("AttackDistance"))) return false;
             if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == false && Read4Byte(TargetBase + GetAddress("KO_OFF_NATION")) != 0) return false;
             if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true && Read4Byte(TargetBase + GetAddress("KO_OFF_NATION")) >= 3) return false;
-            //if (ReadByte(TargetBase + GetAddress("KO_OFF_STATE")) == 10 || ReadByte(TargetBase + GetAddress("KO_OFF_STATE")) == 11) return false;
+            if (ReadByte(TargetBase + GetStateOffset()) == 10 || ReadByte(TargetBase + GetStateOffset()) == 11) return false;
             return true;
         }
 
@@ -2463,7 +2122,21 @@ namespace KOF.Core
             if (CoordinateDistance(GetX(), GetY(), (int)Math.Round(ReadFloat(TargetBase + GetAddress("KO_OFF_X"))), (int)Math.Round(ReadFloat(TargetBase + GetAddress("KO_OFF_Y")))) > Convert.ToInt32(GetControl("AttackDistance"))) return false;
             if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == false && Read4Byte(TargetBase + GetAddress("KO_OFF_NATION")) != 0) return false;
             if (Convert.ToBoolean(GetControl("TargetOpponentNation")) == true && Read4Byte(TargetBase + GetAddress("KO_OFF_NATION")) >= 3) return false;
-            //if (ReadByte(TargetBase + GetAddress("KO_OFF_STATE")) == 10 || ReadByte(TargetBase + GetAddress("KO_OFF_STATE")) == 11) return false;
+            if (ReadByte(TargetBase + GetStateOffset()) == 10 || ReadByte(TargetBase + GetStateOffset()) == 11) return false;
+            return true;
+        }
+
+        public bool CanUseSkill()
+        {
+            if (GetPlatform() == AddressEnum.Platform.CNKO || GetPlatform() == AddressEnum.Platform.USKO)
+            {
+                if (IsMoving()) //Moving
+                    return false;
+
+                if (IsMining()) //Mining
+                    return false;
+            }
+
             return true;
         }
 
@@ -2574,10 +2247,8 @@ namespace KOF.Core
                 case "Blow Arrow":
                 case "Blinding Strafe":
                     {
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000D00");
                         Thread.Sleep(10);
@@ -2590,10 +2261,8 @@ namespace KOF.Core
 
                 case "Counter Strike":
                     {
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000A00");
                         Thread.Sleep(10);
@@ -2606,10 +2275,8 @@ namespace KOF.Core
 
                 case "Multiple Shot":
                     {
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000D00");
                         Thread.Sleep(10);
@@ -2626,10 +2293,8 @@ namespace KOF.Core
 
                 case "Arrow Shower":
                     {
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000F00");
                         Thread.Sleep(10);
@@ -2650,11 +2315,9 @@ namespace KOF.Core
 
                 case "Süper Archer":
                     {
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
                         if (CoordinateDistance(GetX(), GetY(), TargetX, TargetY) > 1) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         SendPacket("3101" + AlignDWORD(Int32.Parse(GetClass().ToString() + "515")).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000D00");
                         Thread.Sleep(10);
@@ -2666,11 +2329,9 @@ namespace KOF.Core
                         SendPacket("3103" + AlignDWORD(Int32.Parse(GetClass().ToString() + "515")).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000003000000000000000000");
                         SendPacket("3104" + AlignDWORD(Int32.Parse(GetClass().ToString() + "515")).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "0200000000009BFF0300000000000000");
 
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
                         if (CoordinateDistance(GetX(), GetY(), TargetX, TargetY) > 1) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         SendPacket("3101" + AlignDWORD(Int32.Parse(GetClass().ToString() + "555")).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000F00");
                         Thread.Sleep(10);
@@ -2704,9 +2365,6 @@ namespace KOF.Core
                 case "Vampiric Touch":
                     {
                         if (IsAttackableTarget() == false) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
 
                         if (Skill.Name == "Blood Drain" || Skill.Name == "Vampiric Touch")
                         {
@@ -2743,6 +2401,7 @@ namespace KOF.Core
 
                 case "Hide":
                     {
+                        if (CanUseSkill() == false) return false;
                         UseTargetSkill(SkillId, GetId());
 
                         return true;
@@ -2750,9 +2409,7 @@ namespace KOF.Core
 
                 case "Stealth":
                     {
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
-
+                        if (CanUseSkill() == false) return false;
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "00000000000000000000000000001E00");
                         Thread.Sleep(10);
                         SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "000000000000000000000000");
@@ -2762,9 +2419,7 @@ namespace KOF.Core
 
                 case "Blood of wolf":
                     {
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
-
+                        if (CanUseSkill() == false) return false;
                         SendPacket("3106" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "000000000000000000000000");
                         Thread.Sleep(10);
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(GetX()).Substring(0, 4) + AlignDWORD(GetZ()).Substring(0, 4) + AlignDWORD(GetY()).Substring(0, 4) + "00000000000000001100");
@@ -2775,15 +2430,14 @@ namespace KOF.Core
                     }
                 case "Swift":
                     {
+                        if (CanUseSkill() == false) return false;
                         UseTargetSkill(SkillId, TargetId > 0 ? TargetId : GetId());
 
                         return true;
                     }
                 case "Lupine Eyes":
                     {
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
-
+                        if (CanUseSkill() == false) return false;
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "00000000000000000000000000001400");
                         Thread.Sleep(10);
                         SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(GetId()).Substring(0, 4) + "000000000000000000000000");
@@ -2851,20 +2505,11 @@ namespace KOF.Core
                 case "Parasite":
                 case "Massive":
                     {
+                        if (CanUseSkill() == false) return false;
                         if (IsAttackableTarget() == false) return false;
                         if (CoordinateDistance(GetX(), GetY(), TargetX, TargetY) > 30) return false;
 
                         UseTargetSkill(SkillId, TargetId);
-
-                        return true;
-                    }
-
-                case "Light Healing":
-                case "Tiny Healing":
-                    {
-                        SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000001300");
-                        Thread.Sleep(10);
-                        SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
 
                         return true;
                     }
@@ -2973,11 +2618,6 @@ namespace KOF.Core
                 case "Manes Of Thunder":
                 case "Charge":
                     {
-                        if (IsAttackableTarget() == false) return false;
-
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
-
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000A00");
                         Thread.Sleep(10);
                         SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
@@ -3020,12 +2660,10 @@ namespace KOF.Core
                     {
                         if (IsAttackableTarget() == false) return false;
 
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
-
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "00000000000000000000000000000F00");
                         Thread.Sleep(10);
                         SendPacket("3102" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
+                        Thread.Sleep(10);
                         SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + "000000000000000000000000");
                         SendPacket("3104" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + AlignDWORD(TargetId).Substring(0, 4) + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "9BFF0000000000000000");
 
@@ -3056,12 +2694,10 @@ namespace KOF.Core
                     {
                         if (IsAttackableTarget() == false) return false;
 
-                        if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                            SetCharacterState(0);
-
                         SendPacket("3101" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "00000000000000000F00");
                         Thread.Sleep(10);
                         SendPacket("3102" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "000000000000");
+                        Thread.Sleep(10);
                         SendPacket("3103" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "00000000000000000000");
                         SendPacket("3104" + AlignDWORD(SkillId).Substring(0, 6) + "00" + AlignDWORD(GetId()).Substring(0, 4) + "FFFF" + AlignDWORD(TargetX).Substring(0, 4) + AlignDWORD(TargetZ).Substring(0, 4) + AlignDWORD(TargetY).Substring(0, 4) + "9BFF0000000000000000");
 
@@ -3222,22 +2858,24 @@ namespace KOF.Core
             SendPacket("6A02");
         }
 
-        public void BuyItem(Item item, int npcId, int npcType, int Count, int ExecutionAfterWait = 0)
+        public void BuyItem(Item Item, Npc Npc, int Count, int ExecutionAfterWait = 0)
         {
             if (Count == 0) return;
 
-            int InventoryItemSlot = GetInventoryItemSlot(item.Id);
+            int InventoryItemSlot = GetInventoryItemSlot(Item.Id);
 
             InventoryItemSlot = InventoryItemSlot != -1 ? InventoryItemSlot : GetInventoryEmptySlot();
 
             if (InventoryItemSlot == -1) return;
 
-            string ItemCount = item.BuyPacketCountSize == 0 ? AlignDWORD(Count) : AlignDWORD(Count).Substring(0, item.BuyPacketCountSize);
+            string ItemCount = Item.BuyPacketCountSize == 0 ? AlignDWORD(Count) : AlignDWORD(Count).Substring(0, Item.BuyPacketCountSize);
 
-            if (npcType == 0) // 0 = Sunderies - 1 = Potion
-                SendPacket("2101" + "18E40300" + AlignDWORD(npcId).Substring(0, 4) + "01" + AlignDWORD(item.Id) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + ItemCount + item.BuyPacketEnd);
+            Debug.WriteLine(Npc.RealId);
+
+            if (Npc.Type == "Sunderies")
+                SendPacket("2101" + "18E40300" + AlignDWORD(Npc.RealId).Substring(0, 4) + "01" + AlignDWORD(Item.Id) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + ItemCount + Item.BuyPacketEnd);
             else
-                SendPacket("2101" + "48DC0300" + AlignDWORD(npcId).Substring(0, 4) + "01" + AlignDWORD(item.Id) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + ItemCount + item.BuyPacketEnd);
+                SendPacket("2101" + "48DC0300" + AlignDWORD(Npc.RealId).Substring(0, 4) + "01" + AlignDWORD(Item.Id) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + ItemCount + Item.BuyPacketEnd);
 
             Thread.Sleep(50);
             SendPacket("6A02");
@@ -3246,42 +2884,37 @@ namespace KOF.Core
                 Thread.Sleep(ExecutionAfterWait);
         }
 
-        public void SellItem(int itemId, int npcId, int npcType, int count, int executionAfterWait = 0)
+        public void SellItem(int ItemId, Npc Npc, int Count, int ExecutionAfterWait = 0)
         {
-            if (count == 0) return;
+            if (Count == 0) return;
 
-            int InventoryItemSlot = GetInventoryItemSlot(itemId);
-            int InventoryItemCount = GetInventoryItemCount(itemId);
+            int InventoryItemSlot = GetInventoryItemSlot(ItemId);
+            int InventoryItemCount = GetInventoryItemCount(ItemId);
 
-            if (InventoryItemCount == 0 || InventoryItemSlot == -1 || count > InventoryItemCount) return;
+            if (InventoryItemCount == 0 || InventoryItemSlot == -1 || Count > InventoryItemCount) return;
 
-            if (npcType == 0) // 0 = Sunderies - 1 = Potion
-                SendPacket("2102" + "18E40300" + AlignDWORD(npcId).Substring(0, 4) + "01" + AlignDWORD(itemId) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + AlignDWORD(count).Substring(0, 4));
+            if (Npc.Type == "Sunderies")
+                SendPacket("2102" + "18E40300" + AlignDWORD(Npc.RealId).Substring(0, 4) + "01" + AlignDWORD(ItemId) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + AlignDWORD(Count).Substring(0, 4));
             else
-                SendPacket("2102" + "48DC0300" + AlignDWORD(npcId).Substring(0, 4) + "01" + AlignDWORD(itemId) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + AlignDWORD(count).Substring(0, 4));
+                SendPacket("2102" + "48DC0300" + AlignDWORD(Npc.RealId).Substring(0, 4) + "01" + AlignDWORD(ItemId) + AlignDWORD(InventoryItemSlot - 14).Substring(0, 2) + AlignDWORD(Count).Substring(0, 4));
 
             Thread.Sleep(50);
             SendPacket("6A02");
 
-            if (executionAfterWait > 0)
-                Thread.Sleep(executionAfterWait);
+            if (ExecutionAfterWait > 0)
+                Thread.Sleep(ExecutionAfterWait);
         }
 
         public int SearchTarget(Int32 Address, ref List<TargetInfo> OutTargetList)
         {
-            int Ebp = Read4Byte(Read4Byte(GetAddress("KO_PTR_FLDB")) + Address);
+            int Ebp = Read4Byte(Read4Byte(GetAddress("KO_FLDB")) + Address);
             int Fend = Read4Byte(Read4Byte(Ebp + 0x4) + 0x4);
             int Esi = Read4Byte(Ebp);
             int Tick = Environment.TickCount;
 
             while (Esi != Ebp && Environment.TickCount - Tick < 50)
             {
-                int Base = 0;
-
-                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                    Base = Read4Byte(Esi + 0x14);
-                else
-                    Base = Read4Byte(Esi + 0x10);
+                int Base = Read4Byte(Esi + 0x10);
 
                 if (Base == 0) break;
 
@@ -3289,7 +2922,7 @@ namespace KOF.Core
                 {
                     TargetInfo Target = new TargetInfo();
 
-                    int NameLen = Read4Byte(Base + GetAddress("KO_OFF_NAME_LENGTH"));
+                    int NameLen = Read4Byte(Base + GetAddress("KO_OFF_NAME_LEN"));
 
                     Target.Base = Base;
 
@@ -3302,7 +2935,12 @@ namespace KOF.Core
 
                     Target.Nation = Read4Byte(Base + GetAddress("KO_OFF_NATION"));
 
-                    Target.State = ReadByte(Base + GetAddress("KO_OFF_STATE"));
+                    int StateOffset = 0x2A0;
+
+                    if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                        StateOffset = 0x2EC;
+
+                    Target.State = ReadByte(Base + StateOffset);
                     Target.X = (int)Math.Round(ReadFloat(Base + GetAddress("KO_OFF_X")));
                     Target.Y = (int)Math.Round(ReadFloat(Base + GetAddress("KO_OFF_Y")));
 
@@ -3339,7 +2977,7 @@ namespace KOF.Core
         public int SearchMob(ref List<TargetInfo> OutTargetList)
         {
             if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                return SearchTarget(0x28, ref OutTargetList);
+                return SearchTarget(0x5C, ref OutTargetList);
 
             return SearchTarget(0x34, ref OutTargetList);
         }
@@ -3347,7 +2985,7 @@ namespace KOF.Core
         public int SearchPlayer(ref List<TargetInfo> OutTargetList)
         {
             if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                return SearchTarget(0x30, ref OutTargetList);
+                return SearchTarget(0x7C, ref OutTargetList);
 
             return SearchTarget(0x40, ref OutTargetList);
         }
@@ -3372,7 +3010,7 @@ namespace KOF.Core
             if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
             {
                 IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_FLDB")) + "6A0168" + AlignDWORD(MobId) + "BF" + AlignDWORD(GetAddress("KO_PTR_FMBS")) + "FFD7A3" + AlignDWORD(Addr) + "61C3");
+                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_FLDB")) + "6A0168" + AlignDWORD(MobId) + "BF" + AlignDWORD(GetAddress("KO_FMBS")) + "FFD7A3" + AlignDWORD(Addr) + "61C3");
                 int Base = Read4Byte(Addr);
                 VirtualFreeEx(_Handle, Addr, 0, MEM_RELEASE);
                 return Base;
@@ -3398,7 +3036,7 @@ namespace KOF.Core
             if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
             {
                 IntPtr Addr = VirtualAllocEx(_Handle, IntPtr.Zero, 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_FLDB")) + "6A0168" + AlignDWORD(PlayerId) + "BF" + AlignDWORD(GetAddress("KO_PTR_FPBS")) + "FFD7A3" + AlignDWORD(Addr) + "61C3");
+                ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_FLDB")) + "6A0168" + AlignDWORD(PlayerId) + "BF" + AlignDWORD(GetAddress("KO_FPBS")) + "FFD7A3" + AlignDWORD(Addr) + "61C3");
                 int Base = Read4Byte(Addr);
                 VirtualFreeEx(_Handle, Addr, 0, MEM_RELEASE);
                 return Base;
@@ -3433,52 +3071,56 @@ namespace KOF.Core
             }
         }
 
-        public int GetPartyList(ref List<Player> PartyList)
+        public int GetPartyList(ref List<Party> PartyList)
         {
-            int Base = Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PARTY_BASE")) + GetAddress("KO_OFF_PARTY_LIST")));
+            int Base = Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PtBase")) + GetAddress("KO_OFF_Pt")));
 
             for (int i = 0; i <= GetPartyCount() - 1; i++)
             {
-                Player Party = new Player();
+                Party Party = new Party();
 
-                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                Party.MemberId = Read4Byte(Base + 0x8);
+                Party.MemberClass = Read4Byte(Base + 0x10);
+
+                if (GetPlatform() == AddressEnum.Platform.CNKO)
                 {
-                    Party.Id = Read4Byte(Base + 0x8);
-                    Party.Class = Read4Byte(Base + 0x10);
-                    Party.Hp = Read4Byte(Base + 0x18);
-                    Party.MaxHp = Read4Byte(Base + 0x1C);
-                    Party.Cure1 = Read4Byte(Base + 0x24);
-                    Party.Cure2 = Read4Byte(Base + 0x25);
-                    Party.Cure3 = Read4Byte(Base + 0x26);
-                    Party.Cure4 = Read4Byte(Base + 0x27);
+                    Party.MemberHp = Read4Byte(Base + 0x18);
+                    Party.MemberMaxHp = Read4Byte(Base + 0x1C);
+                    Party.MemberBuffHp = 0;
 
-                    int MemberNameLen = Read4Byte(Base + 0x40);
+                    Party.MemberCure1 = Read4Byte(Base + 0x28);
+                    Party.MemberCure2 = Read4Byte(Base + 0x29);
+                    Party.MemberCure3 = Read4Byte(Base + 0x2A);
+                    Party.MemberCure4 = Read4Byte(Base + 0x2B);
 
-                    if (MemberNameLen > 15)
-                        Party.Name = ReadString(Read4Byte(Base + 0x30), MemberNameLen);
+                    int MemberNickLen = Read4Byte(Base + 0x44);
+
+                    if (MemberNickLen > 15)
+                        Party.MemberName = ReadString(Read4Byte(Base + 0x34), MemberNickLen);
                     else
-                        Party.Name = ReadString(Base + 0x30, MemberNameLen);
+                        Party.MemberName = ReadString(Base + 0x34, MemberNickLen);
                 }
                 else
                 {
-                    Party.Id = Read4Byte(Base + 0x8);
-                    Party.Class = Read4Byte(Base + 0x10);
-                    Party.Hp = Read4Byte(Base + 0x14);
-                    Party.MaxHp = Read4Byte(Base + 0x18);
-                    Party.Cure1 = Read4Byte(Base + 0x24);
-                    Party.Cure2 = Read4Byte(Base + 0x25);
-                    Party.Cure3 = Read4Byte(Base + 0x26);
-                    Party.Cure4 = Read4Byte(Base + 0x27);
+                    Party.MemberHp = Read4Byte(Base + 0x14);
+                    Party.MemberMaxHp = Read4Byte(Base + 0x18);
+                    Party.MemberBuffHp = 0;
 
-                    int MemberNameLen = Read4Byte(Base + 0x40);
+                    Party.MemberCure1 = Read4Byte(Base + 0x24);
+                    Party.MemberCure2 = Read4Byte(Base + 0x25);
+                    Party.MemberCure3 = Read4Byte(Base + 0x26);
+                    Party.MemberCure4 = Read4Byte(Base + 0x27);
 
-                    if (MemberNameLen > 15)
-                        Party.Name = ReadString(Read4Byte(Base + 0x30), MemberNameLen);
+                    int MemberNickLen = Read4Byte(Base + 0x40);
+
+                    if (MemberNickLen > 15)
+                        Party.MemberName = ReadString(Read4Byte(Base + 0x30), MemberNickLen);
                     else
-                        Party.Name = ReadString(Base + 0x30, MemberNameLen);
+                        Party.MemberName = ReadString(Base + 0x30, MemberNickLen);
                 }
 
-                PartyList.Add(Party);
+                if (PartyList.Contains(Party) == false)
+                    PartyList.Add(Party);
 
                 Base = Read4Byte(Base);
             }
@@ -3486,62 +3128,63 @@ namespace KOF.Core
             return PartyList.Count;
         }
 
-        public int GetPartyMemberMaxHp(int Id)
-        {
-            int Base = Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PARTY_BASE")) + GetAddress("KO_OFF_PARTY_LIST")));
-
-            for (int i = 0; i <= GetPartyCount() - 1; i++)
-            {
-                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
-                {
-                    if (Read4Byte(Base + 0x8) == Id)
-                        return Read4Byte(Base + 0x1C);
-                }
-                else
-                {
-                    if (Read4Byte(Base + 0x8) == Id)
-                        return Read4Byte(Base + 0x18);
-                }
-
-                Base = Read4Byte(Base);
-            }
-
-            return 0;
-        }
-
         public int GetPartyCount()
         {
-            return Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PARTY_BASE")) + GetAddress("KO_OFF_PARTY_COUNT"));
+            return Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PtBase")) + GetAddress("KO_OFF_PtCount"));
         }
 
         public bool IsPartyMember(string Name)
         {
-            int Base = Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PARTY_BASE")) + GetAddress("KO_OFF_PARTY_LIST")));
+            int Base = Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PtBase")) + GetAddress("KO_OFF_Pt")));
 
             for (int i = 0; i <= GetPartyCount() - 1; i++)
             {
                 string MemberName = "";
 
-                if (GetPlatform() == AddressEnum.Platform.USKO || GetPlatform() == AddressEnum.Platform.CNKO)
+                if (GetPlatform() == AddressEnum.Platform.CNKO)
                 {
-                    int MemberNameLen = Read4Byte(Base + 0x40);
+                    int MemberNickLen = Read4Byte(Base + 0x44);
 
-                    if (MemberNameLen > 15)
-                        MemberName = ReadString(Read4Byte(Base + 0x30), MemberNameLen);
+                    if (MemberNickLen > 15)
+                        MemberName = ReadString(Read4Byte(Base + 0x34), MemberNickLen);
                     else
-                        MemberName = ReadString(Base + 0x30, MemberNameLen);
+                        MemberName = ReadString(Base + 0x34, MemberNickLen);
                 }
                 else
                 {
-                    int MemberNameLen = Read4Byte(Base + 0x40);
+                    int MemberNickLen = Read4Byte(Base + 0x40);
 
-                    if (MemberNameLen > 15)
-                        MemberName = ReadString(Read4Byte(Base + 0x30), MemberNameLen);
+                    if (MemberNickLen > 15)
+                        MemberName = ReadString(Read4Byte(Base + 0x30), MemberNickLen);
                     else
-                        MemberName = ReadString(Base + 0x30, MemberNameLen);
+                        MemberName = ReadString(Base + 0x30, MemberNickLen);
                 }
 
                 if (Name == MemberName)
+                    return true;
+
+                Base = Read4Byte(Base);
+            }
+
+            return false;
+        }
+
+        public bool IsPartyMemberNeedHeal()
+        {
+            int Base = Read4Byte(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_DLG")) + GetAddress("KO_OFF_PtBase")) + GetAddress("KO_OFF_Pt")));
+
+            for (int i = 0; i <= GetPartyCount() - 1; i++)
+            {
+                int MemberHp = Read4Byte(Base + 0x14);
+                int MemberMaxHp = Read4Byte(Base + 0x18);
+
+                if (GetPlatform() == AddressEnum.Platform.CNKO)
+                {
+                    MemberHp = Read4Byte(Base + 0x18);
+                    MemberMaxHp = Read4Byte(Base + 0x1C);
+                }
+
+                if (MemberHp < MemberMaxHp)
                     return true;
 
                 Base = Read4Byte(Base);
@@ -3557,34 +3200,34 @@ namespace KOF.Core
             SendPacket("2F03" + AlignDWORD(Name.Length).Substring(0, 2) + "00" + StringToHex(Name));
         }
 
-        public string GetProperHealthBuff(int maxHp)
+        public string GetProperHealthBuff(int MaxHp)
         {
-            int undyHp = (int)Math.Round((float)(maxHp * 60.0f) / 100.0f);
+            int UndyHp = (int)Math.Round((float)(MaxHp * 60.0f) / 100.0f);
 
             if (GetSkill(117) > 0 && GetSkillPoint(1) >= 78)
             {
-                if (undyHp >= 2500)
+                if (UndyHp >= 2500)
                     return "Undying";
                 else
                     return "Superioris";
             }
             else if (GetSkill(112) > 0 && GetSkillPoint(1) >= 70)
             {
-                if (undyHp >= 2000)
+                if (UndyHp >= 2000)
                     return "Undying";
                 else
                     return "Imposingness";
             }
             else if (GetSkillPoint(1) >= 57)
             {
-                if (undyHp >= 1500)
+                if (UndyHp >= 1500)
                     return "Undying";
                 else
                     return "Massiveness";
             }
             else if (GetSkillPoint(1) >= 54)
             {
-                if (undyHp >= 1200)
+                if (UndyHp >= 1200)
                     return "Undying";
                 else
                     return "Heapness";
@@ -3641,22 +3284,18 @@ namespace KOF.Core
 
         public string GetProperHeal()
         {
-            if (GetSkillPoint(0) >= 45)
+            if (GetSkillPoint(1) >= 45)
                 return "Superior Healing";
-            else if (GetSkillPoint(0) >= 36)
+            else if (GetSkillPoint(1) >= 36)
                 return "Massive Healing";
-            else if (GetSkillPoint(0) >= 27)
+            else if (GetSkillPoint(1) >= 27)
                 return "Great Healing";
-            else if (GetSkillPoint(0) >= 18)
+            else if (GetSkillPoint(1) >= 18)
                 return "Major Healing";
-            else if (GetSkillPoint(0) >= 9)
+            else if (GetSkillPoint(1) >= 9)
                 return "Healing";
-            else if (GetSkillPoint(0) >= 0)
+            else if (GetSkillPoint(1) >= 0)
                 return "Minor Healing";
-            else if (GetLevel() >= 5)
-                return "Light Healing";
-            else if (GetLevel() >= 1)
-                return "Tiny Healing";
 
             return "";
         }
@@ -3732,278 +3371,70 @@ namespace KOF.Core
             return GetZoneId() == 81 || GetZoneId() == 82 || GetZoneId() == 83;
         }
 
-        public void IntroSkip()
+        public void Test()
         {
-            if (GetPlatform() == AddressEnum.Platform.CNKO)
-            {
-                ExecuteRemoteCode("60" +
-                    "C6810C01000001" +
-                    "FF35" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "BF" + AlignDWORD(GetAddress("KO_PTR_INTRO_SKIP_CALL")) +
-                    "FFD7" +
-                    "83C404" +
-                    "B001" +
-                    "61" +
-                    "C20400"
-                    );
-            }
-            else if (GetPlatform() == AddressEnum.Platform.JPKO)
-            {
-                ExecuteRemoteCode("60" +
-                    "C6812401000001" +
-                    "FF35" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "BF" + AlignDWORD(GetAddress("KO_PTR_INTRO_SKIP_CALL")) +
-                    "FFD7" +
-                    "83C404" +
-                    "B001" +
-                    "61" +
-                    "C20400"
-                    );
-            }
+
+            int TargetBase = GetTargetBase(GetTargetId());
+
+            Write4Byte(TargetBase + 0x718, 0);
+            //WriteFloat(TargetBase + GetAddress("KO_OFF_Y"), 0);
+
+
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700039000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C4, 1);
+            //Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C6, 1);
+            //Write4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_CHR")) + 0x58) + 0x5C7, 1);
+
+            //Debug.WriteLine(GetInventoryItemId(14));
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(160210195) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(84738048) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700038000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //StartRouteEvent(807, 460);
+
+            //ExecuteRemoteCode("608B0D" + AlignDWORD(GetAddress("KO_PTR_CHR")) + "6A0068" + AlignDWORD(700038000) + "B8" + AlignDWORD(GetAddress("KO_FAKE_ITEM")) + "FFD061C3");
+
+            //SendPacket("4800");
         }
 
-        public void LoginAlready()
+        public void ChannelList()
         {
-            string CodeString = "60" +
-                "8B0D" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                "BF" + AlignDWORD(int.Parse("006B11A0", System.Globalization.NumberStyles.HexNumber)) +
-                "FFD7" +
-                "61" +
-                "C3";
-
-            ExecuteRemoteCode(CodeString);
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x12C) +
+                "68" + AlignDWORD(0xDD) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_01")) +
+                "FFD761C3");
         }
 
-        public void Login(string AccountId, string Password)
+        public void SelectChannel(int ChannelId)
         {
-            if (GetPlatform() == AddressEnum.Platform.CNKO)
-            {
-                IntPtr AccountIdBase = new IntPtr(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_LOGIN")) + 0x2C) + 0x10C) + 0x13C);
-                IntPtr AccountIdLengthBase = AccountIdBase + 0x10;
-                IntPtr PasswordBase = new IntPtr(Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_LOGIN")) + 0x2C) + 0x110) + 0x124);
-                IntPtr PasswordLengthBase = PasswordBase + 0x10;
-
-                Write4Byte(AccountIdLengthBase, AccountId.Length);
-                WriteString(AccountIdBase, AccountId);
-                Write4Byte(PasswordLengthBase, Password.Length);
-                WriteString(PasswordBase, Password);
-
-                Thread.Sleep(1000);
-
-                /* string CodeString = "60" +
-                     "8B15" + AlignDWORD(GetAddress("KO_PTR_LOGIN_BTN")) +
-                     "8B8AA8000000" +
-                     "8B01" +
-                     "8B35" + AlignDWORD(GetAddress("KO_PTR_LOGIN_BTN_BASE")) +
-                     "8B762C" +
-                     "8BB610010000" +
-                     "8B36" +
-                     "6800100000" +
-                     "56" +
-                     "BF" + AlignDWORD(GetAddress("KO_PTR_LOGIN_BTN_CALL")) +
-                     "FFD7" +
-                     "61" +
-                     "C3";
-
-                 ExecuteRemoteCode(CodeString);*/
-
-                string CodeString = "60" +
-                    "8B0D" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "BF" + AlignDWORD(int.Parse("006B0CF0", System.Globalization.NumberStyles.HexNumber)) +
-                    "FFD7" +
-                    "8B0D" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "BF" + AlignDWORD(int.Parse("006B3200", System.Globalization.NumberStyles.HexNumber)) +
-                    "FFD7" +
-
-                    "61" +
-                    "C3";
-
-                ExecuteRemoteCode(CodeString);
-            }
-
-            Thread.Sleep(1000);
-
-            while (true)
-            {
-                if (_Process.HasExited)
-                    return;
-
-                short LoginState = ReadByte(Read4Byte(Read4Byte(GetAddress("KO_PTR_PKT")) + 0x3C));
-
-                switch(LoginState)
-                {
-                    case 0:
-                        {
-                            if (GetPlatform() == AddressEnum.Platform.CNKO)
-                            {
-                                if (Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_LOGIN")) + 0x2C) + 0x250) == 0) //Server List
-                                    SelectServer(_AccountData.ServerId - 1);
-                                else
-                                {
-                                    LoginAlready(); //Already Login Disconnect Packet
-                                    Login(AccountId, Password);
-                                    return;
-                                }
-                            }
-                            else if (GetPlatform() == AddressEnum.Platform.JPKO)
-                            {
-                                if (Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_LOGIN")) + 0x28) + 0x43C) == 1)
-                                    SelectServer(_AccountData.ServerId - 1);
-                            }
-                        }
-                        break;
-                    case 49: 
-                        {
-                            if((GetPlatform() == AddressEnum.Platform.CNKO && Read4Byte(Read4Byte(GetAddress("KO_PTR_CHARACTER_SELECT")) + 0x3C) != 0)
-                                || (GetPlatform() == AddressEnum.Platform.JPKO && Read4Byte(Read4Byte(GetAddress("KO_PTR_CHARACTER_SELECT")) + 0x2C) != 0))
-                            {
-                                Thread.Sleep(3000);
-
-                                for (int i = 0; i < _AccountData.CharacterId - 1; i++)
-                                {
-                                    SelectCharacterTurnLeft();
-                                    Thread.Sleep(3000);
-                                }
-
-                                SelectCharacter();
-
-                                SetPhase(EPhase.Selected);
-
-                                return;
-                            }
-                        }
-                        break;
-                }
-
-                Thread.Sleep(250);
-            }
-
-            /*if (GetPlatform() == AddressEnum.Platform.CNKO)
-            {
-                while (Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_LOGIN")) + 0x2C) + 0x250) != 0)
-                {
-                    if (_Process.HasExited)
-                        return;
-
-                    Thread.Sleep(100);
-                }
-                    
-            }
-            else if (GetPlatform() == AddressEnum.Platform.JPKO)
-            {
-                while (Read4Byte(Read4Byte(Read4Byte(GetAddress("KO_PTR_LOGIN")) + 0x28) + 0x43C) != 1)
-                {
-                    if (_Process.HasExited)
-                        return;
-
-                    Thread.Sleep(100);
-                }
-            }
-
-            if(!_Process.HasExited)
-            {
-                Thread.Sleep(500);
-
-                SelectServer(_AccountData.ServerId - 1);
-
-                if (GetPlatform() == AddressEnum.Platform.CNKO)
-                {
-                    while (Read4Byte(Read4Byte(GetAddress("KO_PTR_CHARACTER_SELECT")) + 0x3C) == 0)
-                    {
-                        if (_Process.HasExited)
-                            return;
-
-                        Thread.Sleep(100);
-                    }
-                }
-                else if (GetPlatform() == AddressEnum.Platform.JPKO)
-                {
-                    while (Read4Byte(Read4Byte(GetAddress("KO_PTR_CHARACTER_SELECT")) + 0x2C) == 0)
-                    {
-                        if (_Process.HasExited)
-                            return;
-
-                        Thread.Sleep(100);
-                    }
-                }
-
-                if (!_Process.HasExited)
-                {
-                    Thread.Sleep(3000);
-
-                    for (int i = 0; i < _AccountData.CharacterId - 1; i++)
-                    {
-                        SelectCharacterTurnLeft();
-                        Thread.Sleep(3000);
-                    }
-
-                    SelectCharacter();
-
-                    SetPhase(EPhase.Loggining);
-                }
-            }*/
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x15C) +
+                "6A" + AlignDWORD(ChannelId).Substring(0, 2) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_02")) +
+                "FFD761C3");
         }
 
         public void SelectServer(int ServerId)
         {
-            if (GetPlatform() == AddressEnum.Platform.JPKO)
-            {
-                ExecuteRemoteCode("60" +
-                    "A1" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "8B4028" +
-                    "C78004040000" + AlignDWORD(ServerId) +
-                    "8B01" +
-                    "8B0D" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "BF" + AlignDWORD(GetAddress("KO_PTR_SERVER_SELECT")) +
-                    "FFD7" +
-                    "61" +
-                    "C3");
-            } 
-            else if(GetPlatform() == AddressEnum.Platform.CNKO)
-            {
-                ExecuteRemoteCode("60" +
-                    "A1" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "8B402C" +
-                    "C7800C040000" + AlignDWORD(ServerId) +
-                    "8B01" +
-                    "8B0D" + AlignDWORD(GetAddress("KO_PTR_LOGIN")) +
-                    "BF" + AlignDWORD(GetAddress("KO_PTR_SERVER_SELECT")) +
-                    "FFD7" +
-                    "61" +
-                    "C3");
-            }
-
-            SetPhase(EPhase.Selecting);
-        }
-
-        public void SelectCharacterTurnLeft()
-        {
-            ExecuteRemoteCode("60" +
-                "8B0D" + AlignDWORD(GetAddress("KO_PTR_CHARACTER_SELECT")) +
-                "BF" + AlignDWORD(GetAddress("KO_PTR_CHARACTER_SELECT_LEFT")) +
-                "FFD7" +
-                "61" +
-                "C3");
-        }
-
-        public void SelectCharacter()
-        {
-            ExecuteRemoteCode("60" +
-                "8B0D" + AlignDWORD(GetAddress("KO_PTR_CHARACTER_SELECT")) +
-                "BF" + AlignDWORD(GetAddress("KO_PTR_CHARACTER_SELECT_ENTER")) +
-                "FFD7" +
-                "61" +
-                "C3");
-        }
-
-        public void SelectCharacterTurnRight()
-        {
-            ExecuteRemoteCode("60" +
-                "8B0D" + AlignDWORD(GetAddress("KO_PTR_CHARACTER_SELECT")) +
-                "BF" + AlignDWORD(GetAddress("KO_PTR_CHARACTER_SELECT_RIGHT")) +
-                "FFD7" +
-                "61" +
-                "C3");
+            ExecuteRemoteCode(
+                "60" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x15C) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_03")) + "FFD731C931FF" +
+                "8B0D" + AlignDWORD(GetAddress("KO_OTO_LOGIN_PTR")) +
+                "8B89" + AlignDWORD(0x15C) +
+                "6A" + AlignDWORD(ServerId).Substring(0, 2) +
+                "BF" + AlignDWORD(GetAddress("KO_OTO_LOGIN_04")) +
+                "FFD761C3");
         }
 
         public int SkillBase(int SkillId)
@@ -4227,325 +3658,5 @@ namespace KOF.Core
             return null;
         }
 
-        public void PartyPriestAction(Player player, bool bForce = false)
-        {
-            if (Convert.ToBoolean(GetControl("PartyBuff")) || bForce)
-            {
-                string buff = GetControl("PartyBuffSelect");
-
-                if (buff == "Otomatik")
-                    buff = GetProperHealthBuff(player.MaxHp);
-
-                if (player.Id != GetId() || (player.Id == GetId() && IsBuffAffected() == false))
-                {
-                    Skill skillData = GetSkillData(buff);
-
-                    if (skillData != null)
-                    {
-                        if (UsePriestSkill(skillData, player.Id))
-                            Thread.Sleep(1250);
-                    }
-                }
-            }
-
-            if (Convert.ToBoolean(GetControl("PartyAc")) || bForce)
-            {
-                string selectedDefenseBuff = GetControl("PartyAcSelect");
-
-                if (selectedDefenseBuff == "Otomatik")
-                    selectedDefenseBuff = GetProperDefenseBuff();
-
-                if (player.Id != GetId() || (player.Id == GetId() && IsAcAffected() == false))
-                {
-                    Skill skillData = GetSkillData(selectedDefenseBuff);
-
-                    if (skillData != null)
-                    {
-                        if (UsePriestSkill(skillData, player.Id))
-                            Thread.Sleep(1250);
-                    }
-                }
-            }
-
-            if (Convert.ToBoolean(GetControl("PartyMind")) || bForce)
-            {
-                string selectedMindBuff = GetControl("PartyMindSelect");
-
-                if (selectedMindBuff == "Otomatik")
-                    selectedMindBuff = GetProperMindBuff();
-
-                if (player.Id != GetId() || (player.Id == GetId() && IsMindAffected() == false))
-                {
-                    Skill skillData = GetSkillData(selectedMindBuff);
-
-                    if (skillData != null)
-                    {
-                        if (UsePriestSkill(skillData, player.Id))
-                            Thread.Sleep(1250);
-                    }
-                }
-            }
-
-            if ((Convert.ToBoolean(GetControl("PartyStr")) || bForce) && GetJob(player.Class) == "Warrior")
-            {
-                Skill SkillData = GetSkillData("Strength");
-
-                if (SkillData != null)
-                {
-                    if (UsePriestSkill(SkillData, player.Class))
-                        Thread.Sleep(1250);
-                }
-            }
-        }
-
-        public void PartyPriestHealAction(Player player)
-        {
-            if (Convert.ToBoolean(GetControl("PartyHeal")))
-            {
-                double healPercent = Math.Round(((double)player.Hp * 100) / player.MaxHp);
-
-                if (healPercent <= Convert.ToInt32(GetControl("PartyHealValue")))
-                {
-                    string selectedHeal = GetControl("PartyHealSelect");
-
-                    if (selectedHeal == "Otomatik")
-                        selectedHeal = GetProperHeal();
-
-                    Skill skillData = GetSkillData(selectedHeal);
-
-                    if (skillData != null)
-                    {
-                        if (UsePriestSkill(skillData, player.Id))
-                            Thread.Sleep(1250);
-                    }
-                }
-            }
-
-            if (Convert.ToBoolean(GetControl("PartyGroupHeal")))
-            {
-                double healPercent = Math.Round(((double)player.Hp * 100) / player.MaxHp);
-
-                if (healPercent <= Convert.ToInt32(GetControl("PartyGroupHealValue"))
-                    && GetPartyCount() >= Convert.ToInt32(GetControl("PartyGroupHealMemberCount")))
-                {
-                    string[] skills = { "Group Complete Healing", "Group Massive Healing" };
-
-                    for (int i = 0; i < skills.Length; i++)
-                    {
-                        Skill skillData = GetSkillData(skills[i]);
-
-                        if (skillData != null)
-                        {
-                            int lastUseTime;
-
-                            bool coolDown = _GroupHealCooldown.TryGetValue(skillData.RealId, out lastUseTime);
-
-                            if (lastUseTime == 0 || Environment.TickCount > lastUseTime + (skillData.Cooldown * 1000))
-                            {
-                                if (UsePriestSkill(skillData, player.Id))
-                                {
-                                    if (coolDown == false)
-                                        _GroupHealCooldown.Add(skillData.RealId, Environment.TickCount);
-                                    else
-                                        _GroupHealCooldown[skillData.RealId] = Environment.TickCount;
-
-                                    Thread.Sleep(1250);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (Convert.ToBoolean(GetControl("PartyCure")))
-            {
-                if (player.Cure1 == 256)
-                {
-                    Skill skillData = GetSkillData("Cure Curse");
-
-                    if (skillData != null)
-                    {
-                        if (UsePriestSkill(skillData, player.Id))
-                            Thread.Sleep(1250);
-                    }
-                }
-            }
-
-            if (Convert.ToBoolean(GetControl("PartyCureDisease")))
-            {
-                if (player.Cure1 == 257 || player.Cure1 == 1 || player.Cure1 == 65536)
-                {
-                    Skill skillData = GetSkillData("Cure Disease");
-
-                    if (skillData != null)
-                    {
-                        if (UsePriestSkill(skillData, player.Id))
-                            Thread.Sleep(1250);
-                    }
-                }
-            }
-        }
-
-        public void PartyRogueAction(Player player)
-        {
-            if (Convert.ToBoolean(GetControl("PartySwift")) && player.Id != GetId())
-            {
-                Skill skillData = GetSkillData("Swift");
-
-                if (skillData != null)
-                {
-                    if (UseRogueSkill(skillData, player.Id))
-                        Thread.Sleep(1250);
-                }
-            }
-        }
-
-        public void PartyRogueHealAction(Player player)
-        {
-            if (Convert.ToBoolean(GetControl("PartyMinor")) && player.Id != GetId())
-            {
-                double minorPercent = Math.Round(((double)player.Hp * 100) / player.MaxHp);
-
-                if (minorPercent <= Convert.ToInt32(GetControl("PartyMinorPercent")))
-                {
-                    if (UseMinorHealing(player.Id))
-                        Thread.Sleep(30);
-                }
-            }
-        }
-
-        public void PartyMageAction(Player player)
-        {
-            if (Convert.ToBoolean(GetControl("PullAway")) && player.Id != GetId())
-            {
-                Skill skillData = GetSkillData("Summon Friend");
-
-                if (skillData != null)
-                {
-                    if (UseMageSkill(skillData, player.Id))
-                        Thread.Sleep(1250);
-                }
-            }
-        }
-
-        public void RepairEquipmentAction(int npcId)
-        {
-            if (GetAction() != EAction.Routing) return;
-
-            SendNotice("Repair action start.");
-
-            RepairAllEquipment(npcId, 1250);
-
-            SendNotice("Repair action stop.");
-        }
-
-        public void BuyItemAction(int npcId, int npcType)
-        {
-            if (GetAction() != EAction.Routing) return;
-
-            SendNotice("Buy item action started.");
-
-            SendPacket("2001" + AlignDWORD(npcId).Substring(0, 4) + "FFFFFFFF");
-
-            Thread.Sleep(300);
-
-            List<Supply> Supply = new List<Supply>();
-
-            if (IsNeedSupply(ref Supply, true))
-            {
-                Supply.ForEach(x =>
-                {
-                    BuyItem(x.Item, npcId, npcType, Math.Abs(GetInventoryItemCount(x.Item.Id) - x.Count), 1250);
-                });
-            }
-            else
-                SendNotice("Not needed supply action.");
-
-            SendNotice("Buy item action stopped.");
-
-            Supply.Clear();
-        }
-
-        public void SellItemAction(int npcId, int npcType)
-        {
-            if (GetAction() != EAction.Routing) return;
-
-            SendNotice("Sell item action started.");
-
-            SendPacket("2001" + AlignDWORD(npcId).Substring(0, 4) + "FFFFFFFF");
-
-            Thread.Sleep(300);
-
-            if (GetSellListSize() > 0)
-            {
-                for (int i = 14; i < 42; i++)
-                {
-                    int itemId = GetInventoryItemId(i);
-
-                    if (GetSell(itemId) != null)
-                        SellItem(itemId, npcId, npcType, GetInventoryItemCount(itemId), 1250);
-                }
-            }
-            else
-                SendNotice("Not needed selling item action.");
-
-            SendNotice("Sell item action stopped.");
-        }
-
-        public void SetRouteSaving(bool State)
-        {
-            _RouteSaving = State;
-        }
-
-        public bool IsRouteSaving()
-        {
-            return _RouteSaving;
-        }
-
-        public void RouteSetAction(RouteData routeData)
-        {
-            _RouteSaveData.Add(routeData);
-        }
-
-        public void RouteSaveEvent()
-        {           
-            if(_RouteSaveData.Count() == 0)
-            {
-                RouteData routeData = new RouteData();
-
-                routeData.Action = RouteData.Event.START;
-                routeData.X = GetX();
-                routeData.Y = GetY();
-
-                RouteSetAction(routeData);
-            }
-            else
-            {
-                RouteData routeData = _RouteSaveData.Last();
-
-                if (CoordinateDistance(routeData.X, routeData.Y, GetX(), GetY()) >= 1)
-                {
-                    RouteData newRouteData = new RouteData();
-
-                    newRouteData.Action = RouteData.Event.MOVE;
-                    newRouteData.X = GetX();
-                    newRouteData.Y = GetY();
-
-                    RouteSetAction(newRouteData);
-                }
-            }
-        }
-
-        public void RouteSave()
-        {
-            if (_RouteSaveData == null)
-                return;
-
-            Database().SetRoute(GetControl("RouteName"), GetZoneId(), JsonSerializer.Serialize(_RouteSaveData));
-
-            _RouteSaveData.Clear();
-
-            SetRouteSaving(false);
-        }
     }
 }

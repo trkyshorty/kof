@@ -33,11 +33,9 @@ namespace KOF.UI
                 ListBox1.DisplayMember = "Name";
             }
 
-            if (Storage.SellCollection.ContainsKey(_Client.GetNameConst()))
+            if (_Client.GetSellListSize() > 0)
             {
-                List<Sell> SellCollection = Storage.SellCollection[_Client.GetNameConst()];
-
-                ListBox2.DataSource = new BindingSource(SellCollection, null);
+                ListBox2.DataSource = new BindingSource(_Client.GetSellList(), null);
                 ListBox2.ValueMember = "ItemId";
                 ListBox2.DisplayMember = "ItemName";
             }
@@ -47,8 +45,6 @@ namespace KOF.UI
         {
             Visible = false;
             e.Cancel = true;
-
-            _Client.Save();
         }
 
         public void InitializeControl()
@@ -143,21 +139,17 @@ namespace KOF.UI
             if (ListBox1.SelectedItem.GetType() == typeof(Inventory))
             {
                 Inventory SelectedItem = ((Inventory)ListBox1.SelectedItem);
-
-                _Client.Database().SetSell(_Client.GetNameConst(), SelectedItem.Id, SelectedItem.Name, _Client.GetPlatform().ToString());
+                _Client.SetSell(SelectedItem.Id, SelectedItem.Name);
             }
             else if (ListBox1.SelectedItem.GetType() == typeof(Item))
             {
                 Item SelectedItem = ((Item)ListBox1.SelectedItem);
-
-                _Client.Database().SetSell(_Client.GetNameConst(), SelectedItem.Id, SelectedItem.Name, _Client.GetPlatform().ToString());
+                _Client.SetSell(SelectedItem.Id, SelectedItem.Name);
             }
 
-            if (Storage.SellCollection.ContainsKey(_Client.GetNameConst()))
+            if (_Client.GetSellListSize() > 0)
             {
-                List<Sell> SellCollection = Storage.SellCollection[_Client.GetNameConst()];
-
-                ListBox2.DataSource = new BindingSource(SellCollection, null);
+                ListBox2.DataSource = new BindingSource(_Client.GetSellList(), null);
                 ListBox2.ValueMember = "ItemId";
                 ListBox2.DisplayMember = "ItemName";
             }
@@ -169,13 +161,11 @@ namespace KOF.UI
 
             Sell SelectedItem = ((Sell)ListBox2.SelectedItem);
 
-            _Client.Database().DeleteSell(_Client.GetNameConst(), SelectedItem.ItemId, _Client.GetPlatform().ToString());
+            _Client.DeleteSell(SelectedItem.ItemId);
 
-            if (Storage.SellCollection.ContainsKey(_Client.GetNameConst()))
+            if (_Client.GetSellListSize() > 0)
             {
-                List<Sell> SellCollection = Storage.SellCollection[_Client.GetNameConst()];
-
-                ListBox2.DataSource = new BindingSource(SellCollection, null);
+                ListBox2.DataSource = new BindingSource(_Client.GetSellList(), null);
                 ListBox2.ValueMember = "ItemId";
                 ListBox2.DisplayMember = "ItemName";
             }
@@ -183,16 +173,8 @@ namespace KOF.UI
 
         private void Reset_Click(object sender, EventArgs e)
         {
-            if (Storage.SellCollection.ContainsKey(_Client.GetNameConst()))
-            {
-                foreach (Sell SellData in Storage.SellCollection[_Client.GetNameConst()].ToList())
-                {
-                    if (SellData == null) continue;
-                    _Client.Database().DeleteSell(_Client.GetNameConst(), SellData.ItemId, _Client.GetPlatform().ToString());
-                }
-
-                ListBox2.DataSource = null;
-            }
+            _Client.ClearSell();
+            ListBox2.DataSource = new BindingSource(null, null);
         }
     }
 }

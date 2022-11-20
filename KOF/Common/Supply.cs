@@ -6,6 +6,5 @@ namespace KOF.Common
     {
         public Item Item { get; set; }
         public int Count { get; set; }
-        public Npc Npc { get; set; }
     }
 }

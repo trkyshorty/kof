@@ -118,31 +118,31 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AccountAdd" xml:space="preserve">
-    <value>Ekle</value>
+    <value>Add</value>
   </data>
   <data name="AccountDelete" xml:space="preserve">
-    <value>Sil</value>
+    <value>Delete</value>
   </data>
   <data name="AccountGroupBox" xml:space="preserve">
-    <value>Hesap</value>
+    <value>Account</value>
   </data>
   <data name="AccountManageGroupbox" xml:space="preserve">
-    <value>Hesap Yönetimi</value>
+    <value>Account Managament</value>
   </data>
   <data name="AccountStart" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="AcScroll" xml:space="preserve">
     <value>AC Scroll</value>
   </data>
   <data name="ActionMove" xml:space="preserve">
-    <value>Yürü</value>
+    <value>Move</value>
   </data>
   <data name="ActionRoute" xml:space="preserve">
-    <value>Rota</value>
+    <value>Route</value>
   </data>
   <data name="ActionSetCoordinate" xml:space="preserve">
-    <value>Zıpla</value>
+    <value>Jump</value>
   </data>
   <data name="AddInnHostes" xml:space="preserve">
     <value>Inn Hostes</value>
@@ -157,118 +157,115 @@
     <value>Potion</value>
   </data>
   <data name="AddRouteGroupBox" xml:space="preserve">
-    <value>Rota Ekle</value>
+    <value>Route Add</value>
   </data>
   <data name="AddSelected" xml:space="preserve">
-    <value>Seçileni Ekle</value>
+    <value>Add Selected</value>
   </data>
   <data name="AddSunderies" xml:space="preserve">
     <value>Sunderies</value>
   </data>
   <data name="AlwaysOnTop" xml:space="preserve">
-    <value>Üstte Tut</value>
+    <value>On Top</value>
   </data>
   <data name="AreaControl" xml:space="preserve">
-    <value>Merkez Dön</value>
+    <value>Move Back Area</value>
   </data>
   <data name="AreaHeal" xml:space="preserve">
-    <value>Alan Heal</value>
+    <value>Area Heal</value>
   </data>
   <data name="Attack" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="AttackDistanceLabel" xml:space="preserve">
-    <value>Mesafe (M) :</value>
+    <value>Range (M) :</value>
   </data>
   <data name="AttackGroupbox" xml:space="preserve">
-    <value>Saldırı</value>
+    <value>Attack</value>
   </data>
   <data name="AttackOnSetAreaControl" xml:space="preserve">
-    <value>Oto Merkez Al</value>
+    <value>Auto Set Area</value>
   </data>
   <data name="AttackScroll" xml:space="preserve">
     <value>Attack Scroll</value>
   </data>
   <data name="AttackSpeedLabel" xml:space="preserve">
-    <value>Hız (Ms) :</value>
+    <value>Speed (Ms) :</value>
   </data>
   <data name="AttackTabPage" xml:space="preserve">
-    <value>Saldırı</value>
+    <value>Attack</value>
   </data>
   <data name="AutoAccountSave" xml:space="preserve">
-    <value>Oto Kayıt (JPKO)</value>
+    <value>Auto Register (JPKO)</value>
   </data>
   <data name="AutoLogin" xml:space="preserve">
-    <value>Oto Login</value>
+    <value>Auto Login</value>
   </data>
   <data name="AutoLootGroupbox" xml:space="preserve">
-    <value>Oto Kutu</value>
+    <value>Auto Loot</value>
   </data>
   <data name="AutoParty" xml:space="preserve">
-    <value>Oto Party (Davet)</value>
+    <value>Party (Invite)</value>
   </data>
   <data name="AutoPartyAccept" xml:space="preserve">
-    <value>Oto Party (Accept)</value>
+    <value>Party (Accept)</value>
   </data>
   <data name="BatchActionGroupbox" xml:space="preserve">
-    <value>Toplu İşlemler</value>
+    <value>Batch Operations</value>
   </data>
   <data name="BlackMarketer" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="BlackMarketerSpeedLabel" xml:space="preserve">
-    <value>Hız (Ms) :</value>
+    <value>Speed (Ms) :</value>
   </data>
   <data name="BotManageGroupbox" xml:space="preserve">
-    <value>Bot Yönetimi</value>
+    <value>Bot Management</value>
   </data>
   <data name="BotStatusAttackButton" xml:space="preserve">
-    <value>Saldırı</value>
+    <value>Attack</value>
   </data>
   <data name="BotStatusButton" xml:space="preserve">
     <value>Bot</value>
   </data>
   <data name="BotStatusTimedSkillButton" xml:space="preserve">
-    <value>Zamanlı Skiller</value>
+    <value>Timed Skills</value>
   </data>
   <data name="CastleGroupbox" xml:space="preserve">
     <value>CSW</value>
   </data>
   <data name="CentralManageGroupbox" xml:space="preserve">
-    <value>Merkez Yönetimi</value>
+    <value>Area Control</value>
   </data>
   <data name="ClearPartyList" xml:space="preserve">
-    <value>Temizle</value>
+    <value>Clear</value>
   </data>
   <data name="ClearTargetList" xml:space="preserve">
-    <value>Temizle</value>
+    <value>Clear</value>
   </data>
   <data name="ClientClose" xml:space="preserve">
-    <value>Kapat</value>
+    <value>Close</value>
   </data>
   <data name="ClientCloseAll" xml:space="preserve">
-    <value>Tümünü Kapat</value>
+    <value>Close All</value>
   </data>
   <data name="ClientGroupbox" xml:space="preserve">
     <value>Client</value>
   </data>
   <data name="ClientHandle" xml:space="preserve">
-    <value>Yakala</value>
+    <value>Handle</value>
   </data>
   <data name="Clientless" xml:space="preserve">
     <value>Clientless</value>
   </data>
   <data name="ClientManageGroupbox" xml:space="preserve">
-    <value>Client Yönetimi</value>
+    <value>Client Management</value>
   </data>
   <data name="CommandBuff" xml:space="preserve">
     <value>Buff</value>
   </data>
   <data name="CommandGroupBox" xml:space="preserve">
-    <value>Komut</value>
-  </data>
-  <data name="CommandPartyRequest" xml:space="preserve">
-    <value>Party (Davet)</value>
+    <value>Command</value>
   </data>
   <data name="CommandSwift" xml:space="preserve">
     <value>Swift</value>
@@ -277,25 +274,25 @@
     <value>Teleport</value>
   </data>
   <data name="ControlGroupbox" xml:space="preserve">
-    <value>Kontrol</value>
+    <value>Control</value>
   </data>
   <data name="ControllerGroupbox" xml:space="preserve">
-    <value>Kontroller</value>
+    <value>Controllers</value>
   </data>
   <data name="CoordinateGroupbox" xml:space="preserve">
-    <value>Kordinat</value>
+    <value>Coordinate</value>
   </data>
   <data name="CoordinateMoveButton" xml:space="preserve">
-    <value>Yürü</value>
+    <value>Move</value>
   </data>
   <data name="CoordinateRouteButton" xml:space="preserve">
-    <value>Rota</value>
+    <value>Route</value>
   </data>
   <data name="CoordinateSetButton" xml:space="preserve">
-    <value>Zıpla</value>
+    <value>Jump</value>
   </data>
   <data name="DeathOnBorn" xml:space="preserve">
-    <value>Ölüncü Kalk</value>
+    <value>Death On Born</value>
   </data>
   <data name="DeveloperTabPage" xml:space="preserve">
     <value>Developer</value>
@@ -307,10 +304,10 @@
     <value>Drop Scroll</value>
   </data>
   <data name="FastActionGroupbox" xml:space="preserve">
-    <value>Hızlı İşlemler</value>
+    <value>Fast Actions</value>
   </data>
   <data name="FeatureGroupbox" xml:space="preserve">
-    <value>Özellik</value>
+    <value>Feature</value>
   </data>
   <data name="FlameResist" xml:space="preserve">
     <value>FR</value>
@@ -319,19 +316,19 @@
     <value>Folk (Black Marketer)</value>
   </data>
   <data name="Follow" xml:space="preserve">
-    <value>Etkinleştir</value>
+    <value>Enable</value>
   </data>
   <data name="FollowDisable" xml:space="preserve">
-    <value>Takip Dışı</value>
+    <value>Follow Disable</value>
   </data>
   <data name="GeliştiriciToolStripMenuItem" xml:space="preserve">
-    <value>Araçlar</value>
+    <value>Tool</value>
   </data>
   <data name="GeneralTabPage" xml:space="preserve">
-    <value>Genel</value>
+    <value>Common</value>
   </data>
   <data name="GetCoordinateButton" xml:space="preserve">
-    <value>Kordinatı Al</value>
+    <value>Get Coordinate</value>
   </data>
   <data name="GlacierResist" xml:space="preserve">
     <value>GR</value>
@@ -340,13 +337,13 @@
     <value>Golden Mattock</value>
   </data>
   <data name="HideAllClient" xml:space="preserve">
-    <value>Tümünü Gizle</value>
+    <value>Hide All</value>
   </data>
   <data name="HpPotion" xml:space="preserve">
     <value>HP Potion</value>
   </data>
   <data name="LanguageLabel" xml:space="preserve">
-    <value>Dil :</value>
+    <value>Lang :</value>
   </data>
   <data name="LegalAttack" xml:space="preserve">
     <value>Legal</value>
@@ -355,46 +352,46 @@
     <value>LR</value>
   </data>
   <data name="LootableItemButton" xml:space="preserve">
-    <value>Toplanabilecek Eşyalar</value>
+    <value>Collectable Items</value>
   </data>
   <data name="LootOnlyList" xml:space="preserve">
-    <value>Toplanabilecekleri Topla</value>
+    <value>Loot Common Items</value>
   </data>
   <data name="LootOnlySell" xml:space="preserve">
-    <value>Satılabilecekleri Topla</value>
+    <value>Loot Sellable Items</value>
   </data>
   <data name="MinimapGroupbox" xml:space="preserve">
     <value />
   </data>
   <data name="MiningEnable" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="MiningFullExchange" xml:space="preserve">
     <value>Dolunca Kırdır</value>
   </data>
   <data name="MiningGroupbox" xml:space="preserve">
-    <value>Maden</value>
+    <value>Mining</value>
   </data>
   <data name="MiningRemoveTrashItem" xml:space="preserve">
-    <value>Çöpleri At</value>
+    <value>Remove Trash Items</value>
   </data>
   <data name="Minor" xml:space="preserve">
     <value>Minor</value>
   </data>
   <data name="MonsterStoneEnable" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="MonsterStoneGroupbox" xml:space="preserve">
     <value>Monster Stone</value>
   </data>
   <data name="MoveCswStone" xml:space="preserve">
-    <value>Taşa Git</value>
+    <value>Move Stone</value>
   </data>
   <data name="MoveGroupbox" xml:space="preserve">
-    <value>Hareket</value>
+    <value>Action</value>
   </data>
   <data name="MoveToLoot" xml:space="preserve">
-    <value>Kutuya Koş</value>
+    <value>Move Loot</value>
   </data>
   <data name="MpPotion" xml:space="preserve">
     <value>MP Potion</value>
@@ -403,28 +400,28 @@
     <value>Multi</value>
   </data>
   <data name="MultiManageGroupbox" xml:space="preserve">
-    <value>Multi Kontrolleri</value>
+    <value>Multi Controller</value>
   </data>
   <data name="NpcInTown" xml:space="preserve">
-    <value>Townda mı?</value>
+    <value>Is Town?</value>
   </data>
   <data name="NpcNationCommon" xml:space="preserve">
-    <value>Irk Bağımsız</value>
+    <value>All Nation</value>
   </data>
   <data name="OnlyNoah" xml:space="preserve">
-    <value>Sadece Noah</value>
+    <value>Only Noah</value>
   </data>
   <data name="Oreads" xml:space="preserve">
-    <value>Oto Kutu (Peri)</value>
+    <value>Auto Loot (Oread)</value>
   </data>
   <data name="OtherTabPage" xml:space="preserve">
-    <value>Diğer</value>
+    <value>Other</value>
   </data>
   <data name="PacketGroupbox" xml:space="preserve">
-    <value>Paket</value>
+    <value>Packet</value>
   </data>
   <data name="PacketLoggerButton" xml:space="preserve">
-    <value>Paket Dinle</value>
+    <value>Packet Logger</value>
   </data>
   <data name="PartyAc" xml:space="preserve">
     <value>AC</value>
@@ -445,7 +442,7 @@
     <value>Heal</value>
   </data>
   <data name="PartyListGroupbox" xml:space="preserve">
-    <value>Party Listesi</value>
+    <value>Party List</value>
   </data>
   <data name="PartyMageGroupBox" xml:space="preserve">
     <value>Mage</value>
@@ -475,37 +472,37 @@
     <value>%</value>
   </data>
   <data name="PotSunderiesGroupbox" xml:space="preserve">
-    <value>Potçu / Sunderies</value>
+    <value>Potion / Sunderies</value>
   </data>
   <data name="PressOkButton" xml:space="preserve">
     <value>Press OK</value>
   </data>
   <data name="ProtectGroupbox" xml:space="preserve">
-    <value>Koruma</value>
+    <value>Protection</value>
   </data>
   <data name="ProtectTabPage" xml:space="preserve">
-    <value>Koruma</value>
+    <value>Protect</value>
   </data>
   <data name="PullAway" xml:space="preserve">
-    <value>Uzaklaşınca çek</value>
+    <value>Teloport Back</value>
   </data>
   <data name="RAttack" xml:space="preserve">
-    <value>R Vur</value>
+    <value>R Attack</value>
   </data>
   <data name="RefreshBotData" xml:space="preserve">
-    <value>Bilgileri Yenile</value>
+    <value>Refresh Bot Data</value>
   </data>
   <data name="RefreshPartyList" xml:space="preserve">
-    <value>Yenile</value>
+    <value>Refresh</value>
   </data>
   <data name="RemoveAllMob" xml:space="preserve">
-    <value>Yaratıkları Sil</value>
+    <value>Remove Mobs</value>
   </data>
   <data name="RepairAllEquipment" xml:space="preserve">
-    <value>Ekipmanları Tamir Et</value>
+    <value>Repair All Equipment</value>
   </data>
   <data name="RepairGroupbox" xml:space="preserve">
-    <value>Tamir</value>
+    <value>Repair</value>
   </data>
   <data name="RepairMagicHammer" xml:space="preserve">
     <value>Magic Hammer</value>
@@ -514,10 +511,10 @@
     <value>Sunderies</value>
   </data>
   <data name="ResetBotData" xml:space="preserve">
-    <value>Bilgileri Sıfırla</value>
+    <value>Reset Bot Data</value>
   </data>
   <data name="RouteActionGroupBox" xml:space="preserve">
-    <value>Aksiyon</value>
+    <value>Action</value>
   </data>
   <data name="RouteAddInnHostes" xml:space="preserve">
     <value>Inn Hostes</value>
@@ -532,46 +529,46 @@
     <value>Sunderies</value>
   </data>
   <data name="RouteDeleteButton" xml:space="preserve">
-    <value>Sil</value>
+    <value>Delete</value>
   </data>
   <data name="RouteSaveGroupBox" xml:space="preserve">
-    <value>Kaydet</value>
+    <value>Save</value>
   </data>
   <data name="RouteSaveStart" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="RouteTestButton" xml:space="preserve">
-    <value>Rota Test</value>
+    <value>Route Test</value>
   </data>
   <data name="ScrollLabel" xml:space="preserve">
-    <value>Kağıt : </value>
+    <value>Scroll : </value>
   </data>
   <data name="SearchMob" xml:space="preserve">
-    <value>Yaratık Tara</value>
+    <value>Search Mob</value>
   </data>
   <data name="SearchPlayer" xml:space="preserve">
-    <value>Oyuncu Tara</value>
+    <value>Search Player</value>
   </data>
   <data name="SellableItemButton" xml:space="preserve">
-    <value>Satılabilecek Eşyalar</value>
+    <value>Sellable Items</value>
   </data>
   <data name="SellInventoryFull" xml:space="preserve">
-    <value>Dolunca Sat</value>
+    <value>Sell when full</value>
   </data>
   <data name="SellInventoryItemButton" xml:space="preserve">
-    <value>Satılabilecekleri Sat</value>
+    <value>Sell Sellable Items</value>
   </data>
   <data name="SendPacket" xml:space="preserve">
-    <value>Gönder</value>
+    <value>Send</value>
   </data>
   <data name="SetAreaControl" xml:space="preserve">
-    <value>Merkez Seç</value>
+    <value>Set Area</value>
   </data>
   <data name="SettingsGroupbox" xml:space="preserve">
-    <value>Ayarlar</value>
+    <value>Settings</value>
   </data>
   <data name="ShowAllClient" xml:space="preserve">
-    <value>Tümünü Göster</value>
+    <value>Show All</value>
   </data>
   <data name="SkillbarGroupbox" xml:space="preserve">
     <value>Skillbar</value>
@@ -580,31 +577,31 @@
     <value>Speed Hack</value>
   </data>
   <data name="StartSupplyEvent" xml:space="preserve">
-    <value>Tedariği Hallet</value>
+    <value>Start Supply</value>
   </data>
   <data name="StartUpgrade" xml:space="preserve">
-    <value>Başlat</value>
+    <value>Start</value>
   </data>
   <data name="StatScroll" xml:space="preserve">
     <value>Stat Scroll</value>
   </data>
   <data name="StoreItemButton" xml:space="preserve">
-    <value>Depolanacak Eşyalar</value>
+    <value>Storable Items</value>
   </data>
   <data name="Suicide" xml:space="preserve">
-    <value>İntihar Et</value>
+    <value>Suicide</value>
   </data>
   <data name="SuicideGroupbox" xml:space="preserve">
-    <value>İntihar</value>
+    <value>Suicide</value>
   </data>
   <data name="SuicideLabel" xml:space="preserve">
-    <value>HP Kalırsa</value>
+    <value>until HP</value>
   </data>
   <data name="SupplyArrow" xml:space="preserve">
     <value>Arrow</value>
   </data>
   <data name="SupplyBook" xml:space="preserve">
-    <value>Kitap</value>
+    <value>Book</value>
   </data>
   <data name="SupplyHpPotion" xml:space="preserve">
     <value>HP Potion</value>
@@ -613,7 +610,7 @@
     <value>Arrow</value>
   </data>
   <data name="SupplyInnBook" xml:space="preserve">
-    <value>Kitap</value>
+    <value>Book</value>
   </data>
   <data name="SupplyInnHostesGroupBox" xml:space="preserve">
     <value>Inn Hostes</value>
@@ -622,7 +619,7 @@
     <value>HP Potion</value>
   </data>
   <data name="SupplyInnMasterStone" xml:space="preserve">
-    <value>Master Taş</value>
+    <value>Master Stone</value>
   </data>
   <data name="SupplyInnMpPotion" xml:space="preserve">
     <value>MP Potion</value>
@@ -634,16 +631,16 @@
     <value>Wolf</value>
   </data>
   <data name="SupplyMasterStone" xml:space="preserve">
-    <value>Master Taş</value>
+    <value>Master Stone</value>
   </data>
   <data name="SupplyMpPotion" xml:space="preserve">
     <value>MP Potion</value>
   </data>
   <data name="SupplyRouteGroupBox" xml:space="preserve">
-    <value>Rota</value>
+    <value>Route</value>
   </data>
   <data name="SupplyTabPage" xml:space="preserve">
-    <value>Tedarik</value>
+    <value>Supply</value>
   </data>
   <data name="SupplyTsGem" xml:space="preserve">
     <value>TS Gem</value>
@@ -652,49 +649,49 @@
     <value>Wolf</value>
   </data>
   <data name="TakeCswStone" xml:space="preserve">
-    <value>Taşı Al</value>
+    <value>Get Stone</value>
   </data>
   <data name="TargetAutoSelect" xml:space="preserve">
-    <value>Otomatik</value>
+    <value>Auto</value>
   </data>
   <data name="TargetGroupbox" xml:space="preserve">
-    <value>Hedef</value>
+    <value>Target</value>
   </data>
   <data name="TargetListGroupbox" xml:space="preserve">
-    <value>Hedef Listesi</value>
+    <value>Target List</value>
   </data>
   <data name="TargetOpponentNation" xml:space="preserve">
-    <value>Irk Seç</value>
+    <value>Nation</value>
   </data>
   <data name="TargetWaitDown" xml:space="preserve">
-    <value>Düşmesini bekle</value>
+    <value>Wait Mob Death</value>
   </data>
   <data name="TimedSkillGroupbox" xml:space="preserve">
-    <value>Zamanlı Skiller</value>
+    <value>Timed Skills</value>
   </data>
   <data name="ToolTabPage" xml:space="preserve">
-    <value>Araçlar</value>
+    <value>Tool</value>
   </data>
   <data name="TownButton" xml:space="preserve">
-    <value>Town At</value>
+    <value>Town</value>
   </data>
   <data name="Transformation" xml:space="preserve">
-    <value>Oto TS</value>
+    <value>Auto TS</value>
   </data>
   <data name="UpgradeGroupbox" xml:space="preserve">
     <value>Upgrade</value>
   </data>
   <data name="WaitLabel" xml:space="preserve">
-    <value>Bekle (Ms) :</value>
+    <value>Wait (Ms) :</value>
   </data>
   <data name="WaitTime" xml:space="preserve">
-    <value>Zamanı Bekle</value>
+    <value>Wait Until Time</value>
   </data>
   <data name="Wallhack" xml:space="preserve">
     <value>Wallhack</value>
   </data>
   <data name="YardımToolStripMenuItem" xml:space="preserve">
-    <value>Yardım</value>
+    <value>Help</value>
   </data>
   <data name="ZoneXYInfo" xml:space="preserve">
     <value />

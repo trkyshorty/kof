@@ -40,14 +40,14 @@ namespace KOF.UI
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.GroupBox2 = new System.Windows.Forms.GroupBox();
             this.GroupBox3 = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.LootPrice = new System.Windows.Forms.NumericUpDown();
+            this.Price = new System.Windows.Forms.Label();
             this.LootOther = new System.Windows.Forms.CheckBox();
             this.LootConsumable = new System.Windows.Forms.CheckBox();
             this.Reset = new System.Windows.Forms.Button();
             this.SearchLootableItemList = new System.Windows.Forms.TextBox();
             this.ListBox2 = new System.Windows.Forms.ListBox();
-            this.Price = new System.Windows.Forms.Label();
-            this.LootPrice = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.GroupBox1.SuspendLayout();
@@ -165,6 +165,44 @@ namespace KOF.UI
             this.GroupBox3.TabStop = false;
             this.GroupBox3.Text = "Topla";
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(90, 94);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(33, 13);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "Noah";
+            // 
+            // LootPrice
+            // 
+            this.LootPrice.Increment = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.LootPrice.Location = new System.Drawing.Point(63, 70);
+            this.LootPrice.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.LootPrice.Name = "LootPrice";
+            this.LootPrice.Size = new System.Drawing.Size(100, 20);
+            this.LootPrice.TabIndex = 5;
+            this.LootPrice.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.LootPrice.ThousandsSeparator = true;
+            this.LootPrice.ValueChanged += new System.EventHandler(this.LootPrice_ValueChanged);
+            // 
+            // Price
+            // 
+            this.Price.AutoSize = true;
+            this.Price.Location = new System.Drawing.Point(8, 72);
+            this.Price.Name = "Price";
+            this.Price.Size = new System.Drawing.Size(49, 13);
+            this.Price.TabIndex = 4;
+            this.Price.Text = "Topla >=";
+            // 
             // LootOther
             // 
             this.LootOther.AutoSize = true;
@@ -217,49 +255,6 @@ namespace KOF.UI
             this.ListBox2.Size = new System.Drawing.Size(184, 251);
             this.ListBox2.TabIndex = 0;
             this.ListBox2.DoubleClick += new System.EventHandler(this.ListBox2_DoubleClick);
-            // 
-            // Price
-            // 
-            this.Price.AutoSize = true;
-            this.Price.Location = new System.Drawing.Point(8, 72);
-            this.Price.Name = "Price";
-            this.Price.Size = new System.Drawing.Size(49, 13);
-            this.Price.TabIndex = 4;
-            this.Price.Text = "Topla >=";
-            // 
-            // LootPrice
-            // 
-            this.LootPrice.Increment = new decimal(new int[] {
-            100000,
-            0,
-            0,
-            0});
-            this.LootPrice.Location = new System.Drawing.Point(63, 70);
-            this.LootPrice.Maximum = new decimal(new int[] {
-            100000000,
-            0,
-            0,
-            0});
-            this.LootPrice.Name = "LootPrice";
-            this.LootPrice.Size = new System.Drawing.Size(100, 20);
-            this.LootPrice.TabIndex = 5;
-            this.LootPrice.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.LootPrice.ThousandsSeparator = true;
-            this.LootPrice.Value = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
-            this.LootPrice.ValueChanged += new System.EventHandler(this.LootPrice_ValueChanged);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(90, 94);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(33, 13);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Noah";
             // 
             // LootableItem
             // 

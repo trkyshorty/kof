@@ -166,6 +166,12 @@
     <Compile Include="UI\Dispatcher.Designer.cs">
       <DependentUpon>Dispatcher.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\Main.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Main.designer.cs">
+      <DependentUpon>Main.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\PacketLogger.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -184,12 +190,6 @@
     <Compile Include="UI\LootableItem.Designer.cs">
       <DependentUpon>LootableItem.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Main.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Main.Designer.cs">
-      <DependentUpon>Main.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Localization\Strings.tr-TR.resx" />
@@ -202,6 +202,9 @@
     <EmbeddedResource Include="UI\Dispatcher.resx">
       <DependentUpon>Dispatcher.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\Main.resx">
+      <DependentUpon>Main.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\PacketLogger.resx">
       <DependentUpon>PacketLogger.cs</DependentUpon>
     </EmbeddedResource>
@@ -210,9 +213,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LootableItem.resx">
       <DependentUpon>LootableItem.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\Main.resx">
-      <DependentUpon>Main.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

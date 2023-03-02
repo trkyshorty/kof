@@ -39,4 +39,6 @@ Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Re
 
 [Can Sayan](https://github.com/dcansyn)
 
+[1cheaters.com](https://www.1cheaters.com/)
+
 [onlinehile.com](https://www.onlinehile.com/)

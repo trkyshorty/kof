@@ -22,7 +22,7 @@ Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Re
 
 ## Discord
 
-[If you need help for KOF](https://discord.gg/C9RMpHtccy)
+[If you need help for KOF](https://discord.gg/5pBp2s2NUr)
 
 ## Tested Servers (29-02-2022)
 
@@ -38,7 +38,3 @@ Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Re
 [Mustafa Kemal GILOR](https://github.com/mustafakemalgilor)
 
 [Can Sayan](https://github.com/dcansyn)
-
-[1cheaters.com](https://www.1cheaters.com/)
-
-[onlinehile.com](https://www.onlinehile.com/)

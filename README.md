@@ -22,7 +22,7 @@ Copy **Migration and Resource** folders to Output Directory (Bin/Debug or Bin/Re
 
 ## Discord
 
-[If you need help for KOF](https://discord.gg/5pBp2s2NUr)
+[If you need help for KOF](https://discord.gg/GaAYYzKs5k)
 
 ## Tested Servers (29-02-2022)
 
